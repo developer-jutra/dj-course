@@ -1,0 +1,3 @@
+- `run-cbow.py` - Zadanie 4.1
+- `run-doc2vec.py` - Zadanie 4.2
+- `run-sbert.py` - Zadanie 4.3

@@ -1,5 +1,6 @@
 # M1: LLMy i Agenty: Architektura i Działanie
 
+- `embedding` - trenujemy model embeddingowy (czyli model kojarzący najbliższe słowa lub najbliższe zdania)
 - **bazowy kod klientów** zewn. LLM (wymaga pdania klucza):
   - `external-model-anthropic-node`, `external-model-anthropic-py` - kod anthropickowy
   - `external-model-google-genai-node`, `external-model-google-genai-py` - kod google'owski
@@ -15,3 +16,4 @@
 - `mlflow` - nasłuchiwanie interackji agent-model przy użyciu mlflow, claude/llama
   - lokalny serwer `llama-cpp-python`
 - `szczypta machine-learning` - ilustracja w formie kodu najważniejszych operacji tensorowych w ML (te same rzeczy robi pytorch/tensorflow, ale tu jest to pokazane "od zera")
+- `tokenizer` - tworzymy własny BPE (byte-pair encoding), czyli słownik dla modelu językowego, a także uruchamiamy analitykę
