@@ -1,0 +1,1 @@
+Moment bezwładności to miara bezwładności ciała w ruchu obrotowym względem określonej, ustalonej osi obrotu. Im większy moment, tym trudniej zmienić ruch obrotowy ciała, np. rozkręcić dane ciało lub zmniejszyć jego prędkość kątową.

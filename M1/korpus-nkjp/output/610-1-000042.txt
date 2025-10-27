@@ -1,0 +1,2 @@
+Przy wekslu, przekazanym z jednego miejsca na inne, w którem obowiązuje kalendarz odmienny, a płatnym w pewien czas po dacie, przelicza się dzień wystawienia na dzień, odpowiadający kalendarzowi miejsca płatności, i podług tego oznacza się termin płatności.
+Zasadę ustępu poprzedzającego stosuje się także do obliczania terminów przedstawienia weksli.

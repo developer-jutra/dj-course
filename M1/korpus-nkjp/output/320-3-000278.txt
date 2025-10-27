@@ -1,0 +1,2 @@
+Norma określa zestawy znaków, separatory czyli znaki rozdzielające, strukturę i składniki wymiany, zasady upakowywania danych. Zawiera także definicje segmentów pomocniczych. Poszczególne komunikaty, segmenty danych użytkowych, jak również elementy danych oraz kody są oddzielnie stopniowo projektowane i zatwierdzane.
+Polski odpowiednik tej normy PN-92/T-20091 został opublikowany przez Polski Komitet Normalizacji i Miar. Obowiązuje od 1.01.1993 r.

@@ -1,0 +1,32 @@
+Słów razem: 1003956
+
+Podział wg typów:
+-----------------
+typ_fakt 52600
+typ_inf-por 54284
+typ_konwers 58459
+typ_listy 411
+typ_lit 164543
+typ_lit_poezja 63
+typ_media 23408
+typ_nd 19438
+typ_net_interakt 50510
+typ_net_nieinterakt 18937
+typ_nklas 9890
+typ_publ 495662
+typ_qmow 25212
+typ_urzed 30539
+
+
+Podział wg kanałów:
+-------------------
+kanal_internet 69447
+kanal_ksiazka 309986
+kanal_mowiony 81867
+kanal_prasa 116495
+kanal_prasa_dziennik 253410
+kanal_prasa_inne 65455
+kanal_prasa_miesiecznik 17116
+kanal_prasa_tygodnik 90180
+
+

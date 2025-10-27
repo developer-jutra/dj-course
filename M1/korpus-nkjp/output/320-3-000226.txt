@@ -1,0 +1,3 @@
+Jezeli wspolczynnik korelacji jest rowny 0, to zmienne sa nieskorelowane.
+Jezeli wartosc wspolczynnika korelacji jest rozna od zera i nalezy do przedzialu <-0.3 ; 0.3>, to korelacja miedzy badanymi zmiennymi  jest slaba. Jezeli nalezy do przedzialu (-0.8; -0.3) lub (0.3 ; 0.8), to korelacja jest srednio silna.
+W pozostalych przypadkach korelacja jest silna.

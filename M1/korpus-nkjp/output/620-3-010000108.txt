@@ -1,0 +1,2 @@
+Uwaga! Uwaga!
+W przypadku bezprzewodowej klawiatury należy zwrócić uwagę na możliwość podsłuchania wszystkich danych (haseł, numerów kart kredytowych, pinów itd.) wprowadzanych za pomocą klawiatury przez użytkownika. Nierzadko jest to możliwe ze znacznej odległości sięgającej kilka metrów także z innego pokoju, innego piętra, na zewnątrz budynku w którym się znajdujemy, czy też za inną przeszkodą terenową.

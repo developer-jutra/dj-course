@@ -1,0 +1,4 @@
+4. Nie stosuje się postanowień ust. 1-3 od dnia, gdy:
+1) instrument zabezpieczający wygasł, został zbyty, wypowiedziany lub wykonany; nie uważa się za wygaśnięcie lub wypowiedzenie kontraktu wymiany na inny instrument uznany za zabezpieczający, jeżeli działanie takie wynika z udokumentowanej strategii zabezpieczania przyjętej przez jednostkę,
+2) zabezpieczanie nie spełnia warunków określonych w niniejszym rozdziale.
+2. Zabezpieczenie planowanej transakcji oraz uprawdopodobnionego przyszłego zobowiązania jednostki do nabycia lub zbycia aktywów po ustalonej cenie, niewprowadzonych do ksiąg rachunkowych, jest zabezpieczeniem przepływów pieniężnych, także wtedy, gdy z planowaną transakcją lub uprawdopodobnionym przyszłym zobowiązaniem wiąże się ryzyko zmian wartości godziwej.

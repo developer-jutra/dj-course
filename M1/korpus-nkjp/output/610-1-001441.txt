@@ -1,0 +1,2 @@
+2. Jeżeli różnica pomiędzy wartością godziwą a księgową aktywów netto nie jest istotna, to za wartość godziwą aktywów netto jednostki zależnej można przyjąć jej wartość księgową.
+3. Jeżeli skonsolidowanym sprawozdaniem finansowym objętych jest kilka jednostek zależnych, to dotyczącą tych jednostek wartość firmy lub ujemną wartość firmy wykazuje się w skonsolidowanym bilansie odrębnie, bez dokonywania kompensat.

@@ -1,0 +1,4 @@
+1. Zapytanie kieruje osoba upoważniona do występowania w imieniu podmiotu uprawnionego.
+2. Upoważnienie powinno określać rodzaje spraw, których może dotyczyć zapytanie.
+3. Komendant prowadzi rejestr osób upoważnionych, uwzględniając zakres udzielonych upoważnień.
+4. Jeżeli z zapytaniem zwróci się osoba nieupoważniona lub przekracza ono zakres upoważnienia, Komendant zawiadamia o tym podmiot uprawniony oraz przekazuje mu treść złożonego zapytania bez odpowiedzi.

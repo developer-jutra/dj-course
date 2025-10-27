@@ -1,0 +1,6 @@
+1. Prezes URTiP, a w zakresie określonym w art. 10 ust. 3 - Przewodniczący KRRiT, przeprowadza analizę rynków właściwych w zakresie wyrobów i usług telekomunikacyjnych.
+2. Przez pojęcie rynku właściwego rozumie się rynek właściwy w rozumieniu ustawy z dnia 15 grudnia 2000 r. o ochronie konkurencji i konsumentów.
+3. Prezes URTiP, w terminie 60 dni od dnia złożenia wniosku, weryfikuje koszt netto i w zależności od wyników tej weryfikacji przyznaje, w drodze decyzji, ustaloną kwotę dopłaty bądź odmawia jej przyznania.
+4. Prezes URTiP odmawia przyznania dopłaty, jeżeli stwierdzi, że zweryfikowany koszt netto nie stanowi uzasadnionego obciążenia przedsiębiorcy wyznaczonego.
+4. Decyzję o cofnięciu rezerwacji częstotliwości przeznaczonej do rozpowszechniania lub rozprowadzania programów radiowych lub telewizyjnych Przewodniczący KRRiT podejmuje niezwłocznie po otrzymaniu od Prezesa URTiP zawiadomienia o naruszeniu zasad wykorzystania tej częstotliwości wynikających z przepisów ustawy lub decyzji w sprawie rezerwacji.
+5. Rezerwacja częstotliwości wygasa z mocy prawa w przypadku cofnięcia lub upływu terminu, na który została udzielona.

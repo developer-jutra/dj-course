@@ -1,0 +1,3 @@
+Konto 072 służy do ewidencji zmniejszeń wartości początkowej środków trwałych oraz wartości niematerialnych i prawnych, podlegających umorzeniu jednorazowo w pełnej wartości, w miesiącu wydania ich do używania.
+Umorzenie księgowane jest w korespondencji z kontem 400.
+Na stronie Ma konta 072 ujmuje się zwiększenia, a na stronie Wn - zmniejszenia umorzenia wartości początkowej środków trwałych oraz wartości niematerialnych i prawnych.

@@ -1,0 +1,41 @@
+Np. 110-1-000002 lub 320-2-000000278
+
+Pierwsza sekcja: kategoria
+
+Trudne w klasyfikacji (000-099)
+010	Niezidentyfikowany
+030	Staroć
+040	Nieklasyfikowany
+
+Publicystyka (100-199)
+110	Książka
+120	Periodyki
+130	Dzienniki
+
+200	Beletrystyka
+
+310	Literatura faktu
+320	Naukowo-dydaktyczny
+330	Informacyjno-Poradnikowy
+
+Inne (600-699)
+610	Użytkowe
+611	Listy
+620	Internet 
+
+Mówione (700-799)
+710	Spisane
+711	Spisane-Radio
+712	Spisane-Sejm+Senat
+720	Konwersacyjne
+
+
+Druga sekcja - źródło
+1	IPI
+2	PWN
+3	Pelcra
+4	IJP
+5	Doktorat Doroty Lewandowskiej (gotowe próbki prasowe)
+
+Trzecia sekcja - numer kolejny. Dziewiątka na początku oznacza agregat. Początkowo trzecia sekcja miała 6 cyfr, potem została rozszerzona do 9.
+W związku z tą konwersją KKK-N-AXXXXX oraz KKK-N-A000XXXXX oznaczają to samo (K,N,X to dowolne cyfry, A - zero albo dziewiątka).

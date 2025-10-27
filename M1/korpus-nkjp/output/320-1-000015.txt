@@ -1,0 +1,3 @@
+Rozmiary porów są na ogół niewielkie, średnice nie przekraczają 1 [mm].  W takich warunkach dominuje przepływ laminarny, choć w grubych żwirach  i w szczelinach skalnych można się lokalnie spotkać z ruchem turbulentnym.
+Filtracja (filtracja liniowa) jest to laminarny przepływ płynu przez ośrodek porowaty.
+Fluacja (filtracja nieliniowa) jest to turbulentny przepływ płynu przez ośrodek porowaty.

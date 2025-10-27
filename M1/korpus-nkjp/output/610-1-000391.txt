@@ -1,0 +1,21 @@
+6. Pomoc uczniowi w rozwijaniu poczucia własnej wartości oraz wiary we własne możliwości poprzez pozytywną informację zwrotną dotyczącą jego kompetencji językowych i wiedzy o kulturze, innego niż ojczysty, obszaru językowego.
+7. Wspieranie ucznia w rozwijaniu postawy tolerancji, ciekawości i otwartości wobec innej kultury.
+8. Wdrażanie uczniów do samodzielności w procesie uczenia się jako przygotowania do egzaminu maturalnego, do studiów wyższych i kształcenia ustawicznego.
+1. Całościowe postrzeganie rzeczywistości przyrodniczej.
+2. Obserwowanie przyrodniczych składników środowiska i ich opis.
+3. Gromadzenie i integrowanie wiedzy koniecznej do opisywania zjawisk przyrody.
+4. Rozpoznawanie stanów fizjologicznych organizmu człowieka. Dbałość o zdrowie przez stosowanie zasad higieny i korzystanie z różnych form rekreacji.
+5. Dostrzeganie walorów przyrodniczych najbliższego regionu, znajomość prawnie chronionych obiektów i obszarów przyrodniczych. Rozpoznawanie, z wykorzystaniem atlasów i prostych kluczy, pospolitych gatunków roślin i zwierząt.
+3. Doskonalenie kompetencji komunikacyjnej, to znaczy umiejętności mówienia, słuchania, czytania, pisania, odbioru różnorodnych tekstów kultury.
+4. Tworzenie sytuacji, w których uczenie się języka następuje przez świadome i refleksyjne jego używanie (bez nawarstwiania teoretycznej, abstrakcyjnej wiedzy o systemie językowym).
+5. Pobudzanie postaw kreatywnych ucznia w procesie zdobywania umiejętności i gromadzenia wiedzy.
+6. Integrowanie różnych doświadczeń kulturowych.
+3. Obwody prądu stałego. Przemiany energii w obwodach prądu stałego.
+4. Pole elektromagnetyczne. Indukcja elektromagnetyczna. Obwody prądu przemiennego z pojemnością i indukcyjnością. Źródła napięcia. Elektryczne obwody drgające. Fale elektromagnetyczne i ich własności.
+5. Fizyczne podstawy mikroelektroniki i telekomunikacji. Modele przewodnictwa. Półprzewodnik, dioda, tranzystor. Analogowy i cyfrowy zapis sygnałów.
+5. Wdrażanie uczniów do samodzielnego formułowania wypowiedzi o zagadnieniach fizycznych i astronomicznych, prowadzenia dyskusji w sposób terminologicznie i merytorycznie poprawny oraz rozwiązywania prostych problemów fizycznych.
+6. Pokazywanie znaczenia, możliwości i piękna fizyki.
+7. Inspirowanie dociekliwości i postawy badawczej uczniów.
+8. Stworzenie warunków do planowania i prowadzenia eksperymentów oraz analizy ich wyników.
+9. Wykorzystywanie metod komputerowych do budowania modeli i analizy wyników doświadczeń.
+10. Zapoznanie z możliwościami współczesnych technik badawczych.

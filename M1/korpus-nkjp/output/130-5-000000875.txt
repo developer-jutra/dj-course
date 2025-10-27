@@ -1,0 +1,1 @@
+BAZA wprowadziła na rynek dwie nowe płyty główne Lucky Star, przeznaczone do współpracy z procesorami Intel Pentium II: 6LX2 i 6 ABX2. W konstrukcji pierwszej z nich wykorzystano popularny chipset Intel 440 LX, gwarantujący dobre osiągi wydajnościowe, zwłaszcza przy korzystaniu z karty graficznej ze złączem AGP.

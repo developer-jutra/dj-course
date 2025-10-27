@@ -1,0 +1,2 @@
+Wprowadzenie dyszy i nadmuchu gazu zmienia kształt plazmy i podnosi maksymalną temperaturę. Jednak temperatura ta jest niższa od wartości otrzymanych w pomiarach.
+Metoda obliczania stałych materiałowych ma zauważalny wpływ na wyniki modelu, lecz bez względu na użytą procedurę obliczania stałych materiałowych maksymalna temperatura w plazmie pozostaje niższa niż otrzymana z pomiarów spektralnych.

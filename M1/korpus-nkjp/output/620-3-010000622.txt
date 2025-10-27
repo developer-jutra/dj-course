@@ -1,0 +1,1 @@
+Orion platinum – program do tworzenia muzyki. Produkt firmy Synapse Audio, która wydała także programy Orion Pro, Hydra, Scorpion i wiele dodatkowych łat oraz samplerów. Program oparty jest na podawaniu tonacji i częstotliwości ogromnej liczby sampli, tj. bębnów, syntezatorów, sztucznych głosów perkusji etc. Ponadto jest kompatybilny z klawiaturami MIDI.

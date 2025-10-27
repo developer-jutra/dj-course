@@ -1,0 +1,1 @@
+Silnik strumieniowy przeznaczony do pracy w naddźwiękowym zakresie prędkości lotu ma zbieżny dyfuzor wlotowy (tzn. że przekrój przepływu powietrza zmienia się od większego do mniejszego), w środku komorę spalania i dalej rozbieżną dyszę. Jednak w tym przypadku i tak musi istnieć jakaś dodatkowa turbina dostarczająca energii mechanicznej do napędu np. pompy paliwa, prądnicy.

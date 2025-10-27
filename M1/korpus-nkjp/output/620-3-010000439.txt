@@ -1,0 +1,1 @@
+Okazuje się że powyższe maszyny mają swoje ograniczenia analogiczne go ograniczeń maszyn Turinga. O ile potrafią rozstrzygać problem stopu dla maszyn Turinga, nie potrafią rozstrzygać własnych problemów stopu: przykładowo maszyna wyposażona w wyrocznię nie będzie potrafiła odpowiedzieć na pytanie czy podana maszyna z wyrocznią kiedykolwiek się zatrzyma.

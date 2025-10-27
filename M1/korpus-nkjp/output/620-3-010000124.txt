@@ -1,0 +1,3 @@
+Podwójny szach jest zawsze powiązany z odkrytym szachem. Jego siłę pokazuje znana sytuacja (Diagram 2), opisana pierwszy raz przez Lucernę. Generalnie wersje tego mata są różne, jednak zasada pozostaje ta sama.
+Czarne mają znaczną przewagę, a Biały Hetman jest atakowany. Jednak w tej partii wygrywają Białe:
+Diagram 1 przedstawia przykładową sytuację związania. Spójrz na przekątną h2-b8. Znajdują się tam trzy bierki: Biały Goniec, Czarny Skoczek i Czarny Hetman. Jeżeli Czarne ruszą Skoczka, Biały Goniec natychmiast zbije Hetmana. Mówimy, że Skoczek jest związany, gdyż wykonanie nim posunięcia umożliwi Gońcowi atak.

@@ -1,0 +1,4 @@
+4. Agencja zatrudnienia ma obowiązek informowania ministra właściwego do spraw pracy o każdej zmianie siedziby, otwarciu i likwidacji oddziałów lub filii, zaprzestaniu działalności, a także okoliczności faktycznej lub prawnej mającej znaczenie dla jej działalności.
+5. Przetwarzanie danych przez agencję zatrudnienia odbywa się zgodnie z przepisami o ochronie danych osobowych.
+2. Rejestracja bezrobotnych i poszukujących pracy następuje po przedstawieniu przez te osoby dokumentów niezbędnych do ustalenia ich statusu i uprawnień.
+3. Bezrobotni mają obowiązek zgłaszania się do właściwego powiatowego urzędu pracy w wyznaczonych terminach w celu potwierdzenia swojej gotowości do podjęcia pracy i uzyskania informacji o możliwościach zatrudnienia lub szkolenia.

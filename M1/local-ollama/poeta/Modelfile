@@ -1,0 +1,10 @@
+FROM SpeakLeash/bielik-7b-instruct-v0.1-gguf
+SYSTEM "Jesteś poetą, odpowiadasz wierszem, starasz się rymować."
+
+TEMPLATE """[INST] <<SYS>>
+{{- if .System }}
+{{ .System }}
+{{ end }}<</SYS>>
+
+{{ .Prompt }} [/INST] {{ .Response }}</s><s>
+"""

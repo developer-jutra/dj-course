@@ -1,0 +1,2 @@
+2. Urządzenie zabezpieczające przed nadmiernym wzrostem nadciśnienia lub podciśnienia powinno być tak wykonane, aby zabezpieczało przed wydostawaniem się cieczy ze zbiornika i wnikaniem do niego obcych materiałów.
+3. Przy doborze przepustowości urządzenia zabezpieczającego przed nadmiernym wzrostem nadciśnienia lub podciśnienia powinno być uwzględnione najwyższe natężenie przepływu gazu, wynikające z nagrzewania lub chłodzenia zawartości oraz napełniania albo opróżniania zbiornika.

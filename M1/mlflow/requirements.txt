@@ -1,0 +1,6 @@
+# pip install -r requirements.txt
+mlflow
+mlflow[genai]
+llama-cpp-python
+openai
+starlette_context

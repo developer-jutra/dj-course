@@ -1,0 +1,1 @@
+Endogenizacja stopy inwestycji wymaga wprowadzenia do modelu P. Krugmana i A. Venablesa kapitału jako drugiego czynnika produkcji, co oznacza konieczność modyfikacji funkcji kosztów produkcji - uwzględnienia stopy procentowej jako składnika kosztowego. Kapitał "produkowany" jest w sektorze I, w którym występują efekty zewnętrzne związane z rozlewaniem się wiedzy (ang. spillover).

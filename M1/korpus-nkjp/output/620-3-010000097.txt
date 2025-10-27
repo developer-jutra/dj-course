@@ -1,0 +1,1 @@
+Substancję odniesienia zwykle dodaje się do próbki jako wzorzec wewnętrzny. Poza główną substancją odniesienia dodaje się czasem pomocnicze substancje wzorcowe (np.: jeśli przesunięcia chemiczne badanej substancji leżą w nietypowym zakresie, oddalonym od sygnałów wzorca lub z innych względów). Pomocniczymi substancjami wzorcowymi bywają rozpuszczalniki NMR.

@@ -1,0 +1,2 @@
+4. Okres ważności nie może być przedłużony, jeżeli nastąpiła zmiana wymagań, a decyzja zatwierdzenia typu nie mogłaby być wydana na podstawie zmienionych przepisów.
+5. W przypadku gdy okres ważności nie zostanie przedłużony, zatwierdzenie typu uznaje się za ważne w odniesieniu do przyrządów pomiarowych wprowadzonych już do użytkowania.

@@ -1,0 +1,5 @@
+Alkohol pierwszorzędowy.
+Określa się również rzędowość atomów wodoru. Pierwszorzędowe atomy wodoru (1°) są przyłączone do pierwszorzędowych atomów węgla: RCH3. Analogicznie można mówić o atomach wodoru drugorzędowych (2°; R2CH2) oraz trzeciorzędowych (3°; R3CH). Nie istnieją oczywiście atomy wodoru czwartorzędowe.
+Kolor niebieski - pierwszorzędowe atomy wodoru.
+Kolor zielony - drugorzędowe atomy wodoru.
+Kolor czerwony - trzeciorzędowe atomy wodoru.

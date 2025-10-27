@@ -1,0 +1,16 @@
+{
+  "name": "external-model-anthropic",
+  "author": "Developer Jutra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx ts-node src/run.ts",
+    "homework": "npx ts-node src/homework.ts",
+    "testcases": "npx ts-node src/testcases.ts"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,2 @@
+W niniejszej pracy zamierzam dodatkowo sprawdzić wpływ wybranych parametrów sytuacji głosowania na działanie poszczególnych metod wyboru i na ich odporność na głosowanie strategiczne. Parametrami tymi są: ilość alternatyw poddanych pod głosowanie i liczba wyborców biorących udział w głosowaniu.
+Praca pozwoli odpowiedzieć na pytanie o to, czy głosowanie strategiczne prowadzi do wyników lepszych od wyników głosowania szczerego.

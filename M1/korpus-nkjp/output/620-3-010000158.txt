@@ -1,0 +1,1 @@
+Zanim umieści się układ w gnieździe ZIF, przesuwa się dźwignię lub suwak z boku podstawki, co uwalnia zaciski. W tym momencie układ jest wstawiany, a ponieważ zaciski go nie blokują, umieszczenie go wymaga marginalnego nacisku (stąd nazwa ZIF). Dopiero wtedy przesuwa się dźwignię na swoje miejsce, co powoduje zaciśnięcie zacisków na stykach.

@@ -1,0 +1,2 @@
+Przy bezpośrednim wprowadzaniu danych dowody księgowe są indywidualnie przekazywane do przetwarzania. Trudniejsze jest wtedy automatyczne sprawdzanie kompletności. Nie wyklucza to jednak możliwości tworzenia paczek i liczenia sum kontrolnych po zarejestrowaniu dokumentu w komputerze.
+Niezależnie od tego, jaki jest tryb wprowadzania, dane z dokumentów podlegają kontroli bezbłędności, która może być wykonywana automatycznie na poziomie pola i rekordu.

@@ -1,0 +1,3 @@
+5. Dodatek za wysługę lat jest wypłacany w terminie wypłaty wynagrodzenia:
+1) począwszy od pierwszego dnia miesiąca kalendarzowego następującego po miesiącu, w którym pracownik nabył prawo do dodatku lub wyższej stawki dodatku, jeżeli nabycie prawa nastąpiło w ciągu miesiąca,
+2) za dany miesiąc, jeżeli nabycie prawa do dodatku lub prawa do wyższej stawki dodatku nastąpiło pierwszego dnia miesiąca.

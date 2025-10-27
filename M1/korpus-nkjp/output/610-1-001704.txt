@@ -1,0 +1,1 @@
+6. W przypadku ewidencjonowania papierów wartościowych niedopuszczonych do publicznego obrotu systemy lub podsystemy informatyczne domu maklerskiego powinny gwarantować możliwość rejestrowania danych umożliwiających jednoznaczną identyfikację papierów wartościowych będących przedmiotem poszczególnych operacji.

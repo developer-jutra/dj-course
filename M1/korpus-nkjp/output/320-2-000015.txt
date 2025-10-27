@@ -1,0 +1,2 @@
+Jednostką pomiarową natężenia PM jest ersted (Oe), ale stosowane są też gaus (Gs) lub tesla (T). Gaus jest jednostką indukcji magnetycznej mniejszą od tesli (T). 1 Gs = 0,001 T = 0,1 mT
+Magnesy nakładane na PA są zwrócone przeważnie biegunem południowym (s) do skóry, chociaż mogą istnieć specjalne wskazania do stosowania odwrotnej polaryzacji. Przypadki te wymagają konsultacji z lekarzem.

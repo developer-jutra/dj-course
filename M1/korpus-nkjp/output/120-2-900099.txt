@@ -1,0 +1,12 @@
+W części trzeciej omówimy bardziej szczegółowo wkład stanów wejściowych do amplitudy i przekroju czynnego elastycznego rozpraszania neutronów na jądrach średnich i ciężkich, tych, które z dobrym przybliżeniem można uważać za jądra sferyczne. W zakończeniu tej części podane będą wyniki numeryczne uzyskane dla niektórych jąder omawianego obszaru.
+Częściej funkcje C lambda  określa się eksperymentalnie dla kilku wyselekcjonowanych przypadków i to następnie ekstrapoluje się na inne przypadki. Elementy macierzowe przejść (E2) są łatwe do określenia dla niskoleżących stanów, to samo w niektórych przypadkach dla przejść (E3).(s.123)
+Wyższe multipolowości przejść są najlepiej obserwowane dla lekkich cząstek, ponieważ ciężkie cząstki dają duży przekrój czynny na wzbudzenie wielokrotne stanów jądrowych.
+Fenomenologiczna teoria wzbudzeń oscylacyjnych jądra oparta jest na założeniu, że wzbudzenia te polegają na zmianie kształtu jądra. Jeśli beta  lambda  oznacza parametr deformacji jądra, to hamiltonianem wyjściowym jest  , (1.1) gdzie C lambda , B lambda  oznaczają odpowiednio parametry sztywności i bezwładności jądra odpowiadające drganiom o multipolowości lambda. Częstość drgań oblicza się z klasycznego wzoru .(1.2)
+2. Przerwa energetyczna delta jest malejącą funkcją I.
+3. Energia potencjalna w funkcji beta dla różnych I wykazuje minima   I nieznacznie wzrastające w funkcji I. A więc efekt CS jest bardzo słaby i stanowi jedynie małą część przyczyny wzrostu J wraz z I.
+4. Otrzymuje się zadowalające wyjaśnienie wzrostu momentu bezwładności J wraz z energią w paśmie rotacyjnym (głównie za sprawą efektu CAP).
+4. Płynna regulacja energii w zakresie 0,1 E max  — E max .
+5. Możliwość przyspieszania cząstek w szerokim zakresie mas: p, d, He … U.
+6. Dobre parametry wiązki jonów, jak: ogniskowanie, mała rozbieżność wiązki i duża gęstość prądu na jednostkę powierzchni (parametry te wpływają na końcową zdolność rozdzielczą).
+7. Dobry stosunek "efekt / tło", małe tło promieniowania szkodliwego.
+Punktem wyjścia dla naszych rozważań będzie jądro przedstawione jako układ wielu nukleonów poruszających się w średnim polu jądrowym określonym przez jednocząstkowy potencjał i oddziaływających ponadto siłami krótkiego i długiego zasięgu. Dla sił krótkiego zasięgu przyjmuje się zazwyczaj przybliżenie przez siły kojarzące nukleony w pary, siły "pairing". Siły długiego zasięgu stanowią nieco zmodyfikowany człon rzędu lambda rozwinięcia potencjału nukleon—nukleon w szereg wielomianów Legendre’a"   (1.3).

@@ -1,0 +1,1 @@
+Za pomocą tej metody odczytanie całego genomu jednej osoby trwać ma około 30 minut. Istota pomysłu jest następująca: nowe urządzenie pobiera informację genetyczną, naśladując sposób, w jaki przekazywanie tej informacji odbywa się w przyrodzie podczas duplikacji DNA. Łańcuch DNA jest w normalnych warunkach zaplątany jak porcja spaghetti.

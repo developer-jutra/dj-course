@@ -1,0 +1,1 @@
+Talerze nowego dysku wirują z prędkością 7200 obrotów na minutę, szybkość transmisji sformatowanych danych wynosi do 47 MB na sekundę. Dysk jest bardzo cichy - emituje hałas o natężeniu zaledwie 37 decybeli. Konstruktorzy zastosowali w nowym produkcie system ochrony przed drganiami, który monitoruje ruch dysku w stosunku do obudowy lub układu mocującego.

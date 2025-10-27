@@ -1,0 +1,3 @@
+6. Schematy urządzeń do odmetanowania z podaniem rurociągów odmetanowania oraz stacji odmetanowania.
+7. Schemat rurociągów podsadzkowych oraz instalacji przemysłowego wykorzystania odpadów w wyrobiskach górniczych.
+8. Schematy ideowe głównego i rezerwowego zasilania zakładu górniczego i jego podstawowych obiektów w energię elektryczną, parę, sprężone powietrze i wodę z podaniem zasadniczych parametrów.

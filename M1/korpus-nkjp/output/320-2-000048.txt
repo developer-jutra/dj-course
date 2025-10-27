@@ -1,0 +1,1 @@
+Liczba pierwszych pochodnych danej funkcji jest równa liczbie zmiennych, od których funkcja ta jest zależna. Licząc pochodne drugiego rzędu mamy jeszcze więcej możliwości. Dla dwóch zmiennych mamy trzy pochodne: yxx, ytt, i yxt = ytx. Dla funkcji trzech lub więcej zmiennych różnych pochodnych cząstkowych jest odpowiednio więcej.

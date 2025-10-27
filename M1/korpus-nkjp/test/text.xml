@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teiCorpus xmlns:xi="http://www.w3.org/2001/XInclude" xmlns="http://www.tei-c.org/ns/1.0">
+ <xi:include href="NKJP_1M_header.xml"/>
+ <TEI>
+  <xi:include href="header.xml"/>
+  <text xml:id="txt_text" xml:lang="pl">
+   <body xml:id="txt_body">
+    <div xml:id="txt_1-div" decls="#h_1-bibl">
+     <ab n="p2734in11094of:PECLRA:forumowisko.pl_724" xml:id="txt_1.1-ab">Supernatural 3x16 Kto zna, wie o czym mówię Szkoda, że na następny sezon trzeba będzie poczekać... A z pełnometrażowych... Mean Machine (Mecz ostatniej szansy) (Jason Stantham jako psychopatyczny mnich - to mnie zmiażdżyło)</ab>
+     <ab n="p2735in11103of:PECLRA:forumowisko.pl_724" xml:id="txt_1.2-ab">Oko. Alvin i wiewiórki. Nieodebrane połączenie.</ab>
+    </div>
+    <div xml:id="txt_2-div" decls="#h_2-bibl">
+     <ab n="p579in2501of:PECLRA:forumowisko.pl_724" xml:id="txt_2.1-ab">W sobotę dwa tygodnie temu byłam w kiniee na Step up: Taniec zmysłów Ach! Boski No, ale nie dziwić mi się... Ja mam fioła na punkcie wszystkiego co jest związane z tańcem Hm. Kilka tygodni temu też oglądałam na DVD Kod Leonarda da Vinci. Film świetny, bardzo mnie zachęcił do skołowania ksiązki. Własnie jestem w trakcie czytania a Tak to ostanio oglądałam wczoraj Magde M.</ab>
+    </div>
+    <div xml:id="txt_3-div" decls="#h_3-bibl">
+     <ab n="p846in3674of:PECLRA:forumowisko.pl_724" xml:id="txt_3.1-ab">rzecz gustu.. jak na współczesna polską komedię.. całkiem całkiem.. dziś oglądałem: "Ostatniego króla Szkocji" i "W pogoni za szczęsciem".. z jednej strony niesamowity Forest Whitaker, z drugiej - przejmujący Will Smith.... jesli dodac do nich świetnego Leo DiCaprio to bez wątpienia mamy jedną z ciekawszych rywalizacji o Oscara (najlepszy aktor) ostatnich lat.. oba filmy oczywiście świetne..</ab>
+    </div>
+    <div xml:id="txt_4-div" decls="#h_4-bibl">
+     <ab n="p192in876of:PECLRA:forumowisko.pl_724" xml:id="txt_4.1-ab">Tego filmu jeszcze nie graja w kinach - Griczkow ty piracie jeden Byłeś na stadionie 10 lecia co? Przyznaj sie Ja się napaliłam na piratów z karaibów 2 już nie mogę sie doczekać johnego</ab>
+     <ab n="p193in882of:PECLRA:forumowisko.pl_724" xml:id="txt_4.2-ab">Kroniki Riddicka.. całkiem fajny film... Taki Vin Diesel to ma dobrze..., ja tez tak chcę.</ab>
+    </div>
+    <div xml:id="txt_5-div" decls="#h_5-bibl">
+     <ab n="p134in615of:PECLRA:forumowisko.pl_724" xml:id="txt_5.1-ab">Ostatnio byłam w kinie ze szkołą na "Requiem dla snu". Film... Opowiadał o dilerach, narkotykach i środkach na odchudzanie. To tak w skrócie Przerażający, z piękną ścieżką dźwiękową. Tak, muzyka była naprawdę dobra... A tak, to jeszcze uwielbiam "Pearl Harbour" (jeżeli to isę inaczje pisze, niech ktoś poprawi) A jeżeli chodzi o "Kurczaka małego", to widziałam reklamę. I mam zamiar ise w wolnej chwili na niego wybrać!</ab>
+    </div>
+    <div xml:id="txt_6-div" decls="#h_6-bibl">
+     <ab n="p1745in7402of:PECLRA:forumowisko.pl_724" xml:id="txt_6.1-ab">Egzorcyzmy Emily Rose mi się dość podobały: A wczoraj poszłam do kina (z rodzicami i siostrą :|) na "Królestwo owadów" w 3D. W sumie tak dla zwały, ale powiem szczerze, że nawet warto było, bo są fajne efekty.</ab>
+    </div>
+    <div xml:id="txt_7-div" decls="#h_7-bibl">
+     <ab n="p297in1347of:PECLRA:forumowisko.pl_724" xml:id="txt_7.1-ab">Sorry, ale ten film był beznadziejny. Tzn. końcówkę zpieprzyli i cały film do kitu....</ab>
+     <ab n="p298in1352of:PECLRA:forumowisko.pl_724" xml:id="txt_7.2-ab">Ostatnio zaczelam oglądać filmy które nie wymagają dużej ilości myślenia ale "Jak w niebie" to nawet calkiem przyjemna komedia romantyczna.</ab>
+    </div>
+    <div xml:id="txt_8-div" decls="#h_8-bibl">
+     <ab n="p2239in9299of:PECLRA:forumowisko.pl_724" xml:id="txt_8.1-ab">Kogel-mogel.</ab>
+     <ab n="p2240in9302of:PECLRA:forumowisko.pl_724" xml:id="txt_8.2-ab">Ja nie byłam w kinie dawno, ale ostatnio przeczytaałm artykuł w Essence o Robercie Altmanie, zapomniaam o niem totalnie i puściłam sobie z DVD Pret-a-Porte, atrasznie stary, bo z 1994 z supermłodzutka Julią Roberts;) film dobry, polecam i nadal aktualny o dziwo!</ab>
+    </div>
+    <div xml:id="txt_9-div" decls="#h_9-bibl">
+     <ab n="p1457in6273of:PECLRA:forumowisko.pl_724" xml:id="txt_9.1-ab">W środę na 1 w Okruchach Życia szedł rewelacyjny moim zdaniem film "Smak Zdrady". Opowiada o tym jak wielką krzywdę mogą nam wyrządzić skrywane od lat tajemnice, niedomówienia, udawana namiętność. I jak ważne w związkach jest zaufanie i szczerość. Pokazuje też dwulicowość osób duchownych... Uwielbiam takie filmy</ab>
+    </div>
+    <div xml:id="txt_10-div" decls="#h_10-bibl">
+     <ab n="p96in455of:PECLRA:forumowisko.pl_724" xml:id="txt_10.1-ab">Nie mam pojęcia co Ci w Oliwierze Twiście przypomina Pottera - jak dla mnie to 2 skrajne postacie. Magia i realizm. Walka o przezycie - nauka i zabawa. Tomb Raider - no comment - najbardziej mnie ubawił cienki kostiumik, który miała przedzierając się przez śniegi, gdy reszta paradowała w puchowych kurtkach I pomyśleć że na tym byłam w kinie Ludzie wybaczcie, ale wtedy nic innego nie leciło</ab>
+    </div>
+    <div xml:id="txt_11-div" decls="#h_11-bibl">
+     <ab n="p1675in7156of:PECLRA:forumowisko.pl_724" xml:id="txt_11.1-ab">A ja ostatnio oglądałem "Diabeł ubiera się u Prady" i choć nie chciałem bo uważałem, że to dla kobiet bardziej film i nadal tak uważam, to jednak tak mi się spodobała rola Meryl Strip, że obejrzałem do końca. Wcześniej obejrzałem Eragona, ale film jest do niczego, zresztą książka też nie jest jakaś nadzwyczajna, ale lepsza niż filmowy chłam.</ab>
+    </div>
+   </body>
+  </text>
+ </TEI>
+</teiCorpus>

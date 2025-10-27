@@ -1,0 +1,5 @@
+Zamierzenia rozwojowe służby hydrologicznej w Oddziale IMGW w Poznaniu powinny w najbliższych latach skupiać się w trzech zasadniczych kierunkach działania: poprawie funkcjonowania służby pod względem organizacyjnym, poprawie wyposażenia sieci obserwacyjno–pomiarowej w aparaturę pomiarową i urządzenia pomocnicze oraz doskonaleniu metod pracy i urządzeń pomiarowych.
+Podstawą opracowania i kontroli danych są dwie instrukcje opracowane w Zakładzie Hydrologii Stosowanej:
+1. "Tymczasowe zasady opracowania i gromadzenia materiałów obserwacyjno–pomiarowych z ZR oprzyrządowanych na poziomie standardowym" (J. Ostrowski, S. Karwowski 1980).
+2. "Zasady kontroli merytorycznej materiałów obserwacyjno–pomiarowych z ZR" (J. Ostrowski 1983).
+Od roku 1988 kontrola merytoryczna danych będzie wykonywana techniką mikrokomputerową.

@@ -1,0 +1,45 @@
+Jak wprowadzając - usuwać tekst?
+Wszystkiemu, co robiłeś do tej pory, towarzyszył napis wstawianie, widoczny w najniższym wierszu ekranu. Można się go pozbyć, lecz konsekwencje takiego kroku będą niezwykle poważne. Sprawdzimy? No to usiądź swobodnie przed komputerem, zrelaksuj się, uruchom TAGa i napisz:
+Miota mną ogromny niepokój.
+Jak ustalić układ strony?
+Ustalenie rozmiaru strony to dopiero połowa sukcesu. Pamiętaj bowiem, że na każdej kartce możesz pisać, układając wiersze tekstu równolegle do jej dłuższego lub krótszego boku, a nawet - zwłaszcza będąc w stanie wskazującym na spożycie - całkiem "nierównolegle".
+Pamiętaj o tym, aby między końcem wyrazu a występującym po nim znakiem interpunkcyjnym nie naciskać klawisza [Spacja]. Przecinek, średnik, kropka czy nawias zamykający wpisuj zawsze bezpośrednio po ostatniej literze słowa poprzedzającego ten znak. Wyjątki to nawias oraz cudzysłów otwierający: te znaki muszą być wpisane bezpośrednio przed pierwszą literą występującego po nich wyrażenia. Lekceważenie tych zasad spowoduje, że przy dzieleniu akapitu na wiersze TAG zacznie się zachowywać nieobliczalnie (a przynajmniej niegramatycznie).
+4. Napisz TAGER i naciśnij klawisz [Enter] - przy odrobinie szczęścia ekran Twojego komputera powinien wyglądać teraz tak, jak na rysunku 23-1.
+5. Ponieważ wyświetlany ekran to tylko coś w rodzaju komputerowego "dzień dobry" - naciśnij ponownie klawisz [Enter], co przeniesie Cię do głównego ekranu roboczego TAGERa.
+Pozostałe funkcje programu dostępne za pomocą menu przedstawionego na rysunku 18-1 nie będą tutaj opisane. To jest książka o TAGu, a nie o Norton Commanderze!
+Jeżeli po otwarciu pliku typu ASCII na ekranie zamiast tekstu zobaczysz coś, co z wyglądu przypomina efekt pracy pijanego telegrafisty piszącego alfabetem Braile'a, na dodatek potężnie popstrzony przez muchy - nie denerwuj się! To, co otworzyłeś, to nie był plik typu ASCII.
+O ile TAG jest bardzo "myszowaty", o tyle TAGER - "klawiszowaty". Autorzy nie zrobili nic, by możliwości pracy z myszą, dodane do TAGa, wykorzystać także i w TAGERze. Efekt jest taki, że z czystym sumieniem mogę Ci poradzić, abyś podczas pracy z tym programem zapomniał o tym, że do komputera podłączona jest mysz.
+Sposób postępowania - jak to zwykle z myszą bywa - jest niezwykle prosty. Należy:
+1. Ustawić kursor w żądanym miejscu (można to zrobić klikając w dowolnym miejscu wybranego akapitu).
+2. Ustawić wskaźnik myszy nad właściwym dla danej operacji przyciskiem i i kliknąć go.
+Jak zwiększyć odstępy między wierszami?
+2. Naciśnij klawisz [Enter] - TAG przejdzie do trybu edycji wskazanego rozdziału, ustawiając kursor na jego początku.
+3. Zadbaj o to, by pierwszy wiersz rozdziału był wierszem pustym oraz by kursor stał na jego początku (wystarczy, że naciśniesz klawisz [Enter], a następnie [Strzałka w górę]).
+4. Naciśnij klawisz [F4] - na ekranie pojawi się menu Linia.
+Kolejną trudnością dla nowicjusza jest fakt, że przyczyna błędu leży poza programem TAG, a jego usunięcie wymaga elementarnej znajomości systemu operacyjnego. Mówiąc "po chińsku": w pliku CONFIG.SYS zadeklarowano zbyt małą, jak na Twoje potrzeby, wartość parametru FILES.
+To może teraz powiem po polsku, co z tym trzeba zrobić.
+Klawisz [Enter] naciskaj tylko wtedy, gdy chcesz rozpocząć nowy akapit. W żadnym razie nie używaj go, gdy zbliżasz się do końca linii. Podział akapitu na wiersze zostaw TAGowi. On to robi naprawdę nieźle! Jeżeli nie skorzystasz z tej rady, a w przyszłości zechcesz np. zwiększyć marginesy lub zmniejszyć rozmiar strony, to układ dokumentu zupełnie się rozsypie i będzie Cię czekało masę dodatkowej pracy z usuwaniem niepotrzebnych "Enterów".
+1. Naciśnij klawisze [Alt+O] - na ekranie pojawią się puste matryce dla litery "Ó".
+2. Naciśnij klawisz [F4] - rozwiniesz w ten sposób menu Kopiuj (rysunek 25-2).
+3. Teraz uwaga - naciśnij klawisz [F2] wybierając polecenie Kopiuj|Grupę znaków (jeżeli literę "O" przygotowałeś już zarówno dla ekranu, jak i dla drukarki - wybierz polecenie Kopiuj|Grupę znaków x 2).
+Nie inaczej w programie. Polecenia zbliżone funkcjonalnie do siebie tworzą grupy. Każda grupa (czyli menu) ma krótką, jasną nazwę. Nazwy te są wyświetlane obok siebie na ekranie, tworząc pasek menu. Jeżeli chcemy zobaczyć, co się pod którąś z nich kryje, musimy rozwinąć menu.
+TAG jest tu zresztą lepszy od innych programów, gdyż ma nie jedno, lecz aż trzy menu - po jednym dla każdego trybu pracy.
+Jak obsługiwać menu?
+Jak zaznaczyć lub "odznaczyć" blok?
+Starożytni znaczyli bloki marmuru dłutem i talentem. Współcześni "artyści" znaczą bloki mieszkalne farbą w aerozolu. A do zaznaczenia bloku tekstu wystarczy klawiatura lub mysz.
+Czy wiesz już, jaką część tekstu chcesz zaznaczyć?
+Po drugie, grafikę możesz - o ile pozwala na to jej rozmiar i rozstaw marginesów - przesunąć w poziomie. W tym celu musisz ustawić wskaźnik myszy w dowolnym punkcie obszaru zajmowanego przez rysunek (z wyjątkiem punktu służącego do skalowania), a następnie przeciągnąć go przy wciśniętym lewym przycisku myszy.
+Mała rzecz, a cieszy.
+4. Nacisnąć na koniec klawisz [Enter].
+W przedstawiony powyżej sposób nie usuniesz jednak indeksów górnych i dolnych. Tu TAG jest dziwnie tępy i wymaga od Ciebie podwójnego wysiłku. Musisz bowiem:
+1. Ustawić kursor na pierwszym znaku indeksu.
+2. Nacisnąć klawisz [F1], następnie - w zależności od rodzaju indeksu - [F7] lub [F8].
+3. Naciskaj raz za razem klawisze [+] lub [-] - aż uzyskasz żądany kolor (będziesz go widział na ekranie).
+4. Zatwierdź zmiany naciśnięciem klawisza [Enter].
+Jeżeli Twój komputer jest wyposażony w kartę monochromatyczną typu CGA (pracujesz w muzeum?) lub Hercules, to o możliwości definiowania kolorów możesz zapomnieć. Jeżeli natomiast posiadasz kartę typu EGA mono lub VGA mono, to uda Ci się zmodyfikować jedynie kolory tła.
+1. Nacisnąć [F8].
+2. Wpisać wartości przesunięcia w otwartym polu dialogu.
+3. Zakończyć sprawę klawiszem [Enter].
+To jednak tylko pozory. W rzeczywistości odpowiednie zgranie marginesów bocznych definiowanych za pośrednictwem polecenia Strona|Format strony z trybu hierarchii dokumentu z marginesami zdefiniowanymi w wykorzystywanych wzorcach formatowania wymaga przynajmniej jednej butelki Relanium oraz ryzy papieru na próbne wydruki.
+Makrodefinicja to zapisany gdzieś w programie i możliwy do odtworzenia na każde żądanie ciąg instrukcji. Zapisywane są naciśnięcia wszystkich klawiszy - także funkcyjnych i sterujących położeniem kursora.
+W dokumencie TAGa można utworzyć piętnaście makrodefinicji. Każda z nich może "zapamiętać" do 49 naciśnięć klawiatury.

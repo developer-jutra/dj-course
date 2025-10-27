@@ -1,0 +1,6 @@
+jupyter
+ipykernel
+pandas
+itables
+matplotlib
+plotly

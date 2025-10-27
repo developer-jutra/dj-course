@@ -1,0 +1,3 @@
+2. Wyciąg z rejestru powinien zawierać dane, których stwierdzenia żąda wnioskodawca.
+3. Wyciąg z rejestru zawiera datę jego sporządzenia oraz podpis osoby sporządzającej, poświadczający zgodność wyciągu z odpowiednimi wpisami w rejestrze.
+4. Na wniosku, o którym mowa w ust. 1, sporządza się wzmiankę o wydaniu wyciągu z podaniem daty jego wydania.
