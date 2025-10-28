@@ -2,12 +2,12 @@
 
 Skonfiguruj sobie dostęp: Anthropic / Gemini / OpenAI.
 Dostępne API: python / node.js, w sumie 6 różnych kombinacji:
-- `external-model-anthropic-node`
-- `external-model-anthropic-py`
-- `external-model-google-genai-node`
-- `external-model-google-genai-py`
-- `external-model-openai-node`
-- `external-model-openai-py`
+- `M1/external-model-anthropic-node`
+- `M1/external-model-anthropic-py`
+- `M1/external-model-google-genai-node`
+- `M1/external-model-google-genai-py`
+- `M1/external-model-openai-node`
+- `M1/external-model-openai-py`
 
 Foldery zawierają README z linkami do zakładania kont i kluczy API.
 Można zasilić model jednorazowo np. kwotą 5$ i ustawić zmienne typu "maxTokens" na skrtajnie niską wartość typu 128 - wówsczas pojedynczy request kosztuje ~0.002$.
@@ -22,16 +22,16 @@ Podepnij MLFlow - i podsłuchaj, co agent robi z (jakimś) modelem:
 - Gemini - z poziomu kody python
 - Lokalne modele - z poziomu kodu python
 
-zobacz `mlflow/README.md`
+zobacz `M1/mlflow/README.md`
 
 # Zadanie 3
 
-Robimy własny TOKENIZER.
+Robimy własny TOKENIZER. Folder: `M1/tokenizer`
 
 Korpusy danych treningowych do wyboru:
-- `korpus-nkjp`
-- `korpus-wolnelektury`
-- `korpus-spichlerz` (Bielik Team)
+- `M1/korpus-nkjp`
+- `M1/korpus-wolnelektury`
+- `M1/korpus-spichlerz` (Bielik Team)
 W repo znajdziesz instrukcje dla 3 różnych korpusów danych treningowych oraz bazowy kod pythonowy.
 
 Zadania:
@@ -57,10 +57,12 @@ sneak peak tokenizera (pakiet `tiktoken`) w google colab: https://colab.research
 
 # Zadanie 4.1
 
+Folder: `M1/embedding`
+
 Intro:
 CBOW (Continuous Bag-of-Words), jest siecią neuronową, która uczy się przewidywać słowo docelowe (środkowe) na podstawie jego słów kontekstowych (otaczających), znajdujących się w określonym oknie.
 
-W pliku `run-cbow.py` ładuje tokenizer, tokenizuje zadane teksty i buduje w oparciu o nie model embeddingowy typu CBOW (podobieństwo/częstotliwość wystąpień, co w odpowiednio dużej skali zaczyna symulować podobieństwo znaczeniowe - dziwnym trafem tak samo jak LLMy :)) 
+W pliku `M1/embedding/run-cbow.py` ładuje tokenizer, tokenizuje zadane teksty i buduje w oparciu o nie model embeddingowy typu CBOW (podobieństwo/częstotliwość wystąpień, co w odpowiednio dużej skali zaczyna symulować podobieństwo znaczeniowe - dziwnym trafem tak samo jak LLMy :)) 
 
 
 Cel zadania: znaleźć takie ustawienia aby słowa pokrewne (np. kobieta-dziewczyna, król-książę były blisko w embeddingu, tj. wartość możliwie bliska 1)
@@ -148,7 +150,7 @@ Oczywiście śmiało podmieniaj słowa.
 
 # Zadanie 4.2
 
-Szukamy najbardziej podobnych **zdań**: `run-doc2vec.py`
+Szukamy najbardziej podobnych **zdań**: `M1/embedding/run-doc2vec.py`
 
 Trenujemy nasz własny model embedingowy (dla całych zdań, nie samych słów).
 
@@ -183,7 +185,7 @@ Zdanie do wnioskowania: "Jestem głodny i bardzo chętnie zjadłbym coś."
 
 # Zadanie 4.3
 
-Plik `run-sbert.py` - korzystamy z wcześniej wytrenowanego modelu o który się opieramy. Bierzemy nasze zdania i kodujemy je w "bazie danych" wektorowej (macierz embeddingów zdań z naszego korpusu). I (zwyczajnie) odpytujemy tę bazę w odniesieniu do zadanego zdania (które wcześniej trzeba zaembedować).
+Plik `M1/embedding/run-sbert.py` - korzystamy z wcześniej wytrenowanego modelu o który się opieramy. Bierzemy nasze zdania i kodujemy je w "bazie danych" wektorowej (macierz embeddingów zdań z naszego korpusu). I (zwyczajnie) odpytujemy tę bazę w odniesieniu do zadanego zdania (które wcześniej trzeba zaembedować).
 
 Poszukiwanie najbliższego wektora w wielowymiarowej przestrzeni.
 
@@ -197,7 +199,7 @@ Twoja rola:
 # Zadanie 5
 
 Zaimplementuj uproszczoną wersję **ATTENTION SCORE MATRIX (S)**
-Kod wyjściowy: folder `szczypta-machine-learning`.
+Kod wyjściowy: folder `M1/szczypta-machine-learning`.
 Posiłkuj się ulubionym coding agent + deep research + discordem 😉
 
-Plik: `src/homework.ts`
+Plik: `M1/szczypta-machine-learning/src/homework.ts`

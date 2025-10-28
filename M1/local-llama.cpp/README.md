@@ -43,3 +43,11 @@ Przykład komendy do uruchomienia modelu Bielik-7B-Instruct w `llama.cpp`:
 przykładowo (dla modelu Bielik-7B-Instruct):
 `llama-server -m ~/Library/Caches/llama.cpp/speakleash_Bielik-7B-Instruct-v0.1-GGUF_bielik-7b-instruct-v0.1.Q4_K_M.gguf`
 `llama-cli -m ~/Library/Caches/llama.cpp/speakleash_Bielik-7B-Instruct-v0.1-GGUF_bielik-7b-instruct-v0.1.Q4_K_M.gguf`
+
+## tool calls
+
+W przypadku stawiania modeli które mają obsługiwać **TOOL CALLS / FUNCTION CALLS**, llama wymaga przekazania dodatkowo flagi `--jinja`
+  (`jinja` to paczka to szablonów w pythonie, podobnie jak `JSF`/`JSP` w javie, `handlebars` w JS itp itd.)
+  (szablony `jinja` są potrzebne do tworzenia **TEKSTU** który wędruje już bezpośrednio do modelu; [przeczytaj więcej o szablonach tu](https://huggingface.co/docs/transformers/main/chat_templating))
+
+`llama-server -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q4_K_XL --jinja`
