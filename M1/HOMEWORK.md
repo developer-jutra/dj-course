@@ -51,6 +51,10 @@ Zadania:
 - spróbuj osiągnąć taki tokenizer, aby miał jak najdłuższe kawałki słów - to sprawi że embedding w następnym ćwiczeniu będzie mega efektywny
 - sprawdź czy dla customowych tokenizerów zmiana rozmiaru słownika (default: `32k`) robi różnicę na wyniki?
 
+# Zadanie 3 - CIEKAWOSTKA
+
+sneak peak tokenizera (pakiet `tiktoken`) w google colab: https://colab.research.google.com/drive/1cbW-Wnn-_mDUEhC6ptrK9Ltd7nvQu6Mu
+
 # Zadanie 4.1
 
 Intro:
