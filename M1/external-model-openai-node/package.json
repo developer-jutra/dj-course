@@ -3,6 +3,9 @@
   "author": "Developer Jutra",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "node run.js"
+  },
   "dependencies": {
     "chalk": "^5.6.2",
     "dotenv": "^17.2.3",

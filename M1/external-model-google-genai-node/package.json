@@ -3,6 +3,9 @@
   "author": "Developer Jutra",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "node run.js"
+  },
   "dependencies": {
     "@google/genai": "^1.27.0",
     "dotenv": "^17.2.3"

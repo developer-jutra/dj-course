@@ -1,12 +1,11 @@
 {
-  "name": "external-model-anthropic",
+  "name": "szczypta-machine-learning",
   "author": "Developer Jutra",
   "private": true,
-  "type": "module",
   "scripts": {
-    "start": "npx ts-node src/run.ts",
-    "homework": "npx ts-node src/homework.ts",
-    "testcases": "npx ts-node src/testcases.ts"
+    "start": "npx ts-node src/run",
+    "homework": "npx ts-node src/homework",
+    "testcases": "npx ts-node src/testcases"
   },
   "dependencies": {
     "chalk": "^4.1.2",
