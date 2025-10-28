@@ -10,11 +10,13 @@ Należy wejść w każdy folder pod-projektowy. Rozpoznasz go (jednocześnie):
 
 TL;DR; Komendy:
 
+instalowanie zależności:
+
 ```shell
 npm install
 ```
 
-ewentualnie (mac/linux):
+ewentualnie - najpierw usuń istniejące a potem instaluj od zera (mac/linux):
 
 ```shell
 rm -rf node_modules

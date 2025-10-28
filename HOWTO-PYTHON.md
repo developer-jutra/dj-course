@@ -8,11 +8,16 @@ Należy wejść w każdy folder pod-projektowy. Rozpoznasz go (jednocześnie):
 - **konwencja** w DJ - jest podfolderem modułu DJ, np. `M1/szczypta-machine-learning`
   - Innymi słowy, **NIE MA** sytuacji typu: `M1/cośtam/projekt`
 
+Instalowanie zależności: `pip install -r requirements.txt`
+
 TL;DR; Komendy:
 
 ```shell
 # stwórz virtualenv
 python -m venv .venv
+
+# instalowanie zależności
+pip install -r requirements.txt
 
 # aktywuj virtualenv (linux/macos)
 source .venv/bin/activate
