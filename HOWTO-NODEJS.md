@@ -1,10 +1,10 @@
-# Jak uruchamiać/instalować pod-projekty pythonowe?
+# Jak uruchamiać/instalować pod-projekty node.js?
 
 1. zależności można instalować globalnie (niezalecane)
 2. albo lokalnie (zalecane) - i tu jest sporo opcji typu `npm`, `yarn`, `pnpm` i miliardy innych. Dla uproszczenia - trzymam się po prostu `npm`.
 
 Należy wejść w każdy folder pod-projektowy. Rozpoznasz go (jednocześnie):
-- **technicznie** - zawiera plik `package.json.txt` - który ma listę zależności
+- **technicznie** - zawiera plik `package.json` - który ma listę zależności
 - **konwencja** w DJ - jest podfolderem modułu DJ, np. `M1/szczypta-machine-learning`
   - Innymi słowy, **NIE MA** sytuacji typu: `M1/cośtam/projekt`
 
