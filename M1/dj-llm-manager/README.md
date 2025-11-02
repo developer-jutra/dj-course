@@ -1,8 +1,9 @@
-# Użycie domyślnej komendy "disk-usage"
-python dj_manager.py 
+# Instalacja
 
-# Jawne wywołanie "disk-usage"
-python dj_manager.py disk-usage
+Standardowo, `requirements.txt` i `venv`.
 
-# Wywołanie pomocy
-python dj_manager.py help
+# CLI
+
+- Użycie domyślnej komendy "disk-usage": `python dj_manager.py`
+- Jawne wywołanie "disk-usage": `python dj_manager.py disk-usage`
+- Wywołanie pomocy: `python dj_manager.py help`

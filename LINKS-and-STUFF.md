@@ -57,3 +57,9 @@ du -sh "$HOMEDIR/.ollama";
 echo "--- ✨ ----------------------------------- ✨ ---";
 '
 ```
+
+## DJ LLM Manager
+
+Jeśli chcesz coś wygodniejszego, to zerknij na `M1/dj-llm-manager`:
+
+![DJ LLM manager](./M1/dj-llm-manager.png)
