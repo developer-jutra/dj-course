@@ -25,3 +25,35 @@ du -sh ~/.ollama
 ```
 
 sprawdź lokalny rozmiar wszystkiego wewnątrz `~`: `find ~ -maxdepth 1 -mindepth 1 -print0 | xargs -0 du -sh`
+
+## Prosty bashowy alias
+
+Można na szybko wylistować:
+
+--- ✨ Użycie miejsca przez narzędzia LLM ✨ ---
+Hugging Face Cache:
+ 12G    /Users/tomaszku/.cache/huggingface
+
+llama.cpp Cache:
+ 43G    /Users/tomaszku/Library/Caches/llama.cpp
+
+Ollama Data:
+ 30G    /Users/tomaszku/.ollama
+--- ✨ ----------------------------------- ✨ ---
+
+```bash
+alias dj-llm-space-usage='
+# HOMEDIR="/Users/<USER>";
+HOMEDIR="$HOME";
+echo "--- ✨ Użycie miejsca przez narzędzia LLM ✨ ---";
+echo "Hugging Face Cache:";
+du -sh "$HOMEDIR/.cache/huggingface";
+echo "";
+echo "llama.cpp Cache:";
+du -sh "$HOMEDIR/Library/Caches/llama.cpp";
+echo "";
+echo "Ollama Data:";
+du -sh "$HOMEDIR/.ollama";
+echo "--- ✨ ----------------------------------- ✨ ---";
+'
+```

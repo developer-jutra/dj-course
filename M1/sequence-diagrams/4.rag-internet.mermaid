@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant H as Human
+    participant A as Agent
+    participant M as Model (LLM)
+    participant S as Search
+    
+    rect rgb(55, 55, 55)
+    Note over A, M: Internet Search (RAG)
+    A ->> H: ask for input
+    H -->> A: input(prompt)
+    A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt<br/>🛠️ TOOLS=[list_of_tools]
+    %% JEDEN TOOL CALL
+    %% M -->> A: 🛠️ TOOL CALL
+    %% ALBO WIELE
+    M -->> A: 🛠️ TOOL CALLS: [search(A), search(B)]
+
+    A ->> S: search([...phrases])
+    S -->> A: tool result
+    A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt<br/>✨ ROLE=Assistant, 🔥TOOL CALL🔥=Search[...phrases]<br/>🛠️ ROLE=🔥TOOL🔥, RESULT=SearchResult{...}<br/>🛠️ TOOLS=[list_of_tools]
+
+    M -->> A: FINAL ANSWER
+    end
+

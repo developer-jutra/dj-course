@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant H as Human
+    participant A as Agent
+    
+    H ->> A: run application
+    A ->> A: provide (system prompt)
+    
+    create participant M as Model (LLM)
+    A ->> M: connect (external) or create (local)
+
+    Note over H, A: Session Loading
+    H ->> A: `/switch session`
+    A ->> A: load (session)
+
+    Note over H, A: Conversation
+    loop
+        A ->> H: ask for input
+        H -->> A: input(prompt)
+        A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=Historical Prompt<br/>✨ ROLE=Assistant, TEXT=Historical Answer<br/>❓ ROLE=User, TEXT=prompt
+        A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=Historical Prompt<br/>✨ ROLE=Assistant, TEXT=Historical Answer<br/>❓ ROLE=User, TEXT=Historical Prompt<br/>✨ ROLE=Assistant, TEXT=Historical Answer<br/>[...]<br/>❓ ROLE=user, TEXT=prompt
+        M -->> A: answer
+    end
+
+    A ->> H: ask for input
+    H -->> A: `/exit`
+    Note over A, M: Termination
+    A ->> M: disconnect or destroy
+    destroy M

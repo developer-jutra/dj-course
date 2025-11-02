@@ -69,11 +69,12 @@ Cel zadania: znaleźć takie ustawienia aby słowa pokrewne (np. kobieta-dziewcz
 
 Zadania - w skrócie:
 - rozbij skrypt aby dało się osobno trenować i osobno wnioskować (teraz jest wszystko na raz :)
-- wybierz słowa/teskt referencyjny (cokolwiek wybierzesz w korpusów lub wymyślisz). Punktem odniesienia mogą być słowa zahardkodowane w skrypcie
+- wybierz słowa/teskt referencyjny (cokolwiek wybierzesz z korpusów lub wymyślisz). Punktem odniesienia mogą być słowa zahardkodowane w skrypcie
 - testuj trenowanie na różnych korpusach, rożnych tokenizerach, rożnych parametrach
 
 
 🔥 Nie wykonasz tego zadania bez skutecznego wykonania poprzedniego zadania. Porównuj pomysły na discordzie.
+🔥 Podpowiedź: wsród różnych ustawień, jakie będziesz zmieniać, spróbuj porównać także tokenizery - np. bielik-v1 (mistralowy), bielik-v3 oraz Twój customowy z zadania 3.
 
 
 Przykładowe oczekiwane wyniki:

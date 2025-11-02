@@ -1,0 +1,4 @@
+pandas
+pydantic
+python-dotenv
+colorama
