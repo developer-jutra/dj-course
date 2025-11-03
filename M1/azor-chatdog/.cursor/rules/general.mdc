@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+# Python Code Execution Rule
+Always open (activate) the project's virtual environment before running any Python code. This ensures all dependencies are available and version conflicts are avoided.
+
+**Activation command:**
+
+```sh
+source .venv/bin/activate
+```
+
+Run this command in your shell to activate the virtual environment before executing Python scripts or applications in this project.
+
+# Colorama Usage Convention
+
+The `colorama` library should **only** be used within `console.py`. Other files must use the public functions from `console.py` for colored output.
+
+**Key principles:**
+- `colorama` is a private implementation detail of `console.py`
+- Import and use `console.print_info()`, `console.print_error()`, etc. instead of directly using colorama
+- Do not import `Fore`, `Back`, `Style`, or any colorama classes outside of `console.py`
+- This ensures consistent output formatting across the entire application

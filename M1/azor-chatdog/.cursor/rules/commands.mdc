@@ -1,0 +1,88 @@
+---
+alwaysApply: true
+description: Command structure and architecture for slash commands
+---
+
+# Command Architecture Convention
+
+## Command Structure
+
+All slash commands (`/session`, `/help`, `/switch`, etc.) should have their implementation logic organized as follows:
+
+### Commands Directory Structure
+
+Each command or subcommand should have its own file in the [commands/](mdc:commands) directory:
+
+- `commands/welcome.py` - Welcome screen and ASCII art display
+- `commands/session_list.py` - Display list of available sessions
+- `commands/session_display.py` - Display full session history
+- `commands/session_summary.py` - Display abbreviated session summary
+- `commands/session_pop.py` - Pop last message from session (future)
+- Additional command files as needed
+
+**Important**: Command file names must use underscores (`_`) not hyphens (`-`) to be valid Python module names.
+
+### Command File Guidelines
+
+1. **One File Per Command**: Each command should be in its own file in the `commands/` directory
+2. **Function Naming**: Use descriptive function names that indicate the command action (e.g., `list_sessions_command()`, `display_full_session()`)
+3. **Import Organization**: Command files should import what they need (console, config, session_io, etc.)
+4. **Separation of Concerns**: 
+   - Command files contain presentation logic (formatting, displaying)
+   - Core functionality stays in the main modules ([session_io.py](mdc:session_io.py), [session_manager.py](mdc:session_manager.py), etc.)
+
+### Command Handler Pattern
+
+The [command_handler.py](mdc:command_handler.py) file:
+- Routes slash commands to their respective implementations
+- Imports command functions from the `commands/` directory
+- Contains minimal logic - just routing and basic validation
+- Example pattern:
+  ```python
+  from commands.session_list import list_sessions_command
+  
+  # In handle_command():
+  if subcommand == 'list':
+      list_sessions_command()
+  ```
+
+### Example: Session List Command
+
+**Core Data Function** (stays in `session_io.py`):
+```python
+def list_sessions():
+    """Returns a list of available sessions with their metadata."""
+    # Data retrieval logic
+    return sessions_data
+```
+
+**Command Display Function** (in `commands/session_list.py`):
+```python
+def list_sessions_command():
+    """Displays a formatted list of available sessions."""
+    sessions = session_io.list_sessions()
+    # Formatting and display logic
+```
+
+**Command Handler** (in `command_handler.py`):
+```python
+if subcommand == 'list':
+    list_sessions_command()
+```
+
+## Module Responsibilities
+
+- **[commands/](mdc:commands)**: Command-specific display and presentation logic
+- **[command_handler.py](mdc:command_handler.py)**: Command routing and validation
+- **[session_io.py](mdc:session_io.py)**: Session data persistence and retrieval
+- **[session_manager.py](mdc:session_manager.py)**: Session lifecycle management
+- **[console.py](mdc:console.py)**: Low-level console output utilities
+- **[ui.py](mdc:ui.py)**: Reserved for future UI-related utilities (currently minimal)
+
+## When Adding New Commands
+
+1. Create a new file in `commands/` directory (e.g., `commands/session_export.py`) - use underscores in filenames
+2. Implement the command function with clear naming
+3. Import necessary modules (console, config, session_io, etc.)
+4. Update `command_handler.py` to route to your new command
+5. Update `VALID_SLASH_COMMANDS` list if adding a new top-level command

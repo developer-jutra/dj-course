@@ -1,5 +1,7 @@
 # M1: LLMy i Agenty: Architektura i Działanie
 
+## część pierwsza
+
 - `embedding` - trenujemy model embeddingowy (czyli model kojarzący najbliższe słowa lub najbliższe zdania)
 - **bazowy kod klientów** zewn. LLM (wymaga pdania klucza):
   - `external-model-anthropic-node`, `external-model-anthropic-py` - kod anthropickowy
@@ -17,3 +19,10 @@
   - lokalny serwer `llama-cpp-python`
 - `szczypta machine-learning` - ilustracja w formie kodu najważniejszych operacji tensorowych w ML (te same rzeczy robi pytorch/tensorflow, ale tu jest to pokazane "od zera")
 - `tokenizer` - tworzymy własny BPE (byte-pair encoding), czyli słownik dla modelu językowego, a także uruchamiamy analitykę
+
+## część druga
+
+- `agents` - przykładowe mikro-implementacje agentowe
+- `azor-the-chatdog` - czatowa aplikacja agentowa która posłuży nam jako baza do licznych ćwiczeń
+- `claude` - przykładowe definicje claude (subagents, commands, skills), patrz w folder `.claude` (z kropką!)
+- `sequence-diagrams` - diagramy sekwencji mermaid ilustrujące waorce aplikacji agentowych

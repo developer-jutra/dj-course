@@ -1,0 +1,89 @@
+# Build directories
+/build/
+/dist/
+/out/
+/.next/
+/.nuxt/
+/.output/
+
+# Dependencies
+/node_modules/
+/bower_components/
+/.pnp/
+/.pnp.js
+/vendor/
+
+# Environment variables and secrets
+.env
+.env.*
+*.pem
+*.key
+id_rsa
+*.cert
+*.p12
+*_private*
+
+# Large files and datasets
+*.csv
+*.xls
+*.xlsx
+*.db
+*.sqlite
+*.sql
+*.parquet
+*.bin
+*.model
+*.ckpt
+*.pb
+*.h5
+*.weights
+*.pt
+*.pth
+
+# Logs and caches
+/logs/
+/.cache/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Test coverage and reports
+/coverage/
+/.nyc_output/
+/test-results/
+/cypress/screenshots/
+/cypress/videos/
+
+# Generated files
+*.min.js
+*.min.css
+*.generated.*
+
+# Documentation
+/docs/
+/documentation/
+*.mdx
+/README.md
+
+# Media files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.mp3
+*.mp4
+*.mov
+*.avi
+*.pdf
+
+# Personal/local config files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

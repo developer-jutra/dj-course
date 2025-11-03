@@ -1,0 +1,8 @@
+google-genai
+python-dotenv
+llama-cpp-python
+prompt_toolkit
+colorama
+pydantic>=2.0.0
+fpdf2
+markdown

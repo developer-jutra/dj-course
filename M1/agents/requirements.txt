@@ -1,0 +1,9 @@
+google-api-python-client
+google-genai
+python-dotenv
+
+mlflow
+mlflow[genai]
+
+openai
+colorama
