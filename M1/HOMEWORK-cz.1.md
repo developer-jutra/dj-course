@@ -51,6 +51,10 @@ Zadania:
 - spróbuj osiągnąć taki tokenizer, aby miał jak najdłuższe kawałki słów - to sprawi że embedding w następnym ćwiczeniu będzie mega efektywny
 - sprawdź czy dla customowych tokenizerów zmiana rozmiaru słownika (default: `32k`) robi różnicę na wyniki?
 
+**Finalnie**: porównaj tokenizery: swój + wszystkie bieliki (`M1/tokenizer/tokenizers/*.json`).
+
+**Spodziewane**: tokenizacja Twoim tokenizerem/słownikiem będzie najefektywniejsza. W drugiej kolejności - bielik v3 - w trzeciej kolejności - bielik v1/v2 (to ten sam tokenizer).
+
 # Zadanie 3 - CIEKAWOSTKA
 
 sneak peak tokenizera (pakiet `tiktoken`) w google colab: https://colab.research.google.com/drive/1cbW-Wnn-_mDUEhC6ptrK9Ltd7nvQu6Mu
