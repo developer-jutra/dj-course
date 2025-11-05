@@ -23,9 +23,9 @@ SERVER = OLLAMA_SERVER
 # This will work because the local server is compatible with the OpenAI API
 mlflow.openai.autolog()
 
+mlflow.set_tracking_uri("http://127.0.0.1:5000/")
 # Set the MLflow experiment
 mlflow.set_experiment(f"DJ_local_model_tracking_{SERVER['engine']}")
-mlflow.set_tracking_uri("http://127.0.0.1:5000/")
 
 client = OpenAI(
     base_url=SERVER["base_url"],
