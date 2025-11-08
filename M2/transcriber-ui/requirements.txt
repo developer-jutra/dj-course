@@ -1,0 +1,5 @@
+PyAudio
+transformers
+torch
+librosa
+pyinstaller

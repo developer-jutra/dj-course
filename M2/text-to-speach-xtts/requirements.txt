@@ -1,0 +1,2 @@
+coqui-tts
+rich

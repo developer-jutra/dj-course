@@ -1,0 +1,58 @@
+{
+  "modeName" : "Enhance & Clear",
+  "speakers" : [
+
+  ],
+  "applicationContextEnabled" : true,
+  "languageModelName" : "Claude 4 Sonnet",
+  "prompt" : "\nINSTRUCTIONS:\nThis is a prompt that I would like you to enhance in a way that you make it more clear, more structurized maybe you remove repetition and add some structure in a markdown format preferably.\n\nIf something is uncertain, please ask me explicitly.\n\nYour output should be basically my enhanced prompt and only when you've got an answer to ask, please write all question uppercase, screaming case, so that it would be easier for me to identify it and answer you.\n\n\nSYSTEM CONTEXT:\nCurrent time: 12 August 2025 at 19:02\nTime zone: Europe\/Warsaw\nLocale: en_PL\nComputer name: tomaszku\n\n\nUSER INFORMATION:\n    User's full name: Tomasz Ducin\n    \n    \n\n\nAPPLICATION CONTEXT:\nUser is currently using Finder\n\nFocused on this element: , role=AXGroup, description=biurko \n\n\n\nUSER MESSAGE:\nNow, I need some specification for an application that would keep my notes in order.\n\n",
+  "modelName" : "Standard",
+  "separateSpeakersEnabled" : false,
+  "duration" : 12365,
+  "modelKey" : "small",
+  "datetime" : "2025-08-12T17:02:07",
+  "systemAudioEnabled" : false,
+  "rawResult" : " Now, I need some specification for an application that would keep my notes in order.",
+  "segments" : [
+    {
+      "end" : 12,
+      "text" : "Now, I need some specification for an application that would keep my notes in order.",
+      "start" : 0
+    }
+  ],
+  "result" : "Now, I need some specification for an application that would keep my notes in order.",
+  "languageSelected" : "en",
+  "processingTime" : 390,
+  "appVersion" : "2.1.1",
+  "translationEnabled" : false,
+  "realtimeEnabled" : false,
+  "promptContext" : {
+    "userContext" : {
+      "fullName" : "Tomasz Ducin"
+    },
+    "applicationContext" : {
+      "name" : "Finder",
+      "nouns" : [
+
+      ],
+      "focusedElementDescription" : ", role=AXGroup, description=biurko"
+    },
+    "modeContext" : {
+      "type" : "custom",
+      "examples" : [
+
+      ]
+    },
+    "systemContext" : {
+      "language" : "English",
+      "computerName" : "tomaszku",
+      "locale" : "en_PL",
+      "time" : "12 August 2025 at 19:02",
+      "timezone" : "Europe\/Warsaw"
+    }
+  },
+  "llmResult" : "# Note Organization Application Specification\n\n## Overview\nYou're requesting specifications for an application designed to organize and manage your personal notes effectively.\n\n## Current Context\n- **User**: Tomasz Ducin\n- **Current Environment**: macOS Finder (focused on desktop)\n- **Date**: August 12, 2025\n- **Location**: Europe\/Warsaw\n\n## Questions for Clarification\n\nWHAT TYPE OF NOTES DO YOU PRIMARILY WORK WITH? (TEXT, IMAGES, AUDIO, MIXED MEDIA?)\n\nWHAT IS YOUR PREFERRED PLATFORM? (MACOS ONLY, CROSS-PLATFORM, WEB-BASED, MOBILE?)\n\nHOW DO YOU CURRENTLY ORGANIZE YOUR NOTES AND WHAT PAIN POINTS DO YOU EXPERIENCE?\n\nWHAT IS THE PRIMARY USE CASE? (PERSONAL KNOWLEDGE MANAGEMENT, WORK PROJECTS, RESEARCH, CREATIVE WRITING?)\n\nDO YOU NEED COLLABORATION FEATURES OR IS THIS FOR PERSONAL USE ONLY?\n\nWHAT IS YOUR PREFERRED ORGANIZATIONAL STRUCTURE? (FOLDERS, TAGS, CATEGORIES, SEARCH-BASED?)\n\nARE THERE ANY EXISTING NOTE-TAKING APPS YOU'VE USED THAT YOU LIKED OR DISLIKED?\n\nDO YOU NEED OFFLINE ACCESS OR IS CLOUD-BASED STORAGE ACCEPTABLE?",
+  "literalPunctuationEnabled" : false,
+  "recordingDevice" : "AppleUSBAudioEngine:RØDE:RØDE PodMic USB:DA55B786:1,2",
+  "languageModelProcessingTime" : 7836
+}

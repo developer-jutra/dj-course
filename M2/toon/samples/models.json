@@ -1,0 +1,59 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "chinskie-dywagacje:latest",
+      "object": "model",
+      "created": 1760931635,
+      "owned_by": "library"
+    },
+    {
+      "id": "rozpruty:latest",
+      "object": "model",
+      "created": 1760928665,
+      "owned_by": "library"
+    },
+    {
+      "id": "wieszcz:latest",
+      "object": "model",
+      "created": 1760928202,
+      "owned_by": "library"
+    },
+    {
+      "id": "hf.co/SpeakLeash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0",
+      "object": "model",
+      "created": 1760326968,
+      "owned_by": "SpeakLeash"
+    },
+    {
+      "id": "chinese-truthteller:latest",
+      "object": "model",
+      "created": 1760303828,
+      "owned_by": "library"
+    },
+    {
+      "id": "poeta:latest",
+      "object": "model",
+      "created": 1760302688,
+      "owned_by": "library"
+    },
+    {
+      "id": "SpeakLeash/bielik-7b-instruct-v0.1-gguf:latest",
+      "object": "model",
+      "created": 1759678388,
+      "owned_by": "SpeakLeash"
+    },
+    {
+      "id": "gemma3:27b",
+      "object": "model",
+      "created": 1759579171,
+      "owned_by": "library"
+    },
+    {
+      "id": "deepseek-r1:8b",
+      "object": "model",
+      "created": 1759577386,
+      "owned_by": "library"
+    }
+  ]
+}

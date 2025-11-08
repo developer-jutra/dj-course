@@ -1,0 +1,11 @@
+object: list
+data[9]{id,object,created,owned_by}:
+  "chinskie-dywagacje:latest",model,1760931635,library
+  "rozpruty:latest",model,1760928665,library
+  "wieszcz:latest",model,1760928202,library
+  "hf.co/SpeakLeash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0",model,1760326968,SpeakLeash
+  "chinese-truthteller:latest",model,1760303828,library
+  "poeta:latest",model,1760302688,library
+  "SpeakLeash/bielik-7b-instruct-v0.1-gguf:latest",model,1759678388,SpeakLeash
+  "gemma3:27b",model,1759579171,library
+  "deepseek-r1:8b",model,1759577386,library

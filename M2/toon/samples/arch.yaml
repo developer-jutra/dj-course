@@ -1,0 +1,217 @@
+system_name: NovaOS
+version: 5.2.1-stable
+architecture: x86_64
+boot_config:
+  init_process: /sbin/init
+  kernel_path: /boot/vmlinuz-5.2.1-nova
+  modules:
+  - nvme_driver
+  - ext4_fs
+  - security_module
+file_system:
+  root:
+    name: /
+    type: directory
+    permissions: rwxr-xr-x
+    owner: root
+    subdirectories:
+    - name: bin
+      type: directory
+      description: Essential user command binaries
+      executables:
+      - ls
+      - cat
+      - echo
+      - mv
+      - cp
+    - name: etc
+      type: directory
+      description: Host-specific configuration files
+      config_files:
+      - name: fstab
+        purpose: Filesystem table
+        parameters:
+          defaults:
+          - rw
+          - suid
+          - dev
+          - exec
+          - auto
+          - nouser
+          - async
+      - name: security
+        sub_configs:
+        - name: passwd
+          format: shadow
+        - name: group
+          format: standard
+      services:
+      - name: ssh
+        status: enabled
+        port: 22
+      - name: web_server
+        status: disabled
+        port: 8080
+    - name: usr
+      type: directory
+      description: User utilities and applications
+      subdirectories:
+      - name: lib
+        description: Libraries for binaries in /usr/bin
+        libraries:
+        - name: libc.so.6
+          dependencies: []
+        - name: libssl.so
+          dependencies:
+          - libc.so.6
+          - libcrypto.so
+      - name: share
+        description: Architecture-independent data
+        data_packages:
+        - package: icons
+          version: '1.2'
+        - package: locale
+          languages:
+          - en_US
+          - pl_PL
+          - de_DE
+      - name: local
+        description: Locally installed software
+        applications:
+        - name: custom_app
+          version: '1.0'
+          binary: /usr/local/bin/custom_app_exec
+    - name: var
+      type: directory
+      description: Variable data (logs, temp, spool)
+      data_stores:
+      - name: log
+        type: logs
+        recent_events:
+        - timestamp: '2025-11-04T23:20:00Z'
+          level: INFO
+          message: System startup complete.
+        - timestamp: '2025-11-04T23:25:30Z'
+          level: WARNING
+          message: High memory usage detected.
+      - name: spool
+        type: queue
+        queues:
+        - name: mail
+          size: 15
+        - name: print
+          size: 0
+    - name: dev
+      type: directory
+      description: Device files
+      devices:
+      - name: sda
+        major: 8
+        minor: 0
+        type: block
+      - name: tty0
+        major: 4
+        minor: 0
+        type: character
+      - name: 'null'
+        major: 1
+        minor: 3
+        type: character
+    - name: proc
+      type: virtual_directory
+      description: Process information pseudo-filesystem
+      dynamic_files:
+      - cpuinfo
+      - meminfo
+      - loadavg
+      running_processes:
+      - pid: 1
+        command: /sbin/init
+        state: running
+        children:
+        - 2
+        - 10
+        - 50
+      - pid: 10
+        command: syslogd
+        state: sleeping
+        user: sys
+    - name: tmp
+      type: directory
+      description: Temporary files
+      cleanup_policy:
+        time_limit_hours: 72
+        last_cleanup: '2025-11-01T10:00:00Z'
+    - name: home
+      type: directory
+      description: User home directories
+      users:
+      - username: tomek
+        uid: 1000
+        shell: /bin/bash
+        profile_settings:
+          theme: dark
+          shortcuts:
+          - key: Ctrl+A
+            action: select_all
+          - key: Alt+F4
+            action: close_window
+        user_files:
+        - name: report.docx
+          size_kb: 256
+          encrypted: true
+        - name: script.sh
+          size_kb: 12
+          encrypted: false
+      - username: guest
+        uid: 1001
+        shell: /bin/sh
+        profile_settings: {}
+        user_files: []
+hardware_abstract_layer:
+  cpu:
+    model: Nova-Core i7-12700
+    cores: 12
+    threads: 20
+    features:
+    - SSE4
+    - AVX2
+    - VT-x
+  memory:
+    total_gb: 32
+    free_gb: 18.5
+    banks:
+    - slot: 1
+      size_gb: 16
+      speed_mhz: 3200
+    - slot: 2
+      size_gb: 16
+      speed_mhz: 3200
+  storage_devices:
+  - id: sda
+    model: NovaSSD 1TB
+    size_gb: 1000
+    partitions:
+    - name: sda1
+      mount_point: /boot
+      filesystem: ext4
+    - name: sda2
+      mount_point: /
+      filesystem: ext4
+    - name: sda3
+      mount_point: '[SWAP]'
+      filesystem: swap
+  network_interfaces:
+  - name: eth0
+    mac_address: 00:1A:2B:3C:4D:5E
+    ip_addresses:
+    - 192.168.1.10
+    - fe80::1234
+    status: up
+    protocols:
+    - name: TCP
+      config:
+        timeout: 30
+    - name: UDP
+      config:
+        checksum_enabled: true

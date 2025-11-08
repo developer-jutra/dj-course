@@ -1,0 +1,87 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.17.7"
+  },
+  "cells": [
+    {
+      "id": "Jqmy",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PyTr",
+      "code_hash": "40cf0ec7e3ea27e8994f048d71f0d7aa",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"zerknij-do-pliku-homeworkmd-aby-zobaczyc-opis-zadania-domowego\">Zerknij do pliku <code>HOMEWORK.md</code> aby zobaczy\u0107 opis zadania domowego :)</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hbol",
+      "code_hash": "3ded264988d4b86be80696967e57f0d3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ourh",
+      "code_hash": "8dec84caf4081d6816d7d9794b1d1d90",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "\u2705 Successfully loaded tokenizer: qwen3-4b-tokenizer\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "kVNz",
+      "code_hash": "bb52137e1e339ca02731b65b502d5b17",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "\n==================================================\nTokenizer: qwen3-4b-tokenizer\n==================================================\n--- Sample: placeholder ---\nLiczba token\u00f3w json: 105\nLiczba token\u00f3w nows-json: 86\nLiczba token\u00f3w yaml: 83\nLiczba token\u00f3w toon: 83\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    }
+  ]
+}

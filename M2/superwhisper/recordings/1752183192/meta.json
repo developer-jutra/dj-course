@@ -1,0 +1,38 @@
+{
+  "duration" : 22538,
+  "realtimeEnabled" : false,
+  "languageModelProcessingTime" : 7693,
+  "translationEnabled" : false,
+  "separateSpeakersEnabled" : false,
+  "datetime" : "2025-07-10T21:33:36",
+  "languageSelected" : "en",
+  "llmResult" : "# Java Spring Boot Application with Hibernate - Enhanced Requirements\n\n## **Project Overview**\nCreate a Java application using:\n- **Framework**: Spring Boot\n- **Data Access**: Hibernate ORM\n- **API Type**: REST endpoints\n- **Operations**: Standard CRUD operations\n\n## **Technical Stack**\n- **Backend**: Java + Spring Boot\n- **ORM**: Hibernate\n- **API**: RESTful web services\n- **Database Operations**: Create, Read, Update, Delete\n\n## **Functional Requirements**\n- Expose REST endpoints for data access\n- Implement standard data operations (CRUD)\n- Handle 2-3 data collections\/entities\n\n## **Questions for Clarification**\n\n**WHAT DATABASE SYSTEM WOULD YOU LIKE TO USE (E.G., MYSQL, POSTGRESQL, H2)?**\n\n**WHAT ARE THE 2-3 DATA ENTITIES\/COLLECTIONS YOU WANT TO MANAGE?**\n\n**DO YOU NEED ANY SPECIFIC AUTHENTICATION\/AUTHORIZATION?**\n\n**WHAT BUILD TOOL DO YOU PREFER (MAVEN OR GRADLE)?**\n\n**DO YOU NEED ANY SPECIFIC VALIDATION OR ERROR HANDLING REQUIREMENTS?**",
+  "modelName" : "Standard",
+  "systemAudioEnabled" : false,
+  "applicationContextEnabled" : true,
+  "prompt" : "<instructions>This is a prompt that I would like you to enhance in a way that you make it more clear, more structurized maybe you remove repetition and add some structure in a markdown format preferably.\n\nIf something is uncertain, please ask me explicitly.\n\nYour output should be basically my enhanced prompt and only when you've got an answer to empty please write all uppercase, screening case, question itself so that it would be easier for me to identify it and answer you.<\/instructions>\n\n<system_context>10 July 2025 at 23:33<\/system_context>\n\n<application_context>User is currently using Google Chrome and is at URL: https:\/\/www.perplexity.ai\/\n\nFocused on this element: , role=AXTextArea, placeholderValue=Ask anything… \n\n\nFocused element has this value: \n \n\n\nNames and Usernames: Google, @artmizu\/nuxt-prometheus, API, Nuxt, Labs<\/application_context>\n\n<user_message>I wanted to create a Java application that would use Spring under the hood and Hibernate for data access. It needs to expose some rest endpoints that would access the data and maybe two or three collect, you know, standard operations on data.<\/user_message>\n\n",
+  "rawResult" : " I wanted to create a Java application that would use Spring under the hood and Hibernate for data access. It needs to expose some rest endpoints that would access the data and maybe two or three collect, you know, standard operations on data.",
+  "appVersion" : "1.47.0",
+  "recordingDevice" : "AppleUSBAudioEngine:RØDE:RØDE PodMic USB:DA55B786:1,2",
+  "languageModelName" : "Claude 4 Sonnet",
+  "processingTime" : 1129,
+  "modelKey" : "small",
+  "literalPunctuationEnabled" : false,
+  "speakers" : [
+
+  ],
+  "result" : "I wanted to create a Java application that would use Spring under the hood and Hibernate for data access. It needs to expose some rest endpoints that would access the data and maybe two or three collect, you know, standard operations on data.",
+  "segments" : [
+    {
+      "text" : "I wanted to create a Java application that would use Spring under the hood and Hibernate for data access.",
+      "end" : 8,
+      "start" : 0
+    },
+    {
+      "text" : "It needs to expose some rest endpoints that would access the data and maybe two or three collect, you know, standard operations on data.",
+      "end" : 22,
+      "start" : 8
+    }
+  ],
+  "modeName" : "Enhance & Clear"
+}
