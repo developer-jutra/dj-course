@@ -7,7 +7,7 @@ Uruchom lokalnie minimum 1 z poniższych:
 Wraz z wybranym obrazem (najlepiej FT: _Instruct_).
 
 Zlokalizuj ścieżkę (lokalnie, na dysku) gdzie model jest przechowywany.
-(zerknij na plik [`LINKS-and-STUFF.md`](./LINKS-and-STUFF.md) obok dla porównania)
+(zerknij na plik [`LINKS-and-STUFF.md`](../LINKS-and-STUFF.md) obok dla porównania)
 
 # Zadanie 7
 

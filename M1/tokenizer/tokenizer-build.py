@@ -4,7 +4,7 @@ from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
 from corpora import get_corpus_file
 
-TOKENIZER_OUTPUT_FILE = "tokenizers/custom_bpe_tokenizer.json"
+TOKENIZER_OUTPUT_FILE = "tokenizers/name_your_tokenizer.json"
 
 # 1. Initialize the Tokenizer (BPE model)
 tokenizer = Tokenizer(BPE(unk_token="[UNK]")) 

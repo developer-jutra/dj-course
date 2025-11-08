@@ -22,6 +22,9 @@ du -sh ~/Library/Caches/llama.cpp/
 
 du -sh ~/.ollama
  43G    /Users/<USER>/.ollama
+
+du -sh /Users/<USER>/Library/Application\ Support/tts
+ 1.7G    /Users/<USER>/Library/Application\ Support/tts
 ```
 
 sprawdź lokalny rozmiar wszystkiego wewnątrz `~`: `find ~ -maxdepth 1 -mindepth 1 -print0 | xargs -0 du -sh`
