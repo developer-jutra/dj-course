@@ -1,6 +1,7 @@
 google-genai
 python-dotenv
 llama-cpp-python
+anthropic
 prompt_toolkit
 colorama
 pydantic>=2.0.0

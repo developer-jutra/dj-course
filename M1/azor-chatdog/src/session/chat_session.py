@@ -5,6 +5,7 @@ from files import session_files
 from files.wal import append_to_wal
 from llm.gemini_client import GeminiLLMClient
 from llm.llama_client import LlamaClient
+from llm.claude_client import ClaudeLLMClient
 from assistant import Assistant
 from cli import console
 
@@ -14,6 +15,7 @@ from cli import console
 ENGINE_MAPPING = {
     'LLAMA_CPP': LlamaClient,
     'GEMINI': GeminiLLMClient,
+    'CLAUDE': ClaudeLLMClient
 }
 
 
@@ -46,7 +48,7 @@ class ChatSession:
         This should be called after any history modification.
         """
         # Walidacja zmiennej ENGINE
-        engine = os.getenv('ENGINE', 'GEMINI').upper()
+        engine = os.getenv('ENGINE', 'CLAUDE').upper()
         if engine not in ENGINE_MAPPING:
             valid_engines = ', '.join(ENGINE_MAPPING.keys())
             raise ValueError(f"ENGINE musi być jedną z wartości: {valid_engines}, otrzymano: {engine}")
