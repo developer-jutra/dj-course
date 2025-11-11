@@ -13,7 +13,7 @@ LLAMA_CPP_SERVER = {
 }
 OLLAMA_SERVER = {
     "engine": "ollama",
-    "model": "gemma3:27b", # 🔥🔥🔥 tu JEST różnica, bo ollama ma wiele modeli, a llama-cpp ma tylko 1 model
+    "model": "gemma3:4b", # 🔥🔥🔥 tu JEST różnica, bo ollama ma wiele modeli, a llama-cpp ma tylko 1 model
     "base_url": "http://localhost:11434/v1",
 }
 SERVER = OLLAMA_SERVER
@@ -23,7 +23,7 @@ SERVER = OLLAMA_SERVER
 # This will work because the local server is compatible with the OpenAI API
 mlflow.openai.autolog()
 
-mlflow.set_tracking_uri("http://127.0.0.1:5000/")
+mlflow.set_tracking_uri("http://127.0.0.1:5005/")
 # Set the MLflow experiment
 mlflow.set_experiment(f"DJ_local_model_tracking_{SERVER['engine']}")
 
@@ -41,11 +41,11 @@ with mlflow.start_run() as run:
         completion = client.chat.completions.create(
             model=SERVER["model"],
             messages=[
-                {"role": "system", "content": "You are a helpless AI assistant."},
-                {"role": "user", "content": "Write a short note on why it is worth using MLflow."},
+                {"role": "system", "content": "You are an expert in coding in Python."},
+                {"role": "user", "content": "Create a simple Python module to plot a sine wave using pandas."},
             ],
-            temperature=0.7,
-            max_tokens=150,
+            temperature=0.5,
+            max_tokens=450,
         )
 
         # Retrieve and display the response
