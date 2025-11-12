@@ -140,24 +140,30 @@ class GeminiLLMClient:
             console.print_error(f"Błąd inicjalizacji klienta Gemini: {e}")
             sys.exit(1)
     
-    def create_chat_session(self, 
-                          system_instruction: str, 
+    def create_chat_session(self,
+                          system_instruction: str,
                           history: Optional[List[Dict]] = None,
-                          thinking_budget: int = 0) -> GeminiChatSessionWrapper:
+                          thinking_budget: int = 0,
+                          temperature: Optional[float] = None,
+                          top_p: Optional[float] = None,
+                          top_k: Optional[int] = None) -> GeminiChatSessionWrapper:
         """
         Creates a new chat session with the specified configuration.
-        
+
         Args:
             system_instruction: System role/prompt for the assistant
             history: Previous conversation history (optional, in universal dict format)
             thinking_budget: Thinking budget for the model
-            
+            temperature: Sampling temperature (0.0-2.0, optional). Controls randomness in responses.
+            top_p: Nucleus sampling parameter (0.0-1.0, optional). Considers tokens with cumulative probability up to top_p.
+            top_k: Top-k sampling parameter (optional). Only samples from top K most likely tokens.
+
         Returns:
             GeminiChatSessionWrapper with universal dictionary-based interface
         """
         if not self._client:
             raise RuntimeError("LLM client not initialized")
-        
+
         # Convert universal dict format to Gemini Content objects
         gemini_history = []
         if history:
@@ -170,16 +176,27 @@ class GeminiLLMClient:
                             parts=[types.Part.from_text(text=text)]
                         )
                         gemini_history.append(content)
-        
+
+        # Build config parameters
+        config_params = {
+            "system_instruction": system_instruction,
+            "thinking_config": types.ThinkingConfig(thinking_budget=thinking_budget)
+        }
+
+        # Add optional sampling parameters if provided
+        if temperature is not None:
+            config_params["temperature"] = temperature
+        if top_p is not None:
+            config_params["top_p"] = top_p
+        if top_k is not None:
+            config_params["top_k"] = top_k
+
         gemini_session = self._client.chats.create(
             model=self.model_name,
             history=gemini_history,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget)
-            )
+            config=types.GenerateContentConfig(**config_params)
         )
-        
+
         return GeminiChatSessionWrapper(gemini_session)
     
     def count_history_tokens(self, history: List[Dict]) -> int:

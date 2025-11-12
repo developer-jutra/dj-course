@@ -18,7 +18,8 @@ class ClaudeChatSessionWrapper:
     This ensures compatibility with GeminiClient and LlamaClient history formats.
     """
 
-    def __init__(self, claude_client: Anthropic, model_name: str, system_instruction: str, history: Optional[List[Dict]] = None):
+    def __init__(self, claude_client: Anthropic, model_name: str, system_instruction: str, history: Optional[List[Dict]] = None,
+                 temperature: Optional[float] = None, top_p: Optional[float] = None, top_k: Optional[int] = None):
         """
         Initialize wrapper with Claude client and configuration.
 
@@ -27,11 +28,17 @@ class ClaudeChatSessionWrapper:
             model_name: Model name to use for completions
             system_instruction: System instruction/prompt for the assistant
             history: Previous conversation history (optional)
+            temperature: Sampling temperature (0.0-1.0, optional)
+            top_p: Nucleus sampling parameter (0.0-1.0, optional)
+            top_k: Top-k sampling parameter (optional)
         """
         self.claude_client = claude_client
         self.model_name = model_name
         self.system_instruction = system_instruction
         self._history = history or []
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
 
     def send_message(self, text: str) -> Any:
         """
@@ -51,13 +58,24 @@ class ClaudeChatSessionWrapper:
             # Convert history to Claude's message format
             messages = self._convert_history_to_claude_messages()
 
+            # Build API parameters
+            api_params = {
+                "model": self.model_name,
+                "max_tokens": 8192,
+                "system": self.system_instruction,
+                "messages": messages
+            }
+
+            # Add optional sampling parameters if provided
+            if self.temperature is not None:
+                api_params["temperature"] = self.temperature
+            if self.top_p is not None:
+                api_params["top_p"] = self.top_p
+            if self.top_k is not None:
+                api_params["top_k"] = self.top_k
+
             # Call Claude API
-            response = self.claude_client.messages.create(
-                model=self.model_name,
-                max_tokens=8192,
-                system=self.system_instruction,
-                messages=messages
-            )
+            response = self.claude_client.messages.create(**api_params)
 
             # Extract response text
             response_text = response.content[0].text
@@ -196,7 +214,10 @@ class ClaudeLLMClient:
     def create_chat_session(self,
                           system_instruction: str,
                           history: Optional[List[Dict]] = None,
-                          thinking_budget: int = 0) -> ClaudeChatSessionWrapper:
+                          thinking_budget: int = 0,
+                          temperature: Optional[float] = None,
+                          top_p: Optional[float] = None,
+                          top_k: Optional[int] = None) -> ClaudeChatSessionWrapper:
         """
         Creates a new chat session with the specified configuration.
 
@@ -204,10 +225,14 @@ class ClaudeLLMClient:
             system_instruction: System role/prompt for the assistant
             history: Previous conversation history (optional, in universal dict format)
             thinking_budget: Thinking budget for the model (not used by Claude currently)
+            temperature: Sampling temperature (0.0-1.0, optional). Controls randomness in responses.
+            top_p: Nucleus sampling parameter (0.0-1.0, optional). Considers tokens with cumulative probability up to top_p.
+            top_k: Top-k sampling parameter (optional). Only samples from top K most likely tokens.
 
         Returns:
             ClaudeChatSessionWrapper with universal dictionary-based interface
         """
+        print(f"Creating chat session with model: {self.model_name}, temperature: {temperature}, top_p: {top_p}, top_k: {top_k}")
         if not self._client:
             raise RuntimeError("LLM client not initialized")
 
@@ -215,7 +240,10 @@ class ClaudeLLMClient:
             claude_client=self._client,
             model_name=self.model_name,
             system_instruction=system_instruction,
-            history=history or []
+            history=history or [],
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k
         )
 
     def count_history_tokens(self, history: List[Dict]) -> int:

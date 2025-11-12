@@ -37,7 +37,7 @@ class ChatSession:
         self.assistant = assistant
         self.session_id = session_id or str(uuid.uuid4())
         self._history = history or []
-        self._llm_client: Union[GeminiLLMClient, LlamaClient, None] = None
+        self._llm_client: Union[GeminiLLMClient, LlamaClient, ClaudeLLMClient, None] = None
         self._llm_chat_session = None
         self._max_context_tokens = 32768
         self._initialize_llm_session()
@@ -55,7 +55,7 @@ class ChatSession:
         
         # Initialize LLM client if not already created
         if self._llm_client is None:
-            SelectedClientClass = ENGINE_MAPPING.get(engine, GeminiLLMClient)
+            SelectedClientClass = ENGINE_MAPPING.get(engine, ClaudeLLMClient)
             console.print_info(SelectedClientClass.preparing_for_use_message())
             self._llm_client = SelectedClientClass.from_environment()
             console.print_info(self._llm_client.ready_for_use_message())
@@ -63,7 +63,9 @@ class ChatSession:
         self._llm_chat_session = self._llm_client.create_chat_session(
             system_instruction=self.assistant.system_prompt,
             history=self._history,
-            thinking_budget=0
+            thinking_budget=0,
+            temperature=1,
+            top_k=0
         )
     
     
