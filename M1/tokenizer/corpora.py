@@ -19,16 +19,23 @@ CORPORA_FILES["ALL"] = [
 ]
 
 def get_corpus_file(corpus_name: str, glob_pattern: str) -> Path:
+    if corpus_name == "ALL":
+        all_files = []
+        for files in CORPORA_FILES.values():
+            all_files.extend(files)
+        return [f for f in all_files if f.match(glob_pattern)]
     if corpus_name not in CORPORA_FILES:
         raise ValueError(f"Corpus {corpus_name} not found")
     return list(CORPORA_DIRS[corpus_name].glob(glob_pattern))
 
-if __name__ == "__main__":    
-    print("\ncorpora (total files):")
+if __name__ == "__main__":
+    print("\ncorpora:")
     for corpus_name, corpus_files in CORPORA_FILES.items():
         print(f"{corpus_name}: {len(corpus_files)}")
 
     print("\nget_corpus_file:")
     print("nkjp *", len(get_corpus_file("NKJP", "*.txt")))
     print("nkjp krzyzacy", len(get_corpus_file("WOLNELEKTURY", "krzyzacy-*.txt")))
-    
+    print("all *.txt", len(get_corpus_file("ALL", "*.txt")))
+    print("all pan-tadeusz", len(get_corpus_file("ALL", "pan-tadeusz-ksiega-*.txt")))
+    print("ALL", CORPORA_FILES["ALL"])
