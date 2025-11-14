@@ -1,15 +1,16 @@
-import glob
 from pathlib import Path
 
 CORPORA_DIRS = {
     "NKJP": Path("../korpus-nkjp/output"),
     "WOLNELEKTURY": Path("../korpus-wolnelektury"),
+    "MINI": Path("../korpus-mini"),
 }
 
 CORPORA_FILES = {
     "NKJP": list(CORPORA_DIRS["NKJP"].glob("*.txt")),
     "WOLNELEKTURY": list(CORPORA_DIRS["WOLNELEKTURY"].glob("*.txt")),
     "PAN_TADEUSZ": list(CORPORA_DIRS["WOLNELEKTURY"].glob("pan-tadeusz-ksiega-*.txt")),
+    "MINI": list(CORPORA_DIRS["MINI"].glob("*.txt")),
 }
 
 # removing PAN_TADEUSZ from ALL_CORPORA to avoid duplicates (PAN_TADEUSZ is already in WOLNELEKTURY)
