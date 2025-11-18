@@ -13,7 +13,7 @@ LLAMA_CPP_SERVER = {
 }
 OLLAMA_SERVER = {
     "engine": "ollama",
-    "model": "gemma3:27b", # 🔥🔥🔥 tu JEST różnica, bo ollama ma wiele modeli, a llama-cpp ma tylko 1 model
+    "model": "hf.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Q5_K_S", # 🔥🔥🔥 tu JEST różnica, bo ollama ma wiele modeli, a llama-cpp ma tylko 1 model
     "base_url": "http://localhost:11434/v1",
 }
 SERVER = OLLAMA_SERVER
@@ -41,11 +41,11 @@ with mlflow.start_run() as run:
         completion = client.chat.completions.create(
             model=SERVER["model"],
             messages=[
-                {"role": "system", "content": "You are a helpless AI assistant."},
-                {"role": "user", "content": "Write a short note on why it is worth using MLflow."},
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Write a short poem about MLFlow in Polish (max 4 lines)"},
             ],
             temperature=0.7,
-            max_tokens=150,
+            max_tokens=200,
         )
 
         # Retrieve and display the response
@@ -53,10 +53,18 @@ with mlflow.start_run() as run:
         print("\n--- Model Response ---")
         print(response_text)
         print("------------------------")
+        
+        # Display token usage if available
+        if hasattr(completion, 'usage') and completion.usage:
+            print(f"\n📊 Tokens used: {completion.usage.total_tokens}")
+            print(f"   Prompt tokens: {completion.usage.prompt_tokens}")
+            print(f"   Completion tokens: {completion.usage.completion_tokens}")
 
     except Exception as e:
         print(f"Error connecting to the model: {e}")
         print(f"Make sure the {SERVER['engine']}.server is running at {SERVER['base_url']}.")
+        import traceback
+        traceback.print_exc()
 
     # The interaction data (prompt, response, parameters, tokens) is now
     # automatically logged as a 'Trace' in MLflow thanks to autologging.
