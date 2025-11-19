@@ -1,5 +1,9 @@
 # M1: LLMy i Agenty: Architektura i Działanie
 
+## for windows users
+
+Podobno instalowanie llama.cpp na Windowsie jest bardzo wygodne przy użyciu: `winget install llama.cpp`
+
 ## część pierwsza
 
 - `embedding` - trenujemy model embeddingowy (czyli model kojarzący najbliższe słowa lub najbliższe zdania)

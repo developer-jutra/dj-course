@@ -24,6 +24,15 @@ Podepnij MLFlow - i podsłuchaj, co agent robi z (jakimś) modelem:
 
 zobacz `M1/mlflow/README.md`
 
+TROUBLESHOOTING: jeśli uruchamiasz `mlflow autolog claude --status` otrzymujesz błąd:
+`Error: No such command 'autolog'`
+to sprawdź po kolei:
+- upewnij się, że venv (wirtualne środowisko) jest włączone, i że paczka jest tam zainstalowana (przechodząc między projektami można zapomnieć w którym venv się jest)
+- sprawdź na której wersji pythona jesteś. Przykładowo, jeśli jesteś na 3.9 to podbij się do 3.13
+  - nie podbijaj się do 3.14 (zgłaszano błędy o problemach z tą wersją)
+  - w przypadku potrzeby zmiany wersji pythona, możesz albo reinstalować, albo (lepiej) skorzystać z `pyenv` - prostego toola do utrzymywania równoloegle wielu wersji pythona jednocześnie na Twojej maszynie
+- jeśli to nie zadziała to sprawdź czy nie masz przypadkiem przestarzałej wersji `mlflow` jako takiego (w zależności od Twojego systemu, komenda może być bardziej lub mniej podobna to tej: `cat .venv/lib/python3.13/site-packages/mlflow/version.py `)
+
 # Zadanie 3
 
 Robimy własny TOKENIZER. Folder: `M1/tokenizer`
