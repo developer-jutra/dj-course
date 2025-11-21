@@ -1,0 +1,669 @@
+[
+  {
+    "run_id": 1,
+    "timestamp": "2025-11-21T13:19:09.623973",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 37.98,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9480430245399475,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 2,
+    "timestamp": "2025-11-21T13:20:38.511725",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 88.87,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9501090288162232,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 3,
+    "timestamp": "2025-11-21T13:23:18.465438",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 159.94,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9234037041664124,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 4,
+    "timestamp": "2025-11-21T13:28:41.289192",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 80,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 322.81,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.877528989315033,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 5,
+    "timestamp": "2025-11-21T13:29:23.307562",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 42.01,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.965022611618042,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 6,
+    "timestamp": "2025-11-21T13:30:44.036899",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 80.72,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9507992148399353,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 7,
+    "timestamp": "2025-11-21T13:33:25.691570",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 161.64,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.944424819946289,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 8,
+    "timestamp": "2025-11-21T13:38:48.273313",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 20,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 80,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 322.56,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9001394867897033,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 9,
+    "timestamp": "2025-11-21T13:39:28.659257",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 40.37,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.9007521271705627,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 10,
+    "timestamp": "2025-11-21T13:40:48.418150",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 79.74,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8595155596733093,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 11,
+    "timestamp": "2025-11-21T13:43:37.880029",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 169.44,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.841633677482605,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 12,
+    "timestamp": "2025-11-21T13:49:10.596754",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 80,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 332.66,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.7725314497947693,
+      "test_queries_count": 5,
+      "quality_rating": "good"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 13,
+    "timestamp": "2025-11-21T13:49:48.796150",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 38.18,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8864879131317138,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 14,
+    "timestamp": "2025-11-21T13:51:05.242842",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 76.43,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8722667217254638,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 15,
+    "timestamp": "2025-11-21T13:53:41.015430",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 155.75,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8076648116111755,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 16,
+    "timestamp": "2025-11-21T13:58:33.121101",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 50,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 80,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 292.08,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.7933968782424927,
+      "test_queries_count": 5,
+      "quality_rating": "good"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 17,
+    "timestamp": "2025-11-21T13:59:11.363902",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 38.22,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8395466685295105,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 18,
+    "timestamp": "2025-11-21T14:00:25.411590",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 74.02,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8316455006599426,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 19,
+    "timestamp": "2025-11-21T14:02:54.303472",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 148.86,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.775328528881073,
+      "test_queries_count": 5,
+      "quality_rating": "good"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 20,
+    "timestamp": "2025-11-21T14:07:50.029195",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 5,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 80,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 295.69,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.7242227792739868,
+      "test_queries_count": 5,
+      "quality_rating": "good"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 21,
+    "timestamp": "2025-11-21T14:08:27.090136",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 10,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 37.03,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8444132924079895,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 22,
+    "timestamp": "2025-11-21T14:09:43.887000",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 20,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 76.77,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.8380781650543213,
+      "test_queries_count": 5,
+      "quality_rating": "excellent"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  },
+  {
+    "run_id": 23,
+    "timestamp": "2025-11-21T14:12:15.440931",
+    "corpus": {
+      "name": "WOLNELEKTURY",
+      "sentences_count": 102529,
+      "avg_tokens_per_sentence": 37.22
+    },
+    "tokenizer": "bielik-v3-tokenizer",
+    "parameters": {
+      "VECTOR_LENGTH": 100,
+      "WINDOW_SIZE": 10,
+      "MIN_COUNT": 4,
+      "WORKERS": 4,
+      "EPOCHS": 40,
+      "SG_MODE": 0,
+      "dm": 1
+    },
+    "training_time_seconds": 151.51,
+    "quality_metrics": {
+      "avg_top1_similarity": 0.7713306188583374,
+      "test_queries_count": 5,
+      "quality_rating": "good"
+    },
+    "output_files": {
+      "model": "doc2vec_model_test.model",
+      "sentence_map": "doc2vec_model_sentence_map_test.json"
+    }
+  }
+]
