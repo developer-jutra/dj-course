@@ -1,0 +1,17 @@
+{
+  "name": "mcp-docker-tools",
+  "author": "Developer Jutra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "start:log:verbose": "CONFIG_LOG_LEVEL=VERBOSE node server.js",
+    "test": "npx @modelcontextprotocol/inspector node server.js",
+    "test:cli": "npx @modelcontextprotocol/inspector --cli node server.js --method tools/list"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.24.3"
+  }
+}

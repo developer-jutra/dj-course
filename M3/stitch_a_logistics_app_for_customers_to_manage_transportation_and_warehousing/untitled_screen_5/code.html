@@ -1,0 +1,236 @@
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans%3Awght%40400%3B500%3B600%3B700%3B800" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    :root {
+      --primary-50: #f0f9ff;
+      --primary-100: #e0f2fe;
+      --primary-200: #bae6fd;
+      --primary-300: #7dd3fc;
+      --primary-400: #38bdf8;
+      --primary-500: #0ea5e9;
+      --primary-600: #0284c7;
+      --primary-700: #0369a1;
+      --primary-800: #075985;
+      --primary-900: #0c4a6e;
+      --secondary-50: #f8fafc;
+      --secondary-100: #f1f5f9;
+      --secondary-200: #e2e8f0;
+      --secondary-300: #cbd5e1;
+      --secondary-400: #94a3b8;
+      --secondary-500: #64748b;
+      --secondary-600: #475569;
+      --secondary-700: #334155;
+      --secondary-800: #1e293b;
+      --secondary-900: #0f172a;
+    }
+  </style>
+</head>
+<body>
+<div class="relative flex size-full min-h-screen flex-col bg-var(--secondary-50) group/design-root" style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[var(--secondary-200)] bg-white px-10 py-3">
+<div class="flex items-center gap-4 text-var(--secondary-800)">
+<div class="size-8 text-[var(--primary-600)]">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em] text-var(--secondary-900)">
+            SwiftShip
+          </h2>
+</div>
+<div class="flex flex-1 justify-center gap-8">
+<div class="flex items-center gap-2 rounded-full bg-[var(--secondary-100)] p-1">
+<a class="rounded-full px-4 py-1.5 text-sm font-semibold text-var(--secondary-700)" href="#">Dashboard</a>
+<a class="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-[var(--primary-600)]" href="#">Shipments</a>
+<a class="rounded-full px-4 py-1.5 text-sm font-semibold text-var(--secondary-700)" href="#">Orders</a>
+<a class="rounded-full px-4 py-1.5 text-sm font-semibold text-var(--secondary-700)" href="#">Inventory</a>
+<a class="rounded-full px-4 py-1.5 text-sm font-semibold text-var(--secondary-700)" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[var(--secondary-100)] text-var(--secondary-600)">
+<span class="material-icons-outlined text-2xl">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBr5JeD3qHhqBlsiVe1v1D8PAotvwV6-jzmWqBE_qEGbnsayL4biRcwDLAtqYelo68GFlHCFgSuRRxu5zjaiAxepQ_7vO1iqiZczgqSLGDVm5DMXgq-LL5zXFFIqGaRpb0HI-SbEk4cA0fTOVsxz_rElKybNUiA_qbfw5-hGRTN2JU-3s0BvRe2Ot4seCJDH3icpYeCkX0JxwoWfwSSLjXhP7lQiC6caEl9bM-d9Riqdu1bF7LYuv0Ft2I7SIGcDeGvQXSWPpo9Pzf6");'></div>
+</div>
+</header>
+<main class="flex-1 px-10 py-8">
+<div class="mx-auto max-w-7xl">
+<div class="mb-8 flex items-center justify-between">
+<div>
+<h1 class="text-3xl font-bold text-var(--secondary-900)">
+                Shipment #1234567890
+              </h1>
+<p class="text-sm text-var(--secondary-500)">
+                Tracking ID: 9876543210
+              </p>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex h-10 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-solid border-[var(--secondary-300)] bg-white px-4 text-sm font-semibold text-var(--secondary-700)">
+<span>Share</span>
+</button>
+<button class="flex h-10 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md bg-[var(--primary-600)] px-4 text-sm font-semibold text-white">
+<span>Track on map</span>
+</button>
+</div>
+</div>
+<div class="rounded-lg border border-solid border-[var(--secondary-200)] bg-white p-6 shadow-sm">
+<div class="flex justify-between">
+<div class="flex items-center gap-4">
+<div class="relative flex h-full items-center">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--secondary-200)] text-var(--secondary-500)">
+<span class="material-icons-outlined text-2xl">receipt_long</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-var(--secondary-400)">
+                    Order Placed
+                  </p>
+<p class="text-xs text-var(--secondary-400)">
+                    July 10, 10:00 AM
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex h-full items-center">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--secondary-200)] text-var(--secondary-500)">
+<span class="material-icons-outlined text-2xl">warehouse</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-var(--secondary-400)">
+                    Picked Up
+                  </p>
+<p class="text-xs text-var(--secondary-400)">
+                    July 11, 2:00 PM
+                  </p>
+</div>
+</div>
+<div class="rounded-xl bg-var(--primary-50) p-6">
+<div class="flex items-center gap-4">
+<div class="relative flex h-full items-center">
+<div class="flex size-16 items-center justify-center rounded-full bg-[var(--primary-600)] text-white">
+<span class="material-icons-outlined text-4xl">local_shipping</span>
+</div>
+</div>
+<div>
+<p class="text-lg font-bold text-[var(--primary-700)]">
+                      In Transit
+                    </p>
+<p class="text-sm text-var(--secondary-500)">
+                      July 12, 9:00 AM
+                    </p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex h-full items-center">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--secondary-200)] text-var(--secondary-500)">
+<span class="material-icons-outlined text-2xl">inventory_2</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-var(--secondary-400)">
+                    Out for Delivery
+                  </p>
+<p class="text-xs text-var(--secondary-400)">
+                    July 13, 11:00 AM
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex h-full items-center">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--secondary-200)] text-var(--secondary-500)">
+<span class="material-icons-outlined text-2xl">check_circle</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-var(--secondary-400)">
+                    Delivered
+                  </p>
+<p class="text-xs text-var(--secondary-400)">
+                    July 13, 1:00 PM
+                  </p>
+</div>
+</div>
+</div>
+<div class="relative mt-4 h-2 w-full rounded-full bg-var(--secondary-200)">
+<div class="absolute h-2 rounded-full bg-[var(--primary-600)]" style="width: 50%"></div>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+<div class="rounded-lg border border-solid border-[var(--secondary-200)] bg-white p-6 shadow-sm lg:col-span-2">
+<h2 class="mb-4 text-lg font-semibold text-var(--secondary-800)">
+                  Shipment Details
+                </h2>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<h3 class="text-xs font-medium uppercase text-var(--secondary-400)">
+                      Origin
+                    </h3>
+<p class="text-sm text-var(--secondary-700)">
+                      123 Main Street, Anytown, USA
+                    </p>
+</div>
+<div>
+<h3 class="text-xs font-medium uppercase text-var(--secondary-400)">
+                      Destination
+                    </h3>
+<p class="text-sm text-var(--secondary-700)">
+                      456 Oak Avenue, Springfield, USA
+                    </p>
+</div>
+<div>
+<h3 class="text-xs font-medium uppercase text-var(--secondary-400)">
+                      Weight
+                    </h3>
+<p class="text-sm text-var(--secondary-700)">50 lbs</p>
+</div>
+<div>
+<h3 class="text-xs font-medium uppercase text-var(--secondary-400)">
+                      Service
+                    </h3>
+<p class="text-sm text-var(--secondary-700)">Express</p>
+</div>
+<div>
+<h3 class="text-xs font-medium uppercase text-var(--secondary-400)">
+                      Estimated Delivery
+                    </h3>
+<p class="text-sm text-var(--secondary-700)">
+                      July 14, 2024
+                    </p>
+</div>
+</div>
+</div>
+<div class="rounded-lg border border-solid border-[var(--secondary-200)] bg-white p-6 shadow-sm">
+<h2 class="mb-4 text-lg font-semibold text-var(--secondary-800)">
+                  Current Status
+                </h2>
+<div class="flex items-center gap-4">
+<div class="flex size-12 items-center justify-center rounded-full bg-[var(--primary-100)] text-[var(--primary-600)]">
+<span class="material-icons-outlined text-3xl">local_shipping</span>
+</div>
+<div>
+<p class="text-lg font-bold text-[var(--primary-600)]">
+                      In Transit
+                    </p>
+<p class="text-sm text-var(--secondary-500)">
+                      Package is on its way.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>
