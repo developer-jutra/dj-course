@@ -1,3 +1,135 @@
+# Lekcja 2 (Redukowanie Halucynacji)
+
+### Najpierw zbuduj kontekst
+
+**zamiast**:
+> Wygeneruj mi przykłady kodu ilustrujące XYZ.
+najpierw zbuduj kontekst:
+> Opisz mi problematykę wokół XYZ.
+> (i dopiero potem:)
+> Teraz proszę zilustruj przykładami kodu w określonym stylu, formacie [...]
+
+przykład: https://gemini.google.com/share/0be5e4f0a101
+
+(także w lekcji 3)
+
+### Chain of Thoughts
+
+> Zilustruj mi proszę <PATTERN> w <TECHNOLOGIA>, ale pomijając wszelkie nieistotne rzeczy typu zależności, zbędne i nadmierne komentarze itd. interesują mnie tylko absolutnie kluczowe linijki kodu, które ilustrują wzorzec.
+> Chcę, abyś zaczął od opisu kluczowych założeń wzorca oraz problemów jakie ma na celu rozwiązać, a następnie przejść do kodu.
+> Założenia wylistuj w osobnej sekcji
+
+przykład: https://gemini.google.com/share/a4bb84fadfea
+
+### Nie zatruwaj kontekstu
+
+**zamiast**:
+> Wyjaśnij mi na czym polega domena logistyczna / transportowa / magazynowa. Wskaż bounded contexty w rozumieniu DDD.
+zapytaj o rzeczy ważne, bez zatruwania niepotrzebną terminologią/żargonem:
+> Wyjaśnij mi na czym polega biznes logistyczny / transportowy / magazynowy. Wskaż klientów, sposoby zarabiania, główne usługi jakie są świadczone, zasoby, sposoby [...].
+
+### Weryfikuj
+
+> Jak działa / o co chodzi / na czym polega [...]?
+> Każdy argument jaki poruszysz MUSISZ potwierdzić źródłem / linkiem.
+> Twoją wypowiedź MUSI się dać szybko i wygodnie zweryfikować w źródłach.
+
+# Lekcja 3 (Modelowanie Odpowiedzi)
+
+### Unikaj pochlebstw
+
+albo:
+> Don’t be sycophantic.
+
+### Zredukuj szum implementacyjny
+
+> [...] Nie dołączaj zależności.
+> Usuń komentarze.
+> Uprość kod.
+> Chcę widzieć tylko “CORE” problemu i ilustrację
+> (wzorca / architektury / rozwiązania)
+> Wszystko, co zbędne, usuń.
+
+przykład: https://gemini.google.com/share/54a75c2456bb
+
+### Pomiń wstęp:
+
+> [...] Provide only the answer, no introduction
+
+### Bez ściany tekstu
+
+> [...] Avoid long walls of text. Use bullet points
+
+### *-shot prompt
+
+Zero-shot prompt - krótki prompt, ale bez przykładów - LLM sam sobie "dopowie" czego brakuje
+One-shot prompt - prompt zawiera jeden przykład. Może to "usztywniać" odpowiedź, ale będzie przynajmniej zgodna z oczekiwaniami
+Few-shot prompt - optymalne pod względem jakości, ale największy koszt przygotowania 🤷
+
+### wide research in bullet-point style
+
+przykład: https://claude.ai/share/668c8150-20cc-4cee-8534-bfc511ced0c8
+
+### odpowiadaj "grubo"
+
+> [...] Use PhD level thinking.
+przykład: https://gemini.google.com/share/d8ad257c6a2f
+
+### listening-friendly prompt
+
+> Odpowiedź ma być wygodna do słuchania. Jeśli planujesz uwzględnić fragmenty kodu, diagramy, tabele itp. - to dodatkowo opisz je słownie.
+
+### Flesch reading ease
+
+> Opowiedz mi o zagadnieniu <ABC>.
+> Flesch reading ease: 80.
+
+przykład: https://claude.ai/share/80e4a832-5d0f-4414-94c4-312ea0bbf1d6
+
+a take Gunning-Fog Index: https://gemini.google.com/share/b3ea6ab7de4b, https://gemini.google.com/share/86c5b436903b
+
+### Reframing the problem
+
+> Przeformułuj (omawiany w wątku problem) w taki sposób, aby zupełnie zmienić moje postrzeganie. Tak, jakbym się z omawianym problemem zetknął/ęła po raz pierwszy.
+
+przykład: https://www.perplexity.ai/search/dj-public-wyjasnij-jak-dziala-9IhKd5T3RaSGHu_Enljm9Q#0
+
+# Lekcja 4 (Wzorce Promptów)
+
+### Enhance prompt
+> Potrzebuję abyś uporządkował mój prompt. Zamierzam go użyć w innym narzędziu LLM. Poniższy prompt zawiera istotne informacje, ale jest nie ustrukturyzowany. Potencjalnie zawiera dużo powtórzeń. Jest nieuporządkowany, kolejność jest zaburzona. Chciałbym abyś go uporządkował, usunął powtórzenia i ewentualnie uzupełnił ważne aspekty, które w poniższym promptie jeszcze nie są uwzględnione.
+
+### Context-dump prompt
+> W powyższym wątku omówiliśmy bardzo dużo zagadnień. Chciał(a)bym, abyś teraz podsumował kluczowe rzeczy, których się nauczyłem/am, ustrukturyzował to w formie rozdziałów oraz bullet-pointów. Koncentruj się przede wszystkim na pytaniach, które zadawałem/am, i tym czego się nauczyłem/am.
+
+### Different Perspectives prompt
+> W jaki różny sposób osoby takie jak Developer, PM, DevOps, Architekt Mogą podchodzić do kwestii observability i monitoringu i, szeroko ujmując, automatyzacji infrastruktury w danej firmie?
+> Na ile priorytety, cele, środki będą takie same, a na ile będą rozbieżne pomiędzy takimi osobami?
+przykład: https://gemini.google.com/share/6d830cbe7020
+
+### I might be wrong prompt
+> Wydaje mi się, że coś tam… Mam argumenty takie, śmakie i owakie. Ale to jest tylko moje obecne rozumienie. Mogę się mylić. Chciałbym abyś wedle swojej najlepszej wiedzy i danych dostępnych w Internecie, zwłaszcza naukowych, zweryfikował moje twierdzenie i jeśli cokolwiek jest błędne lub nielogiczne, żebyś wypunktował wszystkie nieścisłości.
+przykład: https://gemini.google.com/share/e2b4eebd2282
+
+### Spec prompt
+> Będę potrzebował(a) zbudować coś w innym narzędziu LLM i potrzebuję, abyś pomógł mi zbudować dokładnego prompta poprzez doprecyzowywanie ważnych zagadnień, o których nie pomyślałem. Ogólnie to chcę osiągnąć <ABC>. Zadawaj mi pytania naprowadzające, które doprecyzują zakres. W każdym wątku, w każdej odpowiedzi oczekuję, że zrzucisz dotychczasową specyfikację. Oraz zadasz doprecyzowujące pytania, ja na nie odpowiem i w twojej odpowiedzi znowu zrzucisz dotychczasową specyfikację, abym cały czas widział(a), jak obecna specyfikacja wygląda i jak ewoluuje.
+
+### Constructive Criticism prompt
+> Masz tu opis problemu i propozycję rozwiązania: [...]
+> Co w nim jest nie tak? Czego mógłbyś się przyczepić? Na co nie zwróciłem/am uwagi?
+
+### Confirm prompt
+> (wcześniejszy wątek) [...]
+> 
+> Chcę się upewnić, czy dobrze rozumiem: [...]
+> Odpowiedz krótko, najlepiej jednozdaniowo.
+> PS Don't be sycophantic!
+
+### Listening-friendly prompt
+> Opowiedz mi o zagadnieniu <XYZ>. Twoja odpowiedź ma być wygodna w słuchaniu.
+> 
+> Jeśli planujesz uwzględniać kawałki kodu, tabele, diagramy itd. to śmiało - uwzględniaj je. Ale tuż pod nimi opisz słowami ich znaczenie. W szczególności opisz to, co w danym kawałku kodu, tabeli, diagramie itd. jest istotne. Pamiętaj: twoja odpowiedź ma być przyjemna w słuchaniu.
+
 # Lekcja 5 (Speech To Text)
 
 ## STT Prompt
