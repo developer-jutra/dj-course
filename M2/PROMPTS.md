@@ -62,9 +62,9 @@ przykład: https://gemini.google.com/share/54a75c2456bb
 
 ### *-shot prompt
 
-Zero-shot prompt - krótki prompt, ale bez przykładów - LLM sam sobie "dopowie" czego brakuje
-One-shot prompt - prompt zawiera jeden przykład. Może to "usztywniać" odpowiedź, ale będzie przynajmniej zgodna z oczekiwaniami
-Few-shot prompt - optymalne pod względem jakości, ale największy koszt przygotowania 🤷
+- Zero-shot prompt - krótki prompt, ale bez przykładów - LLM sam sobie "dopowie" czego brakuje
+- One-shot prompt - prompt zawiera jeden przykład. Może to "usztywniać" odpowiedź, ale będzie przynajmniej zgodna z oczekiwaniami
+- Few-shot prompt - optymalne pod względem jakości, ale największy koszt przygotowania 🤷
 
 ### wide research in bullet-point style
 
@@ -142,9 +142,9 @@ przykład: https://gemini.google.com/share/e2b4eebd2282
 
 ## ENHANCE & CLEAR - JAVA APP
 
-superwhisper mode
-enhance & clear
-claude 4 sonnet
+- superwhisper mode
+- enhance & clear
+- claude 4 sonnet
 
 META (TTS) PROMPT:
 > This is a prompt that I would like you to enhance in a way that you make it more clear, more structurized, reorder if you think it makes the text easier to understand, remove potential repetition apply markdown format preferably.
