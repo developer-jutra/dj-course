@@ -12,8 +12,10 @@ CORPORA_FILES = {
     "PAN_TADEUSZ": list(CORPORA_DIRS["WOLNELEKTURY"].glob("pan-tadeusz-ksiega-*.txt")),
 }
 
+# removing PAN_TADEUSZ from ALL_CORPORA to avoid duplicates (PAN_TADEUSZ is already in WOLNELEKTURY)
+KEYS_WITHOUT_PAN_TADEUSZ = [key for key in CORPORA_FILES.keys() if key != "PAN_TADEUSZ"]
 CORPORA_FILES["ALL"] = [
-    FILE for LIST in CORPORA_FILES.values() for FILE in LIST
+    FILE for key in KEYS_WITHOUT_PAN_TADEUSZ for FILE in CORPORA_FILES[key]
 ]
 
 def get_corpus_file(corpus_name: str, glob_pattern: str) -> Path:
@@ -22,7 +24,7 @@ def get_corpus_file(corpus_name: str, glob_pattern: str) -> Path:
     return list(CORPORA_DIRS[corpus_name].glob(glob_pattern))
 
 if __name__ == "__main__":    
-    print("\ncorpora:")
+    print("\ncorpora (total files):")
     for corpus_name, corpus_files in CORPORA_FILES.items():
         print(f"{corpus_name}: {len(corpus_files)}")
 
