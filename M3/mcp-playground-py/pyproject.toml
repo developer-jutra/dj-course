@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-python-server"
+version = "1.0.0"
+description = "A playground Model Context Protocol (MCP) server implemented in Python."
+authors = [
+    {name = "Developer Jutra", email = "tomasz@ducin.dev"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+# POPRAWNA FORMA ZALEŻNOŚCI:
+# To musi być JEDEN klucz `dependencies` w formacie listy (array)
+dependencies = [
+    "mcp[cli]", 
+    "pydantic>=2.7" 
+]
+
+[tool.setuptools]
+package-dir = {"" = "."}

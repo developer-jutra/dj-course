@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(task run)",
+      "Bash(mkdir:*)",
+      "Bash(/Users/tomaszku/Development/devstyle/DJ/dj-course-official/M3/tms-data-generator/plans/transportation-order-implementation.md)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

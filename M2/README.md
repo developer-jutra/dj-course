@@ -1,7 +1,7 @@
 # M2: Prompty, Kontekst, Halucynacje i Supermoce Nauki
 
 - wszystkie **prompty** (ze slajdów/lekcji) są dostępne w PDFach do pobrania na platformie
-  - `PROMPTS.md` - przykładowe prompty/odpowiedzi z lekcji 5 (superwhisper) demo ASR+LLM (audio -> przetwarzanie przez model)
+  - `PROMPTS.md` - przykładowe/"wzorcowe" prompty/odpowiedzi researchowe ze wszystkich lekcji w module, dla wygody - w jednym miejscu (to samo co w slajdach PDF)
 - `jailbreaking` - mini-podręcznik młodego skauta do jailbreaków
   - przykładowy Modelfile (ollama, ustawiający system prompta)
   - przykładowe wątki (historia konwersacji - text / screeny) 
