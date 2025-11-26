@@ -1,0 +1,2854 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA S2 Deliveroo - Obwodnica Warszafki</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        #game-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        canvas {
+            background-color: #555;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,0.5),
+                0 0 20px rgba(255,255,255,0.1),
+                inset 0 0 20px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            pointer-events: auto;
+            border: 1px solid #444;
+        }
+
+        h3 { margin: 0 0 10px 0; font-size: 16px; color: #3498db; }
+
+        #levels-container {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        kbd {
+            background-color: #eee;
+            border-radius: 3px;
+            border: 1px solid #b4b4b4;
+            box-shadow: 0 1px 1px rgba(0,0,0,.2), 0 2px 0 0 rgba(255,255,255,.7) inset;
+            color: #333;
+            display: inline-block;
+            font-size: .85em;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 4px;
+            white-space: nowrap;
+            margin: 2px;
+        }
+
+        .level-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .level-btn:hover { background: #2980b9; }
+        .level-btn.active { background: #27ae60; font-weight: bold; }
+
+        #levels-container {
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+            font-size: 14px;
+            color: #ccc;
+        }
+        .stat-val { color: #fff; font-weight: bold; }
+
+        .restart-btn:hover {
+            background: #2ecc71;
+        }
+
+        .mode-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+        }
+        .mode-btn:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+
+<audio id="background-music" src="background.wav" loop></audio>
+
+<div id="ui-container">
+    <div class="panel">
+        <h3>Sterowanie</h3>
+        <div><kbd>↑</kbd> Gaz</div>
+        <div><kbd>↓</kbd> Wsteczny</div>
+        <div><kbd>←</kbd> <kbd>→</kbd> Kierownica (Precyzyjna)</div>
+        <div><kbd>Spacja</kbd> Hamulec</div>
+    </div>
+    
+    <div class="panel">
+        <h3>Poziomy</h3>
+        <div id="levels-container">
+            <!-- Przyciski poziomów będą generowane tutaj dynamicznie -->
+        </div>
+        
+        <div style="margin-top:15px; border-top: 1px solid #555; padding-top:10px;">
+            <div class="stat-row">Prędkość: <span class="stat-val" id="ui-speed">0 km/h</span></div>
+            <div class="stat-row">Skręt: <span class="stat-val" id="ui-steer">0°</span></div>
+            <div class="stat-row">Silnik: <span class="stat-val" id="ui-engine">ON</span></div>
+            <div class="stat-row">Światła: <span class="stat-val" id="ui-lights">ON</span></div>
+            <div class="stat-row">Poślizg: <span class="stat-val" id="ui-drift" style="color: #3498db;">NIE</span></div>
+            <div class="stat-row">Boost: <span class="stat-val" id="ui-boost" style="color: #95a5a6;">0%</span></div>
+            <button class="mode-btn" id="toggle-steering-mode" onclick="game.player.toggleSteeringMode()">Asystent Kierownicy: WŁ</button>
+            <button class="mode-btn" id="toggle-winter-mode" onclick="game.player.toggleWinterMode()">Poślizgi Zimowe: WYŁ</button>
+            <button class="mode-btn" id="toggle-music-btn" onclick="game.toggleBackgroundMusic()">Dźwięk: WŁ</button>
+        </div>
+    </div>
+</div>
+
+<div id="game-wrapper">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+// --- CONFIGURATION ---
+const CONFIG = {
+    // Car dimensions (approx 1px = 2cm scale)
+    carWidth: 44,
+    carLength: 90,
+    wheelBase: 60,
+    wheelWidth: 10,
+    wheelLength: 20,
+
+    // Physics - adjusted for "High Speed" potential
+    // We map internal speed 1.0 to approx 15 km/h
+    kmhFactor: 8,
+    maxSpeed: 18.0, // ~216 km/h theoretical max
+    maxReverseSpeed: -5.0, // ~60 km/h
+    acceleration: 0.15,
+    friction: 0.06,
+    brakingForce: 0.5,
+
+    // Steering
+    maxSteerAngle: 0.65, // ~37 degrees
+    steerSpeed: 0.03, // Slower steering change for weight feeling
+    steerRestoringDriving: 0.02, // Auto-center speed for Driving Mode
+
+    // Handbrake Start (Launch Control)
+    handbrakeBoostRate: 0.018, // Jak szybko buduje się boost (obroty silnika)
+    handbrakeBoostMax: 1.0, // Maksymalny poziom boost
+    handbrakeBoostMultiplier: 6.0, // Mnożnik przyspieszenia przy starcie - MEGA BOOST!
+    handbrakeBoostDecay: 0.05, // Jak szybko spada boost gdy nie używany
+
+    // Drift Physics (New!)
+    tireGrip: 0.85, // Przyczepność opon (0.0 = brak, 1.0 = perfekcyjna) - ZMNIEJSZONE dla łatwiejszego poślizgu
+    tireGripBraking: 0.65, // Zmniejszona przyczepność podczas hamowania - BARDZIEJ zmniejszone
+    driftThreshold: 2.0, // Minimalna prędkość dla poślizgu - OBNIŻONE
+    driftFriction: 0.98, // Tarcie podczas poślizgu (wyższe = wolniejsze hamowanie)
+    angularDamping: 0.94, // Tłumienie rotacji podczas poślizgu - więcej rotacji
+    lateralForceMultiplier: 2.0, // Mnożnik siły bocznej (symuluje v² zamiast v) - ZWIĘKSZONE!
+
+    // Interaction
+    curbSafeSpeed: 1.5 // ~18 km/h. Below this, curbs bounce. Above, crash.
+};
+
+// --- UTILS ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBonkSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playCurbSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+}
+
+// Dźwięk piszczących opon podczas poślizgu
+let driftOscillator = null;
+let driftGain = null;
+
+function startDriftSound(intensity = 1.0) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Jeśli już gra, nie twórz nowego
+    if (driftOscillator) return;
+
+    driftOscillator = audioCtx.createOscillator();
+    driftGain = audioCtx.createGain();
+
+    driftOscillator.type = 'sawtooth';
+    driftOscillator.frequency.setValueAtTime(180 + intensity * 100, audioCtx.currentTime);
+
+    driftGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    driftGain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.05);
+
+    driftOscillator.connect(driftGain);
+    driftGain.connect(audioCtx.destination);
+    driftOscillator.start();
+}
+
+function updateDriftSound(intensity = 1.0) {
+    if (!driftOscillator || !driftGain) return;
+
+    const now = audioCtx.currentTime;
+    driftOscillator.frequency.setValueAtTime(180 + intensity * 100, now);
+    driftGain.gain.setValueAtTime(0.15 * intensity, now);
+}
+
+function stopDriftSound() {
+    if (!driftOscillator || !driftGain) return;
+
+    const now = audioCtx.currentTime;
+    driftGain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+
+    setTimeout(() => {
+        if (driftOscillator) {
+            driftOscillator.stop();
+            driftOscillator = null;
+            driftGain = null;
+        }
+    }, 150);
+}
+
+// Dźwięk silnika na wysokich obrotach (revving)
+let engineRevOscillator = null;
+let engineRevGain = null;
+
+function startEngineRevSound(revLevel = 0.5) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Jeśli już gra, nie twórz nowego
+    if (engineRevOscillator) return;
+
+    engineRevOscillator = audioCtx.createOscillator();
+    engineRevGain = audioCtx.createGain();
+
+    engineRevOscillator.type = 'sawtooth';
+    engineRevOscillator.frequency.setValueAtTime(80 + revLevel * 120, audioCtx.currentTime);
+
+    engineRevGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    engineRevGain.gain.linearRampToValueAtTime(0.12 * revLevel, audioCtx.currentTime + 0.05);
+
+    engineRevOscillator.connect(engineRevGain);
+    engineRevGain.connect(audioCtx.destination);
+    engineRevOscillator.start();
+}
+
+function updateEngineRevSound(revLevel = 0.5) {
+    if (!engineRevOscillator || !engineRevGain) return;
+
+    const now = audioCtx.currentTime;
+    engineRevOscillator.frequency.setValueAtTime(80 + revLevel * 120, now);
+    engineRevGain.gain.setValueAtTime(0.12 * revLevel, now);
+}
+
+function stopEngineRevSound() {
+    if (!engineRevOscillator || !engineRevGain) return;
+
+    const now = audioCtx.currentTime;
+    engineRevGain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+
+    setTimeout(() => {
+        if (engineRevOscillator) {
+            engineRevOscillator.stop();
+            engineRevOscillator = null;
+            engineRevGain = null;
+        }
+    }, 200);
+}
+
+
+function playLevelCompleteSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.connect(audioCtx.destination);
+
+    const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+    notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+        osc.connect(gain);
+        osc.start(audioCtx.currentTime + i * 0.1);
+        osc.stop(audioCtx.currentTime + i * 0.1 + 0.1);
+    });
+}
+
+// Geometric Utils
+function getCorners(x, y, w, h, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const hw = w / 2;
+    const hh = h / 2;
+    return [
+        { x: x + (hh * cos - hw * sin), y: y + (hh * sin + hw * cos) },
+        { x: x + (hh * cos + hw * sin), y: y + (hh * sin - hw * cos) },
+        { x: x + (-hh * cos + hw * sin), y: y + (-hh * sin - hw * cos) },
+        { x: x + (-hh * cos - hw * sin), y: y + (-hh * sin + hw * cos) }
+    ];
+}
+
+function projectPolygon(axis, corners) {
+    let min = Infinity;
+    let max = -Infinity;
+    for (let p of corners) {
+        const proj = (p.x * axis.x + p.y * axis.y);
+        if (proj < min) min = proj;
+        if (proj > max) max = proj;
+    }
+    return { min, max };
+}
+
+function overlap(a, b) {
+    return !(a.min > b.max || b.min > a.max);
+}
+
+function checkRectCollision(rectA, rectB) {
+    const cornersA = getCorners(rectA.x, rectA.y, rectA.w, rectA.l, rectA.angle);
+    const cornersB = getCorners(rectB.x, rectB.y, rectB.w, rectB.l, rectB.angle);
+    const axes = [
+        { x: Math.cos(rectA.angle), y: Math.sin(rectA.angle) },
+        { x: -Math.sin(rectA.angle), y: Math.cos(rectA.angle) },
+        { x: Math.cos(rectB.angle), y: Math.sin(rectB.angle) },
+        { x: -Math.sin(rectB.angle), y: Math.cos(rectB.angle) }
+    ];
+    for (let axis of axes) {
+        const pA = projectPolygon(axis, cornersA);
+        const pB = projectPolygon(axis, cornersB);
+        if (!overlap(pA, pB)) return false;
+    }
+    return true;
+}
+
+function checkCircleRectCollision(circle, rect) {
+    const cos = Math.cos(-rect.angle);
+    const sin = Math.sin(-rect.angle);
+    const dx = circle.x - rect.x;
+    const dy = circle.y - rect.y;
+    const localX = dx * cos - dy * sin;
+    const localY = dx * sin + dy * cos;
+    const closestX = Math.max(-rect.l/2, Math.min(localX, rect.l/2));
+    const closestY = Math.max(-rect.w/2, Math.min(localY, rect.w/2));
+    const distanceX = localX - closestX;
+    const distanceY = localY - closestY;
+    return (distanceX * distanceX) + (distanceY * distanceY) < (circle.r * circle.r);
+}
+
+function isPointInRotatedRect(point, rect) {
+    const cos = Math.cos(-rect.angle);
+    const sin = Math.sin(-rect.angle);
+    const dx = point.x - rect.x;
+    const dy = point.y - rect.y;
+    const localX = dx * cos - dy * sin;
+    const localY = dx * sin + dy * cos;
+    return Math.abs(localX) < rect.l / 2 && Math.abs(localY) < rect.w / 2;
+}
+
+// --- CLASSES ---
+
+class InputHandler {
+    constructor() {
+        this.keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false, Enter: false };
+        window.addEventListener('keydown', (e) => {
+            const code = e.code === 'Space' ? 'Space' : e.code;
+            if (this.keys.hasOwnProperty(code)) { this.keys[code] = true; e.preventDefault(); }
+            if (e.code === 'Enter') { this.keys.Enter = true; e.preventDefault(); }
+        });
+        window.addEventListener('keyup', (e) => {
+            const code = e.code === 'Space' ? 'Space' : e.code;
+            if (this.keys.hasOwnProperty(code)) { this.keys[code] = false; }
+            if (e.code === 'Enter') { this.keys.Enter = false; }
+        });
+    }
+}
+
+// Static Curb / Sidewalk class
+class Curb {
+    constructor(x, y, w, l, angle = 0) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.l = l;
+        this.angle = angle;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = '#95a5a6';
+        ctx.fillRect(-this.l/2, -this.w/2, this.l, this.w);
+        // Bevel look
+        ctx.strokeStyle = '#7f8c8d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-this.l/2, -this.w/2, this.l, this.w);
+        ctx.restore();
+    }
+}
+
+class ObstacleCar {
+    constructor(props) {
+        this.x = props.x;
+        this.y = props.y;
+        this.angle = props.angle * (Math.PI / 180);
+        
+        // Randomize size slightly based on type if not provided
+        const type = props.type || 'sedan'; 
+        if (type === 'suv') { this.w = 50; this.l = 115; }
+        else if (type === 'compact') { this.w = 40; this.l = 80; }
+        else { this.w = 44; this.l = 90; } // Sedan default
+
+        this.color = props.color || `hsl(${Math.random()*360}, 60%, 50%)`;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(-this.l/2 + 5, -this.w/2 + 5, this.l, this.w);
+
+        // Body
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.roundRect(-this.l/2, -this.w/2, this.l, this.w, 5);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Windshield (Front) - Trapezoid
+        ctx.fillStyle = 'rgba(180, 200, 255, 0.4)'; // Bluish glass
+        ctx.beginPath();
+        ctx.moveTo(this.l/2 - 10, -this.w/2 + 5);
+        ctx.lineTo(this.l/2 - 10, this.w/2 - 5);
+        ctx.lineTo(this.l/2 - 25, this.w/2 - 8);
+        ctx.lineTo(this.l/2 - 25, -this.w/2 + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Rear window
+        ctx.beginPath();
+        ctx.moveTo(-this.l/2 + 10, -this.w/2 + 5);
+        ctx.lineTo(-this.l/2 + 10, this.w/2 - 5);
+        ctx.lineTo(-this.l/2 + 20, this.w/2 - 8);
+        ctx.lineTo(-this.l/2 + 20, -this.w/2 + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Headlights (Front)
+        ctx.fillStyle = '#f1c40f';
+        ctx.fillRect(this.l/2 - 4, -this.w/2 + 4, 4, 8);
+        ctx.fillRect(this.l/2 - 4, this.w/2 - 12, 4, 8);
+
+        // Taillights (Rear)
+        ctx.fillStyle = '#c0392b';
+        ctx.fillRect(-this.l/2, -this.w/2 + 4, 2, 8);
+        ctx.fillRect(-this.l/2, this.w/2 - 12, 2, 8);
+
+        ctx.restore();
+    }
+}
+
+class NpcCar extends ObstacleCar {
+    constructor(props) {
+        super(props);
+        this.originalSpeed = props.speed || -2;
+        this.speed = this.originalSpeed;
+        this.isStopped = false;
+        this.kind = props.kind;
+
+        // Dźwięk klaksonu dla tego samochodu
+        this.hornSound = new Audio('horn.wav');
+        this.hornSound.loop = true;
+        this.hornSound.volume = 0.4;
+
+        // Deadlock prevention
+        this.stuckTimer = 0;
+        this.stuckThreshold = 60; // ~1 sekunda przy 60 FPS - agresywniejsze!
+
+        // Spawn queue system
+        this.isWaitingToSpawn = false;
+        this.spawnX = 0; // Pozycja gdzie samochód czeka na spawn
+        this.minSpawnDistance = 200; // Minimalna odległość do najbliższego samochodu
+    }
+
+    stop() {
+        this.speed = 0;
+        this.isStopped = true;
+
+        // Zatrzymaj klakson gdy samochód się zatrzymuje
+        if (this.hornSound && !this.hornSound.paused) {
+            this.hornSound.pause();
+            this.hornSound.currentTime = 0;
+        }
+    }
+
+    update(game) {
+        // === SPAWN QUEUE SYSTEM ===
+        if (this.isWaitingToSpawn) {
+            // Sprawdź czy jest wolna przestrzeń do spawnu
+            if (this.canSpawn(game)) {
+                // Spawn samochód
+                this.x = this.spawnX;
+                this.isWaitingToSpawn = false;
+                this.speed = this.originalSpeed;
+            } else {
+                // Czekaj na wolne miejsce
+                return;
+            }
+        }
+
+        // === DEADLOCK PREVENTION - Sprawdź czy stuck nawet gdy isStopped ===
+        if (this.isStopped) {
+            this.stuckTimer++;
+
+            // Jeśli stuck zbyt długo - ODBLOKUJ!
+            if (this.stuckTimer > this.stuckThreshold) {
+                // console.log(`🔓 NPC UNLOCKING: was stuck for ${this.stuckTimer} frames`);
+
+                // Odblokuj samochód
+                this.isStopped = false;
+
+                // Przywróć prędkość
+                this.speed = this.originalSpeed;
+
+                // Resetuj timer
+                this.stuckTimer = 0;
+
+                // Zatrzymaj klakson
+                if (this.hornSound && !this.hornSound.paused) {
+                    this.hornSound.pause();
+                    this.hornSound.currentTime = 0;
+                }
+            }
+            return;
+        }
+
+        // === Normalny update fizyki ===
+        const oldX = this.x;
+        const oldY = this.y;
+
+        const isAggressive = this.kind === 'aggressive';
+        const sensorLength = isAggressive ? 80 : 150;
+        const acceleration = isAggressive ? 0.3 : 0.1;
+        const brakingFactor = isAggressive ? 0.90 : 0.95;
+
+        const sensorX = this.x + Math.cos(this.angle) * (this.l / 2 + sensorLength / 2);
+        const sensorY = this.y + Math.sin(this.angle) * (this.l / 2 + sensorLength / 2);
+
+        const sensor = {
+            x: sensorX,
+            y: sensorY,
+            w: this.w - 10,
+            l: sensorLength,
+            angle: this.angle
+        };
+
+        let obstacleAhead = false;
+        let playerAhead = false;
+
+        if (checkRectCollision(sensor, game.player)) {
+            obstacleAhead = true;
+            playerAhead = true;
+        } else {
+            for (const otherCar of game.currentCars) {
+                if (this === otherCar) continue;
+                if (checkRectCollision(sensor, otherCar)) {
+                    obstacleAhead = true;
+                    break;
+                }
+            }
+        }
+
+        // Kontroluj odtwarzanie klaksonu - graj tak długo jak gracz blokuje
+        if (playerAhead) {
+            if (this.hornSound.paused) {
+                this.hornSound.play().catch(e => console.log('Horn play prevented:', e));
+            }
+        } else {
+            if (!this.hornSound.paused) {
+                this.hornSound.pause();
+                this.hornSound.currentTime = 0;
+            }
+        }
+
+        if (obstacleAhead) {
+            this.speed *= brakingFactor;
+            if (Math.abs(this.speed) < 0.1) this.speed = 0;
+        } else {
+            if (Math.abs(this.speed) < Math.abs(this.originalSpeed)) {
+                this.speed += Math.sign(this.originalSpeed) * acceleration;
+            } else {
+                this.speed = this.originalSpeed;
+            }
+        }
+
+        this.x += this.speed;
+
+        // === WRAPAROUND Z KOLEJKOWANIEM ===
+        if (this.speed > 0 && this.x > canvas.width + this.l) {
+            // Jadący w prawo wychodzi za prawą krawędź - czeka na lewo
+            this.isWaitingToSpawn = true;
+            this.spawnX = -this.l;
+            this.x = -this.l - 500; // Ukryj poza ekranem
+            this.speed = 0;
+        } else if (this.speed < 0 && this.x < -this.l) {
+            // Jadący w lewo wychodzi za lewą krawędź - czeka na prawo
+            this.isWaitingToSpawn = true;
+            this.spawnX = canvas.width + this.l;
+            this.x = canvas.width + this.l + 500; // Ukryj poza ekranem
+            this.speed = 0;
+        }
+
+        // Resetuj stuck timer gdy samochód się normalnie porusza
+        this.stuckTimer = 0;
+    }
+
+    canSpawn(game) {
+        // Sprawdź czy jest wystarczająco dużo miejsca do spawnu
+        const spawnThreshold = this.minSpawnDistance;
+
+        for (const otherCar of game.currentCars) {
+            if (this === otherCar) continue;
+            
+            // Sprawdź tylko samochody w tym samym pasie (podobna pozycja Y)
+            const sameY = Math.abs(otherCar.y - this.y) < 50;
+            if (!sameY) continue;
+
+            // Sprawdź czy samochód nie jest w trakcie spawnu
+            if (otherCar instanceof NpcCar && otherCar.isWaitingToSpawn) continue;
+
+            // Oblicz odległość w kierunku ruchu
+            let distance;
+            if (this.originalSpeed > 0) {
+                // Spawnimy po lewej (-this.l), sprawdź odległość do samochodów przed nami
+                distance = otherCar.x - this.spawnX;
+            } else {
+                // Spawnimy po prawej (canvas.width + this.l), sprawdź odległość do samochodów przed nami
+                distance = this.spawnX - otherCar.x;
+            }
+
+            // Jeśli jakiś samochód jest zbyt blisko, nie spawnuj
+            if (distance >= 0 && distance < spawnThreshold) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    draw(ctx) {
+        // Nie rysuj samochodów czekających na spawn
+        if (this.isWaitingToSpawn) return;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(-this.l/2 + 5, -this.w/2 + 5, this.l, this.w);
+
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.roundRect(-this.l/2, -this.w/2, this.l, this.w, 5);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(180, 200, 255, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(this.l/2 - 10, -this.w/2 + 5);
+        ctx.lineTo(this.l/2 - 10, this.w/2 - 5);
+        ctx.lineTo(this.l/2 - 25, this.w/2 - 8);
+        ctx.lineTo(this.l/2 - 25, -this.w/2 + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-this.l/2 + 10, -this.w/2 + 5);
+        ctx.lineTo(-this.l/2 + 10, this.w/2 - 5);
+        ctx.lineTo(-this.l/2 + 20, this.w/2 - 8);
+        ctx.lineTo(-this.l/2 + 20, -this.w/2 + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = 'rgba(255, 255, 200, 0.2)';
+        const beamLength = 150;
+        const beamSpread = 60;
+        const headlightHeight = 8;
+        const headlightY1 = -this.w/2 + 4 + headlightHeight/2;
+        const headlightY2 = this.w/2 - 12 + headlightHeight/2;
+
+        ctx.beginPath();
+        ctx.moveTo(this.l/2, headlightY1);
+        ctx.lineTo(this.l/2 + beamLength, headlightY1 - beamSpread);
+        ctx.lineTo(this.l/2 + beamLength, headlightY2 + beamSpread);
+        ctx.lineTo(this.l/2, headlightY2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#ff0';
+        ctx.shadowBlur = 15;
+        ctx.fillRect(this.l/2 - 4, -this.w/2 + 4, 4, 8);
+        ctx.fillRect(this.l/2 - 4, this.w/2 - 12, 4, 8);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#c0392b';
+        ctx.fillRect(-this.l/2, -this.w/2 + 4, 2, 8);
+        ctx.fillRect(-this.l/2, this.w/2 - 12, 2, 8);
+
+        ctx.restore();
+    }
+}
+
+class Pillar {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.r = 12;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath(); ctx.arc(3, 3, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#d35400';
+        ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#2c3e50';
+        ctx.beginPath(); ctx.arc(0, 0, this.r/2, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+    }
+}
+
+class ParkingZone {
+    constructor(props) {
+        this.x = props.x;
+        this.y = props.y;
+        this.w = props.w;
+        this.l = props.l;
+        this.angle = props.angle * (Math.PI / 180);
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.strokeStyle = 'rgba(46, 204, 113, 0.8)';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([10, 5]);
+        ctx.strokeRect(-this.l/2, -this.w/2, this.l, this.w);
+        
+        ctx.fillStyle = 'rgba(46, 204, 113, 0.1)';
+        ctx.fillRect(-this.l/2, -this.w/2, this.l, this.w);
+        
+        ctx.restore();
+    }
+}
+
+class PlayerCar {
+    constructor(x, y, angleDeg) {
+        this.reset(x, y, angleDeg);
+    }
+
+    reset(x, y, angleDeg) {
+        this.x = x;
+        this.y = y;
+        this.angle = angleDeg * (Math.PI / 180);
+        this.speed = 0;
+
+        // Wektor prędkości dla zaawansowanej fizyki
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.angularVelocity = 0; // Prędkość rotacji
+
+        this.steeringAngle = 0;
+        this.w = CONFIG.carWidth;
+        this.l = CONFIG.carLength;
+        this.engineOn = true;
+        this.enterKeyProcessed = false;
+        this.steeringMode = 'DRIVING';
+
+        // Tryb zimowy - domyślnie wyłączony (bezpieczna jazda)
+        if (this.winterMode === undefined) {
+            this.winterMode = false;
+        }
+
+        // Stan poślizgu
+        this.isDrifting = false;
+        this.driftAngle = 0; // Kąt poślizgu
+        this.skidMarks = []; // Ślady opon
+
+        // Hamulec ręczny - startowanie
+        this.handbrakeBoost = 0; // Zgromadzona moc (0-1)
+        this.previousSpaceKey = false; // Czy w poprzedniej klatce trzymał SPACE
+    }
+
+    toggleSteeringMode() {
+        if (this.steeringMode === 'DRIVING') {
+            this.steeringMode = 'PARKING';
+            document.getElementById('toggle-steering-mode').innerText = 'Asystent Kierownicy: WYŁ';
+        } else {
+            this.steeringMode = 'DRIVING';
+            document.getElementById('toggle-steering-mode').innerText = 'Asystent Kierownicy: WŁ';
+        }
+    }
+
+    toggleWinterMode() {
+        this.winterMode = !this.winterMode;
+        const btn = document.getElementById('toggle-winter-mode');
+        if (this.winterMode) {
+            btn.innerText = 'Poślizgi Zimowe: WŁ';
+        } else {
+            btn.innerText = 'Poślizgi Zimowe: WYŁ';
+            // Wyczyść ślady opon przy wyłączeniu trybu zimowego
+            this.skidMarks = [];
+            this.isDrifting = false;
+            // Zatrzymaj dźwięk poślizgu
+            if (driftOscillator) {
+                stopDriftSound();
+            }
+        }
+    }
+
+    update(input) {
+        // Engine toggle
+        if (input.keys.Enter) {
+            if (!this.enterKeyProcessed) {
+                this.engineOn = !this.engineOn;
+                this.enterKeyProcessed = true;
+            }
+        } else {
+            this.enterKeyProcessed = false;
+        }
+
+        // Wybierz fizykę w zależności od trybu
+        if (this.winterMode) {
+            this.updateWinterPhysics(input);
+        } else {
+            this.updateSimplePhysics(input);
+        }
+    }
+
+    // === PROSTA FIZYKA (bezpieczna, przewidywalna) ===
+    updateSimplePhysics(input) {
+        // === HAMULEC RĘCZNY - STARTOWANIE ===
+        const isHandbraking = input.keys.Space;
+        const isThrottling = input.keys.ArrowUp || input.keys.ArrowDown;
+
+        // Budowanie boost gdy trzyma hamulec + gaz
+        if (isHandbraking && isThrottling && this.engineOn) {
+            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate);
+
+            // Hamuj auto podczas budowania boost
+            this.speed *= 0.8; // Mocne hamowanie
+            if (Math.abs(this.speed) < 0.5) this.speed = 0;
+
+            // Dźwięk silnika na wysokich obrotach
+            if (!engineRevOscillator) {
+                startEngineRevSound(this.handbrakeBoost);
+            } else {
+                updateEngineRevSound(this.handbrakeBoost);
+            }
+        }
+        // Jeśli puścił hamulec (ale dalej trzyma gaz) - LAUNCH!
+        else if (!isHandbraking && this.previousSpaceKey && isThrottling && this.handbrakeBoost > 0.1) {
+            // MOCNY START!
+            const boostDirection = input.keys.ArrowUp ? 1 : -1;
+            this.speed += boostDirection * this.handbrakeBoost * CONFIG.handbrakeBoostMultiplier;
+            this.handbrakeBoost = 0; // Zużyte!
+
+            // Zatrzymaj dźwięk silnika
+            if (engineRevOscillator) {
+                stopEngineRevSound();
+            }
+        }
+        // Normalne zmniejszanie boost gdy nie używany
+        else if (this.handbrakeBoost > 0) {
+            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay);
+
+            // Zatrzymaj dźwięk gdy boost spada
+            if (this.handbrakeBoost < 0.1 && engineRevOscillator) {
+                stopEngineRevSound();
+            }
+        }
+
+        this.previousSpaceKey = isHandbraking;
+
+        // === NORMALNA FIZYKA ===
+        if (this.engineOn) {
+            // 1. Acceleration (tylko jeśli NIE buduje boost)
+            if (!(isHandbraking && isThrottling)) {
+                if (input.keys.ArrowUp) this.speed += CONFIG.acceleration;
+                else if (input.keys.ArrowDown) this.speed -= CONFIG.acceleration;
+            }
+
+            // 2. Braking (tylko jeśli NIE trzyma gazu równocześnie)
+            if (input.keys.Space && !isThrottling) {
+                if (this.speed > 0) this.speed -= CONFIG.brakingForce;
+                else if (this.speed < 0) this.speed += CONFIG.brakingForce;
+                if (Math.abs(this.speed) < 0.5) this.speed = 0;
+            }
+        }
+
+        // 3. Friction
+        if (!input.keys.ArrowUp && !input.keys.ArrowDown && !input.keys.Space) {
+            this.speed *= (1 - CONFIG.friction);
+            if (Math.abs(this.speed) < 0.05) this.speed = 0;
+        }
+        if (!this.engineOn) {
+            this.speed *= (1 - CONFIG.friction);
+            if (Math.abs(this.speed) < 0.05) this.speed = 0;
+        }
+
+        // Limits
+        if (this.speed > CONFIG.maxSpeed) this.speed = CONFIG.maxSpeed;
+        if (this.speed < CONFIG.maxReverseSpeed) this.speed = CONFIG.maxReverseSpeed;
+
+        // 4. Steering
+        if (this.engineOn) {
+            if (input.keys.ArrowLeft) {
+                this.steeringAngle -= CONFIG.steerSpeed;
+            } else if (input.keys.ArrowRight) {
+                this.steeringAngle += CONFIG.steerSpeed;
+            } else {
+                if (this.steeringMode === 'DRIVING') {
+                    // Auto-straighten in Driving Mode
+                    if (this.steeringAngle > 0) {
+                        this.steeringAngle -= CONFIG.steerRestoringDriving;
+                        if (this.steeringAngle < 0) this.steeringAngle = 0;
+                    } else if (this.steeringAngle < 0) {
+                        this.steeringAngle += CONFIG.steerRestoringDriving;
+                        if (this.steeringAngle > 0) this.steeringAngle = 0;
+                    }
+                }
+            }
+        }
+
+        // Clamp steer
+        if (this.steeringAngle > CONFIG.maxSteerAngle) this.steeringAngle = CONFIG.maxSteerAngle;
+        if (this.steeringAngle < -CONFIG.maxSteerAngle) this.steeringAngle = -CONFIG.maxSteerAngle;
+
+        // 5. Movement - prosty model kinematyczny
+        if (Math.abs(this.speed) > 0.05) {
+            const L = CONFIG.wheelBase;
+            const oldAngle = this.angle;
+
+            this.angle += (this.speed / L) * Math.tan(this.steeringAngle);
+
+            const rearAxleX = this.x - (L / 2) * Math.cos(oldAngle);
+            const rearAxleY = this.y - (L / 2) * Math.sin(oldAngle);
+
+            const newRearAxleX = rearAxleX + this.speed * Math.cos(oldAngle);
+            const newRearAxleY = rearAxleY + this.speed * Math.sin(oldAngle);
+
+            this.x = newRearAxleX + (L / 2) * Math.cos(this.angle);
+            this.y = newRearAxleY + (L / 2) * Math.sin(this.angle);
+        } else {
+            this.x += Math.cos(this.angle) * this.speed;
+            this.y += Math.sin(this.angle) * this.speed;
+        }
+
+        // Synchronizuj velocityX/Y dla kompatybilności
+        this.velocityX = Math.cos(this.angle) * this.speed;
+        this.velocityY = Math.sin(this.angle) * this.speed;
+        this.angularVelocity = 0;
+        this.isDrifting = false;
+        this.driftAngle = 0;
+    }
+
+    // === ZAAWANSOWANA FIZYKA Z POŚLIZGAMI (tryb zimowy) ===
+    updateWinterPhysics(input) {
+        // === HAMULEC RĘCZNY - STARTOWANIE ===
+        const isHandbraking = input.keys.Space;
+        const isThrottling = input.keys.ArrowUp || input.keys.ArrowDown;
+
+        // Budowanie boost gdy trzyma hamulec + gaz
+        if (isHandbraking && isThrottling && this.engineOn) {
+            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate);
+
+            // Hamuj auto podczas budowania boost
+            this.velocityX *= 0.75;
+            this.velocityY *= 0.75;
+            const currentSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+            if (currentSpeed < 0.5) {
+                this.velocityX = 0;
+                this.velocityY = 0;
+            }
+
+            // Dźwięk silnika na wysokich obrotach
+            if (!engineRevOscillator) {
+                startEngineRevSound(this.handbrakeBoost);
+            } else {
+                updateEngineRevSound(this.handbrakeBoost);
+            }
+        }
+        // Jeśli puścił hamulec (ale dalej trzyma gaz) - LAUNCH!
+        else if (!isHandbraking && this.previousSpaceKey && isThrottling && this.handbrakeBoost > 0.1) {
+            // MOCNY START!
+            const boostDirection = input.keys.ArrowUp ? 1 : -1;
+            const boostPower = boostDirection * this.handbrakeBoost * CONFIG.handbrakeBoostMultiplier;
+
+            // Dodaj boost w kierunku samochodu
+            this.velocityX += Math.cos(this.angle) * boostPower;
+            this.velocityY += Math.sin(this.angle) * boostPower;
+
+            this.handbrakeBoost = 0; // Zużyte!
+
+            // Zatrzymaj dźwięk silnika
+            if (engineRevOscillator) {
+                stopEngineRevSound();
+            }
+        }
+        // Normalne zmniejszanie boost gdy nie używany
+        else if (this.handbrakeBoost > 0) {
+            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay);
+
+            // Zatrzymaj dźwięk gdy boost spada
+            if (this.handbrakeBoost < 0.1 && engineRevOscillator) {
+                stopEngineRevSound();
+            }
+        }
+
+        this.previousSpaceKey = isHandbraking;
+
+        // 1. Sterowanie - kąt skrętu
+        if (this.engineOn) {
+            if (input.keys.ArrowLeft) {
+                this.steeringAngle -= CONFIG.steerSpeed;
+            } else if (input.keys.ArrowRight) {
+                this.steeringAngle += CONFIG.steerSpeed;
+            } else {
+                if (this.steeringMode === 'DRIVING') {
+                    // Auto-prostowanie w trybie jazdy
+                    if (this.steeringAngle > 0) {
+                        this.steeringAngle -= CONFIG.steerRestoringDriving;
+                        if (this.steeringAngle < 0) this.steeringAngle = 0;
+                    } else if (this.steeringAngle < 0) {
+                        this.steeringAngle += CONFIG.steerRestoringDriving;
+                        if (this.steeringAngle > 0) this.steeringAngle = 0;
+                    }
+                }
+            }
+        }
+
+        // Ogranicz kąt skrętu - zawsze maksymalny, niezależnie od prędkości
+        // Fizyka zadba o poślizg przy dużych prędkościach!
+        this.steeringAngle = Math.max(-CONFIG.maxSteerAngle, Math.min(CONFIG.maxSteerAngle, this.steeringAngle));
+
+        // 2. Akceleracja i hamowanie
+        const isBraking = input.keys.Space && !isThrottling; // Hamowanie tylko bez gazu
+        let throttle = 0;
+
+        // Akceleracja tylko jeśli NIE buduje boost (hamulec + gaz)
+        if (this.engineOn && !(isHandbraking && isThrottling)) {
+            if (input.keys.ArrowUp) throttle = CONFIG.acceleration;
+            else if (input.keys.ArrowDown) throttle = -CONFIG.acceleration;
+        }
+
+        // 3. Oblicz prędkość w lokalnym układzie samochodu (forward/lateral)
+        const cos = Math.cos(this.angle);
+        const sin = Math.sin(this.angle);
+
+        // Prędkość w kierunku "do przodu" i "na boki" względem auta
+        const forwardVelocity = this.velocityX * cos + this.velocityY * sin;
+        const lateralVelocity = -this.velocityX * sin + this.velocityY * cos;
+
+        // 4. Zastosuj akcelerację do przodu
+        let newForwardVelocity = forwardVelocity + throttle;
+
+        // 5. Oblicz siłę boczną z powodu skrętu kół
+        // FIZYKA: Siła odśrodkowa F = m*v²/r, więc rośnie KWADRATOWO z prędkością!
+        const baseLateralVelocity = newForwardVelocity * Math.tan(this.steeringAngle);
+
+        // Dodatkowy mnożnik dla dużych prędkości (symuluje v² efekt)
+        const speedMagnitude = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+        const speedSquaredFactor = 1.0 + (speedMagnitude / CONFIG.maxSpeed) * CONFIG.lateralForceMultiplier;
+
+        const desiredLateralVelocity = baseLateralVelocity * speedSquaredFactor;
+
+        // 6. Określ przyczepność opon (grip)
+        let currentGrip = isBraking ? CONFIG.tireGripBraking : CONFIG.tireGrip;
+
+        // 7. Sprawdź warunek poślizgu
+        const lateralChange = desiredLateralVelocity - lateralVelocity;
+
+        // Jeśli zmiana prędkości bocznej jest zbyt duża = poślizg!
+        const lateralAcceleration = Math.abs(lateralChange);
+
+        // Przyczepność rośnie tylko liniowo z prędkością (nie kwadratowo!)
+        // To sprawia że przy dużych prędkościach łatwo przekroczyć limit
+        const maxGrip = currentGrip * Math.abs(newForwardVelocity);
+
+        if (lateralAcceleration > maxGrip && speedMagnitude > CONFIG.driftThreshold) {
+            // POŚLIZG!
+            this.isDrifting = true;
+
+            // Ograniczona zmiana prędkości bocznej - opony nie nadążają
+            const actualLateralChange = Math.sign(lateralChange) * maxGrip;
+            const newLateralVelocity = lateralVelocity + actualLateralChange;
+
+            // Kąt poślizgu
+            this.driftAngle = Math.atan2(newLateralVelocity, newForwardVelocity);
+
+            // Podczas poślizgu - wolniejsza rotacja
+            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle) * currentGrip;
+
+            // Zastosuj tarcie podczas poślizgu
+            newForwardVelocity *= CONFIG.driftFriction;
+
+            // Konwersja z powrotem do współrzędnych globalnych
+            this.velocityX = newForwardVelocity * cos - newLateralVelocity * sin;
+            this.velocityY = newForwardVelocity * sin + newLateralVelocity * cos;
+
+            // Dodaj ślad opon podczas poślizgu
+            if (Math.abs(this.driftAngle) > 0.15) { // Minimum kąt dla śladów
+                this.addSkidMark();
+            }
+
+            // Dźwięk piszczących opon - intensywność zależy od kąta poślizgu
+            const driftIntensity = Math.min(1.0, Math.abs(this.driftAngle) / 0.5);
+            if (!driftOscillator) {
+                startDriftSound(driftIntensity);
+            } else {
+                updateDriftSound(driftIntensity);
+            }
+        } else {
+            // Normalna jazda - pełna przyczepność
+            this.isDrifting = false;
+            this.driftAngle = 0;
+
+            const newLateralVelocity = desiredLateralVelocity;
+
+            // Normalna rotacja
+            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle);
+
+            // Konwersja z powrotem do współrzędnych globalnych
+            this.velocityX = newForwardVelocity * cos - newLateralVelocity * sin;
+            this.velocityY = newForwardVelocity * sin + newLateralVelocity * cos;
+
+            // Zatrzymaj dźwięk poślizgu
+            if (driftOscillator) {
+                stopDriftSound();
+            }
+        }
+
+        // 8. Hamowanie
+        if (isBraking) {
+            const brakingDeceleration = CONFIG.brakingForce;
+            const currentSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+
+            if (currentSpeed > 0.1) {
+                const brakeMultiplier = Math.max(0, (currentSpeed - brakingDeceleration) / currentSpeed);
+                this.velocityX *= brakeMultiplier;
+                this.velocityY *= brakeMultiplier;
+            } else {
+                this.velocityX = 0;
+                this.velocityY = 0;
+            }
+        }
+
+        // 9. Tarcie naturalne
+        if (!input.keys.ArrowUp && !input.keys.ArrowDown && !isBraking) {
+            this.velocityX *= (1 - CONFIG.friction);
+            this.velocityY *= (1 - CONFIG.friction);
+        }
+
+        if (!this.engineOn) {
+            this.velocityX *= (1 - CONFIG.friction);
+            this.velocityY *= (1 - CONFIG.friction);
+        }
+
+        // Zatrzymaj jeśli bardzo wolno
+        const finalSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+        if (finalSpeed < 0.05) {
+            this.velocityX = 0;
+            this.velocityY = 0;
+            this.angularVelocity = 0;
+        }
+
+        // 10. Ogranicz maksymalną prędkość
+        if (finalSpeed > CONFIG.maxSpeed) {
+            const ratio = CONFIG.maxSpeed / finalSpeed;
+            this.velocityX *= ratio;
+            this.velocityY *= ratio;
+        }
+
+        // 11. Aktualizuj rotację
+        this.angle += this.angularVelocity;
+        this.angularVelocity *= CONFIG.angularDamping;
+
+        // 12. Aktualizuj pozycję
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+
+        // 13. Aktualizuj zmienną speed dla kompatybilności
+        this.speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY) *
+                     Math.sign(Math.cos(this.angle) * this.velocityX + Math.sin(this.angle) * this.velocityY);
+
+        // 14. Zarządzaj śladami opon (max 200 punktów)
+        if (this.skidMarks.length > 200) {
+            this.skidMarks.shift();
+        }
+    }
+
+    addSkidMark() {
+        // Dodaj ślad pod tylnymi kołami
+        const rearAxleOffset = -CONFIG.wheelBase / 2;
+        const wheelOffset = CONFIG.carWidth / 3;
+
+        const cos = Math.cos(this.angle);
+        const sin = Math.sin(this.angle);
+
+        // Lewe tylne koło
+        const leftX = this.x + (rearAxleOffset * cos - wheelOffset * sin);
+        const leftY = this.y + (rearAxleOffset * sin + wheelOffset * cos);
+
+        // Prawe tylne koło
+        const rightX = this.x + (rearAxleOffset * cos + wheelOffset * sin);
+        const rightY = this.y + (rearAxleOffset * sin - wheelOffset * cos);
+
+        this.skidMarks.push({ x: leftX, y: leftY, angle: this.angle, alpha: 1.0 });
+        this.skidMarks.push({ x: rightX, y: rightY, angle: this.angle, alpha: 1.0 });
+    }
+
+    drawSkidMarks(ctx) {
+        // Rysuj ślady opon
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 30, 30, 0.7)';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        for (let i = 1; i < this.skidMarks.length; i++) {
+            const prev = this.skidMarks[i - 1];
+            const curr = this.skidMarks[i];
+
+            // Zanikaj starsze ślady
+            const fadeIndex = Math.max(0, this.skidMarks.length - 150);
+            const alpha = i < fadeIndex ? 0.3 : 0.7;
+
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            ctx.lineTo(curr.x, curr.y);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        // Symmetrical positions for wheels and lights
+        const wheelCenterY = 15;
+        const wheelTopY_L = -wheelCenterY - CONFIG.wheelWidth / 2;
+        const wheelTopY_R = wheelCenterY - CONFIG.wheelWidth / 2;
+
+        const headlightCenterY = 12;
+        const headlightHeight = 10;
+        const headlightTopY_L = -headlightCenterY - headlightHeight / 2;
+        const headlightTopY_R = headlightCenterY - headlightHeight / 2;
+
+
+        // Draw Projection (Trajectory)
+        // Draw faintly where the car is going
+        if (this.engineOn && Math.abs(this.steeringAngle) > 0.05) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            const steer = this.steeringAngle;
+            const wx = CONFIG.wheelBase/2;
+            
+            // Left Wheel projection
+            let wy_L = -wheelCenterY;
+            ctx.moveTo(wx, wy_L);
+            ctx.lineTo(wx + Math.cos(steer)*100, wy_L + Math.sin(steer)*100);
+            
+            // Right Wheel projection
+            let wy_R = wheelCenterY;
+            ctx.moveTo(wx, wy_R);
+            ctx.lineTo(wx + Math.cos(steer)*100, wy_R + Math.sin(steer)*100);
+            
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // --- WHEELS ---
+        ctx.fillStyle = '#222';
+        // Rear
+        this.drawWheel(ctx, -CONFIG.wheelBase/2, wheelTopY_L, 0);
+        this.drawWheel(ctx, -CONFIG.wheelBase/2, wheelTopY_R, 0);
+        // Front
+        this.drawWheel(ctx, CONFIG.wheelBase/2, wheelTopY_L, this.steeringAngle);
+        this.drawWheel(ctx, CONFIG.wheelBase/2, wheelTopY_R, this.steeringAngle);
+
+        // --- BODY ---
+        ctx.fillStyle = '#3498db';
+        ctx.beginPath();
+        ctx.roundRect(-CONFIG.carLength/2, -CONFIG.carWidth/2, CONFIG.carLength, CONFIG.carWidth, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#2980b9';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Roof
+        ctx.fillStyle = '#85c1e9';
+        ctx.beginPath();
+        ctx.roundRect(-CONFIG.carLength/4, -CONFIG.carWidth/2 + 6, CONFIG.carLength/2, CONFIG.carWidth - 12, 3);
+        ctx.fill();
+        
+        // Windshield indication (Front)
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(CONFIG.carLength/4, -CONFIG.carWidth/2 + 7, 5, CONFIG.carWidth - 14);
+
+        if (this.engineOn) {
+            // Lights
+            const isReversing = this.speed < -0.1; // Cofanie
+            const isBraking = input.keys.Space || (this.speed > 0 && input.keys.ArrowDown) || (this.speed < 0 && input.keys.ArrowUp) || isReversing;
+            
+            // Brake Lights (also light up when reversing)
+            ctx.fillStyle = isBraking ? '#ff0000' : '#8b0000';
+            if(isBraking) { ctx.shadowColor = '#f00'; ctx.shadowBlur = 15; }
+            ctx.beginPath();
+            ctx.rect(-CONFIG.carLength/2, headlightTopY_L, 3, headlightHeight);
+            ctx.rect(-CONFIG.carLength/2, headlightTopY_R, 3, headlightHeight);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Headlights (Beams always on if engine is on)
+            ctx.fillStyle = '#f1c40f';
+            { // Removed if (this.speed > 0.5)
+                 ctx.save();
+                 ctx.globalCompositeOperation = 'screen';
+                 ctx.fillStyle = 'rgba(255, 255, 200, 0.2)';
+                 const beamLength = 150;
+                 const beamSpread = 60;
+                 ctx.beginPath();
+                 ctx.moveTo(CONFIG.carLength/2, headlightTopY_L + headlightHeight/2);
+                 ctx.lineTo(CONFIG.carLength/2 + beamLength, (headlightTopY_L + headlightHeight/2) - beamSpread);
+                 ctx.lineTo(CONFIG.carLength/2 + beamLength, (headlightTopY_R + headlightHeight/2) + beamSpread);
+                 ctx.lineTo(CONFIG.carLength/2, headlightTopY_R + headlightHeight/2);
+                 ctx.fill();
+                 ctx.restore();
+                 ctx.fillStyle = '#fff'; // Bright core
+            }
+            ctx.beginPath();
+            ctx.rect(CONFIG.carLength/2 - 2, headlightTopY_L, 2, headlightHeight);
+            ctx.rect(CONFIG.carLength/2 - 2, headlightTopY_R, 2, headlightHeight);
+            ctx.fill();
+        }
+
+        // --- DELIVEROO TEXT ON ROOF ---
+        ctx.save();
+        ctx.fillStyle = '#000000'; // Black text
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // Draw text along the roof (from back to front)
+        ctx.fillText('DELIVEROO', 0, 0);
+        ctx.restore();
+
+        ctx.restore();
+    }
+
+    drawWheel(ctx, x, y, angle) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        // Tire tread
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(-CONFIG.wheelLength/2, 0, CONFIG.wheelLength, CONFIG.wheelWidth);
+        // Rim highlight
+        ctx.fillStyle = '#555';
+        ctx.fillRect(-2, 2, 4, 6);
+        ctx.restore();
+    }
+}
+
+class Game {
+    constructor() {
+        this.shakeTimer = 0;
+        this.levels = [];
+        this.currentLevelIdx = 0;
+        this.state = 'TITLE_SCREEN'; 
+        this.bonkPos = {x:0, y:0};
+        this.player = new PlayerCar(0,0,0);
+        this.currentParkingZones = [];
+        this.isMusicOn = true;
+        
+        // Title screen animation
+        this.titleTime = 0;
+        this.titlePressVisible = true;
+        this.titleBlinkTimer = 0;
+        this.titleButtonHover = false;
+        
+        this.updateUI();
+    }
+
+    updateUI() {
+        const btn = document.getElementById('toggle-music-btn');
+        btn.innerText = `Dźwięk: ${this.isMusicOn ? 'WŁ' : 'WYŁ'}`;
+    }
+
+    populateLevelButtons() {
+        const container = document.getElementById('levels-container');
+        container.innerHTML = ''; // Clear old buttons
+        this.levels.forEach((level, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'level-btn';
+            btn.innerText = `${index + 1}. ${level.name}`;
+            btn.onclick = () => this.loadLevel(index);
+            container.appendChild(btn);
+        });
+    }
+
+    toggleBackgroundMusic() {
+        const music = document.getElementById('background-music');
+        const btn = document.getElementById('toggle-music-btn');
+        this.isMusicOn = !this.isMusicOn;
+        if (this.isMusicOn) {
+            music.play();
+            btn.innerText = 'Dźwięk: WŁ';
+        } else {
+            music.pause();
+            btn.innerText = 'Dźwięk: WYŁ';
+        }
+    }
+    
+    defineLevels() {
+        return [
+            {
+                name: "Pusty Parking",
+                type: 'lot',
+                start: { x: 100, y: 360, angle: 0 },
+                obstacles: [ new Pillar(255, 430), new Pillar(395, 430), new Pillar(465, 430), new Pillar(605, 430) ],
+                cars: [],
+                parkingZones: [ new ParkingZone({x: 395, y: 260, w: 70, l: 120, angle: 90}) ],
+                curbs: [
+                    new Curb(canvas.width/2, 20, 40, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height-20, 40, canvas.width, 0),
+                    // new Curb(20, canvas.height/2, canvas.height, 40, 90 * Math.PI/180),
+                    // new Curb(canvas.width-20, canvas.height/2, canvas.height, 40, 90 * Math.PI/180)
+                ]
+            },
+            {
+                name: "Parking",
+                type: 'lot',
+                start: { x: 100, y: 360, angle: 0 },
+                obstacles: [ new Pillar(255, 430), new Pillar(395, 430), new Pillar(465, 430), new Pillar(605, 430) ],
+                cars: [
+                    new ObstacleCar({x: 255, y: 260, angle: 90, type: 'suv', color: '#8e44ad'}),
+                    new ObstacleCar({x: 395, y: 260, angle: 90, type: 'sedan', color: '#c0392b'}),
+                    new ObstacleCar({x: 465, y: 260, angle: 90, type: 'compact', color: '#27ae60'}),
+                    new ObstacleCar({x: 605, y: 260, angle: 90, type: 'suv', color: '#f39c12'}),
+                    new ObstacleCar({x: 325, y: 460, angle: 90, type: 'compact', color: '#16a085'}),
+                    new ObstacleCar({x: 535, y: 460, angle: 90, type: 'sedan', color: '#2980b9'})
+                ],
+                parkingZones: [
+                    new ParkingZone({x: 325, y: 260, w: 70, l: 120, angle: 90}),
+                    new ParkingZone({x: 535, y: 260, w: 70, l: 120, angle: 90})
+                ],
+                curbs: [
+                    new Curb(canvas.width/2, 20, 40, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height-20, 40, canvas.width, 0),
+                    // new Curb(20, canvas.height/2, canvas.height, 40, 90 * Math.PI/180),
+                    // new Curb(canvas.width-20, canvas.height/2, canvas.height, 40, 90 * Math.PI/180)
+                ]
+            },
+            {
+                name: "Parking",
+                type: 'lot',
+                start: { x: 100, y: 360, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new ObstacleCar({x: 255, y: 267, angle: 86, type: 'suv', color: '#298049'}),
+                    new ObstacleCar({x: 395, y: 262, angle: 94, type: 'suv', color: '#34495e'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: 325, y: 260, w: 70, l: 120, angle: 90})
+                ],
+                curbs: [
+                    new Curb(canvas.width/2, 20, 40, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height-20, 40, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Parking",
+                type: 'lot',
+                start: { x: 100, y: 360, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new ObstacleCar({x: 265, y: 267, angle: 81, type: 'suv', color: '#8e44ad'}),
+                    new ObstacleCar({x: 384, y: 262, angle: 76, type: 'suv', color: '#c0392b'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: 325, y: 260, w: 70, l: 120, angle: 90})
+                ],
+                curbs: [
+                    new Curb(canvas.width/2, 20, 40, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height-20, 40, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Parking",
+                type: 'lot',
+                start: { x: 100, y: 360, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new ObstacleCar({x: 265, y: 267, angle: 286, type: 'suv', color: '#3288bd'}),
+                    new ObstacleCar({x: 384, y: 262, angle: 296, type: 'suv', color: '#a974cf'}),
+                    new ObstacleCar({x: 465, y: 260, angle: 270, type: 'compact', color: '#990212'}),
+                    new ObstacleCar({x: 588, y: 269, angle: 293, type: 'suv', color: '#f39c12'}),
+                    new ObstacleCar({x: 287, y: 460, angle: 79, type: 'compact', color: '#16a085'}),
+                    new ObstacleCar({x: 572, y: 460, angle: 90, type: 'sedan', color: '#2980b9'})
+                ],
+                parkingZones: [
+                    new ParkingZone({x: 325, y: 260, w: 70, l: 120, angle: 90}),
+                    new ParkingZone({x: 535, y: 260, w: 70, l: 120, angle: 90}),
+                    new ParkingZone({x: 325, y: 460, w: 70, l: 120, angle: 90}),
+                    new ParkingZone({x: 535, y: 460, w: 70, l: 120, angle: 90}),
+                ],
+                curbs: [
+                    new Curb(canvas.width/2, 20, 40, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height-20, 40, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Ulica",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width, y: canvas.height/2 - 35, angle: 180, speed: -4, type: 'compact',color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width - 600, y: canvas.height/2 - 35, angle: 180, speed: -7, kind: 'aggressive', type: 'sedan', color: '#34495e'}),
+                    new NpcCar({x: canvas.width - 300, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'suv', color: '#9b59b6'}),
+                ],
+                parkingZones: [ new ParkingZone({x: canvas.width - 100, y: canvas.height/2 + 35, w: 70, l: 130, angle: 0}) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Ulica",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [
+                    new Pillar(605, canvas.height/2 + 35)
+                ],
+                cars: [
+                    new NpcCar({x: canvas.width, y: canvas.height/2 - 35, angle: 180, speed: -4, type: 'compact',color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width - 600, y: canvas.height/2 - 35, angle: 180, speed: -7, kind: 'aggressive', type: 'sedan', color: '#34495e'}),
+                    new NpcCar({x: canvas.width - 300, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'suv', color: '#9b59b6'}),
+                ],
+                parkingZones: [ new ParkingZone({x: canvas.width - 100, y: canvas.height/2 + 35, w: 70, l: 130, angle: 0}) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Ulica",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [
+                    new Pillar(500, canvas.height/2 + 35),
+                    new Pillar(500 + canvas.width/5, canvas.height/2 + 35),
+                ],
+                cars: [
+                    new NpcCar({x: canvas.width, y: canvas.height/2 - 35, angle: 180, speed: -4, type: 'compact',color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width - 600, y: canvas.height/2 - 35, angle: 180, speed: -7, kind: 'aggressive', type: 'sedan', color: '#34495e'}),
+                    new NpcCar({x: canvas.width - 300, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'suv', color: '#9b59b6'}),
+                ],
+                parkingZones: [ new ParkingZone({x: canvas.width - 100, y: canvas.height/2 + 35, w: 70, l: 130, angle: 0}) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Ulica (Wyprzedzanie)",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width*3/4, y: canvas.height/2 - 35, angle: 180, speed: -6, color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width*3/4 + 300, y: canvas.height/2 - 35, angle: 180, speed: -8, kind: 'aggressive', type: 'suv', color: '#812c2c'}),
+                    new NpcCar({x: canvas.width*1/4, y: canvas.height/2 - 35, angle: 180, speed: -6, type: 'compact', color: '#234923'}),
+                    new NpcCar({x: 400, y: canvas.height/2 + 35, angle: 0, speed: 2, color: '#1abc9c'}),
+                ],
+                parkingZones: [ new ParkingZone({x: canvas.width - 100, y: canvas.height/2 + 35, w: 70, l: 100, angle: 0}) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Ulica (Wyprzedzanie)",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 300, y: canvas.height/2 - 35, angle: 180, speed: -4, color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width - 100, y: canvas.height/2 - 35, angle: 180, speed: -5.5, kind: 'aggressive', type: 'suv', color: '#812c2c'}),
+                    new NpcCar({x: canvas.width + 100, y: canvas.height/2 - 35, angle: 180, speed: -3, type: 'suv', color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width * 1/4, y: canvas.height/2 + 35, angle: 0, speed: 2, color: '#1abc9c'}),
+                    new NpcCar({x: canvas.width * 2/4, y: canvas.height/2 + 35, angle: 0, speed: 2, color: '#225522'}),
+                    new NpcCar({x: canvas.width * 3/4, y: canvas.height/2 + 35, angle: 0, speed: 2, color: '#726834'})
+                ],
+                parkingZones: [ new ParkingZone({x: canvas.width - 100, y: canvas.height/2 + 35, w: 70, l: 100, angle: 0}) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Koperta",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new ObstacleCar({x: 600, y: canvas.height/2 + 35, angle: -3, type: 'suv', color: '#e67e22'}),
+                    new ObstacleCar({x: 870, y: canvas.height/2 + 35, angle: 5, type: 'suv', color: '#8e44ad'})
+                ],
+                parkingZones: [ new ParkingZone({x: 735, y: canvas.height/2 + 35, w: 70, l: 130, angle: 0 }) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Koperta na stresie",
+                type: 'street',
+                start: { x: 100, y: canvas.height/2 + 35, angle: 0 },
+                obstacles: [],
+                cars: [
+                    new ObstacleCar({x: 600, y: canvas.height/2 + 35, angle: -3, type: 'suv', color: '#e67e22'}),
+                    new ObstacleCar({x: 870, y: canvas.height/2 + 35, angle: 5, type: 'suv', color: '#8e44ad'}),
+                    new NpcCar({x: canvas.width, y: canvas.height/2 - 35, angle: 180, speed: -3, type: 'suv', color: '#9b59b6'}),
+                    new NpcCar({x: canvas.width * 3/4, y: canvas.height/2 - 35, angle: 180, speed: -3, type: 'suv', color: '#333333'}),
+                    new NpcCar({x: canvas.width * 1/4, y: canvas.height/2 - 35, angle: 180, speed: -3, type: 'compact', color: '#ee8135'}),
+                    new NpcCar({x: canvas.width * 2/4, y: canvas.height/2 - 35, angle: 180, speed: -3, type: 'compact', color: '#6e0c21'}),
+                ],
+                parkingZones: [ new ParkingZone({x: 735, y: canvas.height/2 + 35, w: 70, l: 130, angle: 0 }) ],
+                curbs: [
+                    new Curb(canvas.width/2, canvas.height/2 - 120, 100, canvas.width, 0),
+                    new Curb(canvas.width/2, canvas.height/2 + 120, 100, canvas.width, 0),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 0, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'sedan', color: '#990212'}),
+                    new NpcCar({x: canvas.width - 250, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'compact', color: '#ee8135'}),
+                    new NpcCar({x: canvas.width - 500, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'compact', color: '#6e0c21'}),
+                    new NpcCar({x: canvas.width - 750, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'suv', color: '#9a8135'}),
+                    new NpcCar({x: canvas.width - 1000, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'suv', color: '#e74c3c'}),
+                    new NpcCar({x: canvas.width - 1250, y: canvas.height/2 - 35, angle: 180, speed: -5, type: 'compact', color: '#71797e'}),
+                    
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 35, y: canvas.height - 100, w: 70, l: 130, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 0, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'sedan', color: '#990212'}),
+                    new NpcCar({x: canvas.width / 2, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'suv', color: '#cf8a36'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 35, y: canvas.height - 100, w: 70, l: 130, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 0, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'sedan', color: '#990212'}),
+                    new NpcCar({x: canvas.width / 2, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'suv', color: '#cf8a36'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 400, y: canvas.height/2 - 35, w: 130, l: 70, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 0, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'sedan', color: '#990212'}),
+                    new NpcCar({x: canvas.width / 2, y: canvas.height/2 - 35, angle: 180, speed: -15, type: 'suv', color: '#cf8a36'}),
+                    new NpcCar({x: canvas.width / 2, y: canvas.height/2 + 35, angle: 0, speed: +15, type: 'compact', color: '#297122'}),
+                    new NpcCar({x: 0, y: canvas.height/2 + 35, angle: 0, speed: +15, type: 'suv', color: '#912a4c'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 400, y: canvas.height/2 - 35, w: 130, l: 70, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width - 0, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'sedan', kind: 'aggressive', color: '#990212'}),
+                    new NpcCar({x: canvas.width / 2, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'suv', kind: 'aggressive', color: '#cf8a36'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 135, y: canvas.height/2 - 35, w: 130, l: 70, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width / 4 * 0, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'suv', color: '#849292'}),
+                    new NpcCar({x: canvas.width / 4 * 1, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'suv', color: '#b4b8ba'}),
+                    new NpcCar({x: canvas.width / 4 * 2, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'suv', color: '#ef67ef'}),
+                    new NpcCar({x: canvas.width / 4 * 3, y: canvas.height/2 - 35, angle: 180, speed: -20, type: 'suv', color: '#8960a8'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 35, y: canvas.height - 100, w: 70, l: 130, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Skrzyżowanie",
+                type: 'street_crossing',
+                start: { x: canvas.width/2 - 35, y: 100 + 35, angle: 90 },
+                obstacles: [],
+                cars: [
+                    new NpcCar({x: canvas.width / 5 * 0, y: canvas.height/2 - 35, angle: 180, speed: -30, type: 'suv', color: '#849292'}),
+                    new NpcCar({x: canvas.width / 5 * 1, y: canvas.height/2 - 35, angle: 180, speed: -30, type: 'suv', color: '#b4b8ba'}),
+                    new NpcCar({x: canvas.width / 5 * 2, y: canvas.height/2 - 35, angle: 180, speed: -30, type: 'suv', color: '#ef67ef'}),
+                    new NpcCar({x: canvas.width / 5 * 3, y: canvas.height/2 - 35, angle: 180, speed: -30, type: 'suv', color: '#8960a8'}),
+                    new NpcCar({x: canvas.width / 5 * 4, y: canvas.height/2 - 35, angle: 180, speed: -30, type: 'suv', color: '#333333'}),
+                ],
+                parkingZones: [
+                    new ParkingZone({x: canvas.width/2 - 35, y: canvas.height - 100, w: 70, l: 130, angle: 90})
+                ],
+                curbs: [
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 - 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb((canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 - 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                    new Curb(canvas.width/2 + 120 + (canvas.width/2 - 120)/2, canvas.height/2 + 120, 100, canvas.width/2 - 20, 0),
+                    new Curb(canvas.width/2 + 120, canvas.height/2 + 120 + (canvas.height/2 - 120)/2, 100, canvas.height/2 - 120, 90 * Math.PI/180),
+                ]
+            },
+            {
+                name: "Ekspresówka",
+                type: 'highway',
+                start: { x: 275, y: canvas.height/2 - 120, angle: 0 },
+                obstacles: [],
+                cars: [
+                    // Górne pasy (→→→) - jadą w prawo
+                    // Pas 1 (górny)
+                    new NpcCar({x: 0, y: canvas.height/2 - 205, angle: 0, speed: 10, type: 'sedan', color: '#e74c3c'}),
+                    new NpcCar({x: 450, y: canvas.height/2 - 210, angle: 0, speed: 14, kind: 'aggressive', type: 'compact', color: '#3498db'}),
+                    new NpcCar({x: 750, y: canvas.height/2 - 200, angle: 0, speed: 11, kind: 'aggressive', type: 'suv', color: '#9b59b6'}),
+                    new NpcCar({x: 1050, y: canvas.height/2 - 205, angle: 0, speed: 13, kind: 'aggressive', type: 'sedan', color: '#f39c12'}),
+                    new NpcCar({x: 1350, y: canvas.height/2 - 213, angle: 0, speed: 15, kind: 'aggressive', type: 'compact', color: '#1abc9c'}),
+
+                    // Pas 2 (środkowy górny)
+                    new NpcCar({x: 0, y: canvas.height/2 - 125, angle: 0, speed: 10, kind: 'aggressive', type: 'suv', color: '#34495e'}),
+                    new NpcCar({x: 400, y: canvas.height/2 - 120, angle: 0, speed: 12, kind: 'aggressive', type: 'sedan', color: '#e67e22'}),
+                    new NpcCar({x: 700, y: canvas.height/2 - 130, angle: 0, speed: 11, type: 'compact', color: '#16a085'}),
+                    new NpcCar({x: 950, y: canvas.height/2 - 127, angle: 0, speed: 13, kind: 'aggressive', type: 'suv', color: '#c0392b'}),
+                    new NpcCar({x: 1250, y: canvas.height/2 - 121, angle: 0, speed: 14, kind: 'aggressive', type: 'sedan', color: '#8e44ad'}),
+                    new NpcCar({x: 1550, y: canvas.height/2 - 130, angle: 0, speed: 10, type: 'compact', color: '#2c3e50'}),
+
+                    // Dolne pasy (←←←) - jadą w lewo
+                    // Pas 3 (środkowy dolny)
+                    new NpcCar({x: canvas.width - 150, y: canvas.height/2 + 125, angle: 180, speed: -11, kind: 'aggressive', type: 'sedan', color: '#95a5a6'}),
+                    new NpcCar({x: canvas.width - 450, y: canvas.height/2 + 125, angle: 180, speed: -13, kind: 'aggressive', type: 'compact', color: '#d35400'}),
+                    new NpcCar({x: canvas.width - 750, y: canvas.height/2 + 125, angle: 180, speed: -12, kind: 'aggressive', type: 'suv', color: '#27ae60'}),
+                    new NpcCar({x: canvas.width - 1050, y: canvas.height/2 + 125, angle: 180, speed: -14, kind: 'aggressive', type: 'sedan', color: '#2980b9'}),
+                    new NpcCar({x: canvas.width - 1350, y: canvas.height/2 + 125, angle: 180, speed: -10, type: 'compact', color: '#8e44ad'}),
+
+                    // Pas 4 (dolny)
+                    new NpcCar({x: canvas.width - 250, y: canvas.height/2 + 205, angle: 180, speed: -15, kind: 'aggressive', type: 'suv', color: '#e74c3c'}),
+                    new NpcCar({x: canvas.width - 500, y: canvas.height/2 + 205, angle: 180, speed: -12, kind: 'aggressive', type: 'sedan', color: '#f39c12'}),
+                    new NpcCar({x: canvas.width - 800, y: canvas.height/2 + 205, angle: 180, speed: -13, type: 'compact', color: '#1abc9c'}),
+                    new NpcCar({x: canvas.width - 1100, y: canvas.height/2 + 205, angle: 180, speed: -11, kind: 'aggressive', type: 'suv', color: '#34495e'}),
+                    new NpcCar({x: canvas.width - 1400, y: canvas.height/2 + 205, angle: 180, speed: -14, kind: 'aggressive', type: 'sedan', color: '#c0392b'}),
+                    new NpcCar({x: canvas.width - 1650, y: canvas.height/2 + 205, angle: 180, speed: -16, type: 'compact', color: '#16a085'}),
+                ],
+                parkingZones: [
+                    // Parking na poboczu (górna strona)
+                    new ParkingZone({x: 200, y: canvas.height/2 + 123, w: 84, l: 120, angle: 0})
+                ],
+                curbs: [
+                    // Górna krawędź
+                    new Curb(canvas.width/2, canvas.height/2 - 320, 80, canvas.width, 0),
+                    // Dolna krawędź
+                    new Curb(canvas.width/2, canvas.height/2 + 320, 80, canvas.width, 0),
+                ]
+            },
+
+        ];
+    }
+
+    startGame() {
+        this.state = 'RUNNING';
+        this.loadLevel(this.currentLevelIdx);
+    }
+
+    loadLevel(idx) {
+        this.levels = this.defineLevels(); // Always get fresh level data
+        this.populateLevelButtons();
+
+        if (idx >= this.levels.length) {
+            alert('Gratulacje! Ukończyłeś wszystkie poziomy!');
+            idx = 0;
+        }
+        this.currentLevelIdx = idx;
+        const ld = this.levels[idx];
+
+        // Zatrzymaj wszystkie klaksony przed załadowaniem nowego poziomu
+        if (this.currentCars) {
+            this.currentCars.forEach(car => {
+                if (car.hornSound && !car.hornSound.paused) {
+                    car.hornSound.pause();
+                    car.hornSound.currentTime = 0;
+                }
+            });
+        }
+
+        this.player.reset(ld.start.x, ld.start.y, ld.start.angle);
+        this.currentCars = ld.cars || [];
+        this.currentObstacles = ld.obstacles || [];
+        this.currentCurbs = ld.curbs || [];
+        this.currentParkingZones = ld.parkingZones || [];
+        
+        this.state = 'RUNNING';
+        this.shakeTimer = 0;
+        
+        document.getElementById('toggle-steering-mode').innerText = `Asystent Kierownicy: ${this.player.steeringMode === 'DRIVING' ? 'WŁ' : 'WYŁ'}`;
+        document.getElementById('toggle-winter-mode').innerText = `Poślizgi Zimowe: ${this.player.winterMode ? 'WŁ' : 'WYŁ'}`;
+
+        const levelButtons = document.querySelectorAll('#levels-container .level-btn');
+        levelButtons.forEach((btn, i) => btn.classList.toggle('active', i === idx));
+
+        const music = document.getElementById('background-music');
+        if (music && this.isMusicOn) {
+            music.currentTime = 0;
+            const promise = music.play();
+            if (promise !== undefined) {
+                promise.catch(error => {
+                    console.log("Music autoplay was prevented. Click the screen to play.");
+                    document.body.addEventListener('click', () => {
+                        if (this.isMusicOn) music.play();
+                    }, { once: true });
+                });
+            }
+        }
+    }
+
+    update() {
+        // Title screen - handled by mouse events
+        if (this.state === 'TITLE_SCREEN') {
+            return;
+        }
+        
+        if (this.state === 'GAMEOVER' || this.state === 'LEVEL_COMPLETE') return;
+        
+        if (this.shakeTimer > 0) this.shakeTimer--;
+
+        this.player.update(input);
+
+        this.currentCars.forEach(car => {
+            if (typeof car.update === 'function') {
+                car.update(this);
+            }
+        });
+
+        const cars = this.currentCars;
+        for (let i = 0; i < cars.length; i++) {
+            for (let j = i + 1; j < cars.length; j++) {
+                const carA = cars[i];
+                const carB = cars[j];
+
+                if (checkRectCollision(carA, carB)) {
+                    if (typeof carA.stop === 'function') carA.stop();
+                    if (typeof carB.stop === 'function') carB.stop();
+                }
+            }
+        }
+        
+        // Update UI
+        const kmh = Math.abs(this.player.speed * CONFIG.kmhFactor).toFixed(0);
+        document.getElementById('ui-speed').innerText = `${kmh} km/h`;
+        document.getElementById('ui-steer').innerText = `${(this.player.steeringAngle * 180 / Math.PI).toFixed(0)}°`;
+        document.getElementById('ui-engine').innerText = this.player.engineOn ? 'ON' : 'OFF';
+        document.getElementById('ui-lights').innerText = this.player.engineOn ? 'ON' : 'OFF';
+
+        // Wskaźnik poślizgu
+        const driftIndicator = document.getElementById('ui-drift');
+        if (this.player.isDrifting) {
+            const driftDegrees = Math.abs(this.player.driftAngle * 180 / Math.PI).toFixed(0);
+            driftIndicator.innerText = `TAK (${driftDegrees}°)`;
+            driftIndicator.style.color = '#e74c3c';
+        } else {
+            driftIndicator.innerText = 'NIE';
+            driftIndicator.style.color = '#3498db';
+        }
+
+        // Wskaźnik boost (hamulec ręczny)
+        const boostIndicator = document.getElementById('ui-boost');
+        const boostPercent = Math.round(this.player.handbrakeBoost * 100);
+        boostIndicator.innerText = `${boostPercent}%`;
+        if (boostPercent > 75) {
+            boostIndicator.style.color = '#e74c3c'; // Czerwony - gotowy!
+        } else if (boostPercent > 30) {
+            boostIndicator.style.color = '#f39c12'; // Pomarańczowy - buduje się
+        } else {
+            boostIndicator.style.color = '#95a5a6'; // Szary - brak
+        }
+
+        this.checkCollisions();
+        if (this.state === 'RUNNING') this.checkParking();
+    }
+
+    checkCollisions() {
+        // 1. Static Pillars
+        for (let p of this.currentObstacles) {
+            if (checkCircleRectCollision(p, this.player)) {
+                this.triggerGameOver();
+                return;
+            }
+        }
+
+        // 2. Cars
+        for (let c of this.currentCars) {
+            if (checkRectCollision(this.player, c)) {
+                this.triggerGameOver();
+                return;
+            }
+        }
+
+        // 3. Curbs (Special Physics)
+        for (let c of this.currentCurbs) {
+            if (checkRectCollision(this.player, c)) {
+                if (Math.abs(this.player.speed) > CONFIG.curbSafeSpeed) {
+                    // High speed -> Crash
+                    this.triggerGameOver();
+                } else {
+                    // Low speed -> Bonk & Stop
+                    this.player.speed = -this.player.speed * 0.5; // Bounce back
+                    this.shakeTimer = 10; // Shake screen
+                    playCurbSound();
+                }
+                return;
+            }
+        }
+    }
+
+    checkParking() {
+        // Car must be moving very slowly to be considered parked.
+        if (Math.abs(this.player.speed) > 0.1) return;
+
+        for (let zone of this.currentParkingZones) {
+            // 1. Check if all 4 corners of the car are inside the parking zone
+            const carCorners = getCorners(this.player.x, this.player.y, this.player.w, this.player.l, this.player.angle);
+            let allCornersIn = true;
+            for (const corner of carCorners) {
+                if (!isPointInRotatedRect(corner, zone)) {
+                    allCornersIn = false;
+                    break;
+                }
+            }
+
+            if (allCornersIn) {
+                this.triggerLevelComplete();
+                return;
+            }
+        }
+    }
+
+    triggerGameOver() {
+        if (this.state === 'GAMEOVER') return;
+        this.state = 'GAMEOVER';
+        this.bonkPos = { x: this.player.x, y: this.player.y };
+        playBonkSound();
+        
+        const music = document.getElementById('background-music');
+        if (music) music.pause();
+
+        setTimeout(() => {
+            this.loadLevel(this.currentLevelIdx);
+        }, 2000);
+    }
+
+    triggerLevelComplete() {
+        if (this.state !== 'RUNNING') return;
+        this.state = 'LEVEL_COMPLETE';
+        playLevelCompleteSound();
+        
+        // Initialize level complete animation
+        this.levelCompleteTime = 0;
+        this.levelCompleteButtonHover = false;
+
+        const music = document.getElementById('background-music');
+        if (music) music.pause();
+    }
+
+    draw() {
+        ctx.save();
+        
+        // Screen Shake Effect
+        if (this.shakeTimer > 0) {
+            const dx = (Math.random() - 0.5) * 10;
+            const dy = (Math.random() - 0.5) * 10;
+            ctx.translate(dx, dy);
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Title Screen
+        if (this.state === 'TITLE_SCREEN') {
+            this.drawTitleScreen();
+            ctx.restore();
+            return;
+        }
+
+        // Level Complete Screen
+        if (this.state === 'LEVEL_COMPLETE') {
+            this.drawLevelCompleteScreen();
+            ctx.restore();
+            return;
+        }
+
+        // Environment
+        if (this.levels[this.currentLevelIdx].type === 'lot') {
+            this.drawLotEnvironment();
+        } else if (this.levels[this.currentLevelIdx].type === 'street_crossing') {
+            this.drawStreetCrossingEnvironment();
+        } else if (this.levels[this.currentLevelIdx].type === 'highway') {
+            this.drawHighwayEnvironment();
+        }
+        else {
+            this.drawStreetEnvironment();
+        }
+
+        // Parking Zones
+        this.currentParkingZones.forEach(z => z.draw(ctx));
+
+        // Curbs
+        this.currentCurbs.forEach(c => c.draw(ctx));
+
+        // Entities
+        this.currentObstacles.forEach(o => o.draw(ctx));
+        this.currentCars.forEach(c => c.draw(ctx));
+
+        // Rysuj ślady opon przed samochodem gracza
+        this.player.drawSkidMarks(ctx);
+        this.player.draw(ctx);
+
+        // Bonk
+        if (this.state === 'GAMEOVER') {
+            this.drawBonk();
+        }
+        
+        ctx.restore();
+    }
+
+    
+    // V1 Style Drawing
+    drawLotEnvironment() {
+        const spotWidth = 70;
+        const spotDepth = 120;
+        const startX = 220;
+        const startY = 200; // Top row
+
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
+        
+        // Top Row
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(startX + spotWidth * 6, startY);
+        for(let i=0; i<=6; i++) {
+            ctx.moveTo(startX + i * spotWidth, startY);
+            ctx.lineTo(startX + i * spotWidth, startY + spotDepth);
+        }
+        ctx.stroke();
+
+        // Bottom Row
+        const startY2 = 400;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY2 + spotDepth);
+        ctx.lineTo(startX + spotWidth * 6, startY2 + spotDepth);
+        for(let i=0; i<=6; i++) {
+            ctx.moveTo(startX + i * spotWidth, startY2);
+            ctx.lineTo(startX + i * spotWidth, startY2 + spotDepth);
+        }
+        ctx.stroke();
+        
+        // "PARKING" Text
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.font = "bold 80px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("PARKING", canvas.width/2, 130);
+        ctx.restore();
+    }
+
+    drawStreetEnvironment() {
+        const roadY = canvas.height/2;
+        // Asphalt
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Full asphalt base
+        
+        // Center Line
+        ctx.strokeStyle = '#f1c40f';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([20, 20]);
+        ctx.beginPath();
+        ctx.moveTo(0, roadY);
+        ctx.lineTo(canvas.width, roadY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+    }
+
+    drawStreetCrossingEnvironment() {
+        const roadY = canvas.height / 2;
+        const roadX = canvas.width / 2;
+        const intersectionHalfSize = 120;
+
+        // Asphalt
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Center Lines
+        ctx.strokeStyle = '#f1c40f';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([20, 20]);
+
+        // Horizontal
+        ctx.beginPath();
+        ctx.moveTo(0, roadY);
+        ctx.lineTo(roadX - intersectionHalfSize, roadY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(roadX + intersectionHalfSize, roadY);
+        ctx.lineTo(canvas.width, roadY);
+        ctx.stroke();
+
+        // Vertical
+        ctx.beginPath();
+        ctx.moveTo(roadX, 0);
+        ctx.lineTo(roadX, roadY - intersectionHalfSize);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(roadX, roadY + intersectionHalfSize);
+        ctx.lineTo(roadX, canvas.height);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+    }
+
+    drawHighwayEnvironment() {
+        const laneHeight = 85; // Wysokość jednego pasa
+        const grassHeight = 160; // Wysokość pasa zieleni
+        const topLanesY = canvas.height / 2 - grassHeight / 2 - laneHeight * 2;
+
+        // Asphalt - full background
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // === GÓRNE 2 PASY (→→→) ===
+        const lane1Y = topLanesY + laneHeight * 0.5;
+        const lane2Y = topLanesY + laneHeight * 1.5;
+
+        // Linia oddzielająca pasy (przerywana biała)
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([30, 20]);
+        ctx.beginPath();
+        ctx.moveTo(0, topLanesY + laneHeight);
+        ctx.lineTo(canvas.width, topLanesY + laneHeight);
+        ctx.stroke();
+
+        // === PAS ZIELENI (środek) ===
+        const grassY = topLanesY + laneHeight * 2;
+
+        // Rysuj trawę (użyj tekstury lub kolor zielony)
+        ctx.fillStyle = '#4a7c3a'; // Ciemnozielony base
+        ctx.fillRect(0, grassY, canvas.width, grassHeight);
+
+        // Dodaj teksturę trawy (jeśli załadowana)
+        const grassImg = new Image();
+        grassImg.src = 'grass-textures.jpg';
+        if (grassImg.complete) {
+            const pattern = ctx.createPattern(grassImg, 'repeat');
+            if (pattern) {
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, grassY, canvas.width, grassHeight);
+            }
+        }
+
+        // === DOLNE 2 PASY (←←←) ===
+        const bottomLanesY = grassY + grassHeight;
+        const lane3Y = bottomLanesY + laneHeight * 0.5;
+        const lane4Y = bottomLanesY + laneHeight * 1.5;
+
+        // Linia oddzielająca pasy (przerywana biała)
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([30, 20]);
+        ctx.beginPath();
+        ctx.moveTo(0, bottomLanesY + laneHeight);
+        ctx.lineTo(canvas.width, bottomLanesY + laneHeight);
+        ctx.stroke();
+
+        // === LINIE KRAWĘDZIOWE (ciągłe białe) ===
+        ctx.setLineDash([]);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+
+        // Górna krawędź autostrady
+        ctx.beginPath();
+        ctx.moveTo(0, topLanesY);
+        ctx.lineTo(canvas.width, topLanesY);
+        ctx.stroke();
+
+        // Dolna krawędź autostrady
+        ctx.beginPath();
+        ctx.moveTo(0, bottomLanesY + laneHeight * 2);
+        ctx.lineTo(canvas.width, bottomLanesY + laneHeight * 2);
+        ctx.stroke();
+
+        // Krawędzie pasa zieleni
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, grassY);
+        ctx.lineTo(canvas.width, grassY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, grassY + grassHeight);
+        ctx.lineTo(canvas.width, grassY + grassHeight);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.font = "bold 60px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("S2 (OBWODNICA WARSZAFKI)", canvas.width/2, 50);
+        ctx.restore();
+    }
+
+    drawTitleScreen() {
+        // 90s Style Title Screen
+        this.titleTime += 0.016; // ~60fps
+        
+        // Animated gradient background (cyan-magenta-blue)
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        const offset1 = Math.sin(this.titleTime * 0.5) * 0.5 + 0.5;
+        const offset2 = Math.cos(this.titleTime * 0.3) * 0.5 + 0.5;
+        grad.addColorStop(0, `rgb(${Math.floor(offset1 * 100)}, ${Math.floor(offset2 * 150 + 100)}, 200)`);
+        grad.addColorStop(0.5, `rgb(${Math.floor(offset2 * 150)}, 50, ${Math.floor(offset1 * 200 + 55)})`);
+        grad.addColorStop(1, `rgb(100, ${Math.floor(offset1 * 100)}, ${Math.floor(offset2 * 150 + 100)})`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Grid effect (very 90s!)
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+        ctx.lineWidth = 1;
+        const gridSize = 50;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // Animated stars/particles
+        for (let i = 0; i < 30; i++) {
+            const x = ((i * 137.5 + this.titleTime * 50) % canvas.width);
+            const y = (i * 47.3) % canvas.height;
+            const size = Math.sin(this.titleTime + i) * 2 + 3;
+            ctx.fillStyle = `rgba(255, 255, 0, ${Math.sin(this.titleTime * 2 + i) * 0.3 + 0.7})`;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Main title with shadow/3D effect
+        const centerY = canvas.height / 2 - 80;
+        
+        // Shadow layers (90s 3D effect)
+        for (let i = 8; i > 0; i--) {
+            ctx.fillStyle = `rgba(0, 0, 0, ${0.1})`;
+            ctx.font = 'bold 48px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('GTA: S2 Deliveroo', canvas.width / 2 + i, centerY + i);
+        }
+        
+        // Main title with gradient
+        const titleGrad = ctx.createLinearGradient(0, centerY - 30, 0, centerY + 30);
+        titleGrad.addColorStop(0, '#ffff00');
+        titleGrad.addColorStop(0.5, '#ff00ff');
+        titleGrad.addColorStop(1, '#00ffff');
+        ctx.fillStyle = titleGrad;
+        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.fillText('GTA: S2 Deliveroo', canvas.width / 2, centerY);
+        
+        // Outline
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.strokeText('GTA: S2 Deliveroo', canvas.width / 2, centerY);
+        
+        // Subtitle
+        ctx.font = 'bold 48px Arial, sans-serif';
+        const subtitleY = centerY + 50;
+        
+        // Subtitle shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillText('(obwodnica Warszafki)', canvas.width / 2 + 2, subtitleY + 2);
+        
+        // Subtitle with cyan color
+        ctx.fillStyle = '#00ffff';
+        ctx.fillText('(obwodnica Warszafki)', canvas.width / 2, subtitleY);
+        
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeText('(obwodnica Warszafki)', canvas.width / 2, subtitleY);
+        
+        // "PLAY THE GAME" Button (90s style)
+        const buttonWidth = 280;
+        const buttonHeight = 60;
+        const buttonX = canvas.width / 2 - buttonWidth / 2;
+        const buttonY = canvas.height - 150;
+        
+        // Store button bounds for click detection
+        this.titleButtonBounds = {
+            x: buttonX,
+            y: buttonY,
+            width: buttonWidth,
+            height: buttonHeight
+        };
+        
+        // Animated button (pulsing effect)
+        const pulse = Math.sin(this.titleTime * 3) * 0.1 + 1;
+        
+        // Button shadow (3D effect)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(buttonX + 5, buttonY + 5, buttonWidth, buttonHeight);
+        
+        // Button background with gradient
+        const btnGrad = ctx.createLinearGradient(buttonX, buttonY, buttonX, buttonY + buttonHeight);
+        if (this.titleButtonHover) {
+            btnGrad.addColorStop(0, '#ffff00');
+            btnGrad.addColorStop(1, '#ff00ff');
+        } else {
+            btnGrad.addColorStop(0, '#ff00ff');
+            btnGrad.addColorStop(1, '#00ffff');
+        }
+        ctx.fillStyle = btnGrad;
+        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Button border
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Inner border for more 90s look
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(buttonX + 4, buttonY + 4, buttonWidth - 8, buttonHeight - 8);
+        
+        // Button text
+        ctx.save();
+        ctx.translate(canvas.width / 2, buttonY + buttonHeight / 2);
+        ctx.scale(pulse, pulse);
+        
+        // Text shadow
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 24px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('PLAY THE GAME', 2, 2);
+        
+        // Text
+        ctx.fillStyle = this.titleButtonHover ? '#000' : '#fff';
+        ctx.fillText('PLAY THE GAME', 0, 0);
+        
+        ctx.restore();
+        
+        // Copyright/credits
+        ctx.font = '12px Arial, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText('© 1993 WARSZAFKA STUDIOS', canvas.width / 2, canvas.height - 30);
+    }
+
+    drawLevelCompleteScreen() {
+        // 90s Style Level Complete Screen
+        this.levelCompleteTime += 0.016;
+        
+        // Animated gradient background (different colors - celebration!)
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        const offset1 = Math.sin(this.levelCompleteTime * 0.7) * 0.5 + 0.5;
+        const offset2 = Math.cos(this.levelCompleteTime * 0.5) * 0.5 + 0.5;
+        grad.addColorStop(0, `rgb(${Math.floor(offset1 * 200 + 55)}, ${Math.floor(offset2 * 100)}, ${Math.floor(offset1 * 100 + 100)})`);
+        grad.addColorStop(0.5, `rgb(${Math.floor(offset2 * 100 + 150)}, ${Math.floor(offset1 * 200)}, 100)`);
+        grad.addColorStop(1, `rgb(100, ${Math.floor(offset2 * 100 + 150)}, ${Math.floor(offset1 * 200 + 55)})`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Celebratory stars everywhere!
+        for (let i = 0; i < 50; i++) {
+            const x = ((i * 137.5 + this.levelCompleteTime * 80) % canvas.width);
+            const y = ((i * 83.7 + this.levelCompleteTime * 60) % canvas.height);
+            const size = Math.sin(this.levelCompleteTime * 3 + i) * 2 + 3;
+            const colors = ['#ffff00', '#ff00ff', '#00ffff', '#ff0000', '#00ff00'];
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Star shape for some
+            if (i % 3 === 0) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(this.levelCompleteTime + i);
+                ctx.fillStyle = '#ffffff';
+                for (let j = 0; j < 5; j++) {
+                    ctx.rotate(Math.PI * 2 / 5);
+                    ctx.lineTo(0, -size * 2);
+                    ctx.rotate(Math.PI / 5);
+                    ctx.lineTo(0, -size);
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        // "GRATULACJE!" title with bouncing effect
+        const centerY = canvas.height / 2 - 100;
+        const bounce = Math.sin(this.levelCompleteTime * 4) * 10;
+        
+        // Shadow layers
+        for (let i = 8; i > 0; i--) {
+            ctx.fillStyle = `rgba(0, 0, 0, ${0.1})`;
+            ctx.font = 'bold 56px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('GRATULACJE!', canvas.width / 2 + i, centerY + bounce + i);
+        }
+        
+        // Main title with rainbow gradient
+        const titleGrad = ctx.createLinearGradient(0, centerY - 30, 0, centerY + 30);
+        titleGrad.addColorStop(0, '#ff0000');
+        titleGrad.addColorStop(0.33, '#ffff00');
+        titleGrad.addColorStop(0.66, '#00ff00');
+        titleGrad.addColorStop(1, '#00ffff');
+        ctx.fillStyle = titleGrad;
+        ctx.font = 'bold 56px Arial, sans-serif';
+        ctx.fillText('GRATULACJE!', canvas.width / 2, centerY + bounce);
+        
+        // Outline
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.strokeText('GRATULACJE!', canvas.width / 2, centerY + bounce);
+        
+        // "Poziom ukończony!" subtitle
+        ctx.font = 'bold 32px Arial, sans-serif';
+        const subtitleY = centerY + 70;
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillText('Poziom ukończony!', canvas.width / 2 + 2, subtitleY + 2);
+        
+        // Subtitle with pulsing color
+        const pulseColor = Math.sin(this.levelCompleteTime * 5) * 127 + 128;
+        ctx.fillStyle = `rgb(${pulseColor}, 255, ${255 - pulseColor})`;
+        ctx.fillText('Poziom ukończony!', canvas.width / 2, subtitleY);
+        
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.strokeText('Poziom ukończony!', canvas.width / 2, subtitleY);
+        
+        // "NASTĘPNY POZIOM" Button (90s style)
+        const buttonWidth = 320;
+        const buttonHeight = 70;
+        const buttonX = canvas.width / 2 - buttonWidth / 2;
+        const buttonY = canvas.height - 150;
+        
+        // Store button bounds for click detection
+        this.levelCompleteButtonBounds = {
+            x: buttonX,
+            y: buttonY,
+            width: buttonWidth,
+            height: buttonHeight
+        };
+        
+        // Animated button (pulsing effect)
+        const pulse = Math.sin(this.levelCompleteTime * 3) * 0.1 + 1;
+        
+        // Button shadow (3D effect)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(buttonX + 6, buttonY + 6, buttonWidth, buttonHeight);
+        
+        // Button background with gradient
+        const btnGrad = ctx.createLinearGradient(buttonX, buttonY, buttonX, buttonY + buttonHeight);
+        if (this.levelCompleteButtonHover) {
+            btnGrad.addColorStop(0, '#00ff00');
+            btnGrad.addColorStop(1, '#ffff00');
+        } else {
+            btnGrad.addColorStop(0, '#ffff00');
+            btnGrad.addColorStop(1, '#ff00ff');
+        }
+        ctx.fillStyle = btnGrad;
+        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Button border
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Inner border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(buttonX + 5, buttonY + 5, buttonWidth - 10, buttonHeight - 10);
+        
+        // Button text
+        ctx.save();
+        ctx.translate(canvas.width / 2, buttonY + buttonHeight / 2);
+        ctx.scale(pulse, pulse);
+        
+        // Text shadow
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('NASTĘPNY POZIOM', 2, 2);
+        
+        // Text
+        ctx.fillStyle = this.levelCompleteButtonHover ? '#000' : '#fff';
+        ctx.fillText('NASTĘPNY POZIOM', 0, 0);
+        
+        ctx.restore();
+    }
+
+    drawBonk() {
+        ctx.save();
+        ctx.translate(this.bonkPos.x, this.bonkPos.y);
+        
+        // Comic Flash (Star)
+        ctx.fillStyle = '#e74c3c';
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for(let i=0; i<16; i++) {
+            const angle = (Math.PI*2/16) * i;
+            const r = (i%2===0) ? 70 : 45; 
+            ctx.lineTo(Math.cos(angle)*r, Math.sin(angle)*r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Text "BONK!"
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 4;
+        ctx.font = "bold 28px Verdana";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.strokeText("BONK!", 0, 0);
+        ctx.fillText("BONK!", 0, 0);
+        
+        ctx.restore();
+    }
+}
+
+// --- INIT ---
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const input = new InputHandler();
+let game;
+
+function loadNextLevel() {
+    const nextLevel = game.currentLevelIdx + 1;
+    if (nextLevel < game.levels.length) {
+        game.loadLevel(nextLevel);
+    } else {
+        alert('Gratulacje! Ukończyłeś wszystkie poziomy!');
+        game.loadLevel(0);
+    }
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (game && game.state !== 'TITLE_SCREEN' && game.state !== 'LEVEL_COMPLETE') {
+        game.loadLevel(game.currentLevelIdx);
+    }
+}
+
+function loop() {
+    if (!game) return;
+    game.update();
+    game.draw();
+    requestAnimationFrame(loop);
+}
+
+// Mouse handling for title screen and level complete screen
+canvas.addEventListener('mousemove', (e) => {
+    if (!game) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Title screen button
+    if (game.state === 'TITLE_SCREEN' && game.titleButtonBounds) {
+        const btn = game.titleButtonBounds;
+        game.titleButtonHover = (
+            mouseX >= btn.x && mouseX <= btn.x + btn.width &&
+            mouseY >= btn.y && mouseY <= btn.y + btn.height
+        );
+        canvas.style.cursor = game.titleButtonHover ? 'pointer' : 'default';
+    }
+    // Level complete button
+    else if (game.state === 'LEVEL_COMPLETE' && game.levelCompleteButtonBounds) {
+        const btn = game.levelCompleteButtonBounds;
+        game.levelCompleteButtonHover = (
+            mouseX >= btn.x && mouseX <= btn.x + btn.width &&
+            mouseY >= btn.y && mouseY <= btn.y + btn.height
+        );
+        canvas.style.cursor = game.levelCompleteButtonHover ? 'pointer' : 'default';
+    }
+    // Reset cursor when not on special screens
+    else {
+        canvas.style.cursor = 'default';
+    }
+});
+
+canvas.addEventListener('click', (e) => {
+    if (!game) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Title screen button
+    if (game.state === 'TITLE_SCREEN' && game.titleButtonBounds) {
+        const btn = game.titleButtonBounds;
+        const isInButton = (
+            mouseX >= btn.x && mouseX <= btn.x + btn.width &&
+            mouseY >= btn.y && mouseY <= btn.y + btn.height
+        );
+        
+        if (isInButton) {
+            canvas.style.cursor = 'default';
+            game.startGame();
+        }
+    }
+    
+    // Level complete button
+    if (game.state === 'LEVEL_COMPLETE' && game.levelCompleteButtonBounds) {
+        const btn = game.levelCompleteButtonBounds;
+        const isInButton = (
+            mouseX >= btn.x && mouseX <= btn.x + btn.width &&
+            mouseY >= btn.y && mouseY <= btn.y + btn.height
+        );
+        
+        if (isInButton) {
+            canvas.style.cursor = 'default';
+            loadNextLevel();
+        }
+    }
+});
+
+window.onload = function() {
+    game = new Game();
+    window.addEventListener('resize', resize);
+    resize(); // Initial resize and level load
+    loop();
+};
+
+</script>
+</body>
+</html>

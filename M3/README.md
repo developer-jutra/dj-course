@@ -1,12 +1,22 @@
 # M3: LLM-Assisted Coding
 
-- coding-agent-specific files
+- **coding-agent-specific files**:
   - `M3/claude` - pliki specyficzne dla CC (claude code)
   - `M3/copilot` - pliki specyficzne dla GitHub Copilot
   - są "symlinkowane" zarówno do głównego folderu repo jak i do `M3/tms-data-generator`
-- `docker-mcp-py` - klon serwera MCP dla dockera (python)
-- `mcp-docker-tools` - customowy server MCP (node.js) zawierający przydatnego toola (`docker-image-tags`) oraz ilustracje tools, resources, prompts
-- `mcp-playground-js`, `mcp-playground-py` - zaślepkowe serwery MCP z przykładami tool, resource, prompt
-- `tms-data-generator` - generator danych SQLowych systemu transportowego TMS (golang), mający później zasilić (seed) bazę danych do testów
-- `tms-data-generator` - generator danych SQLowych systemu transportowego TMS (golang), mający później zasilić (seed) developerską bazę danych postgres/deliveroo
-- `warehouse-simulator` - symulator 3D magazynu - uważaj na nazistów!
+- **lovable** - dwie aplikacje frontendowe stworzone przy użyciu https://lovable.dev, które następnie będą rozbudowane w dalszej części DJ do aplikacji w ramach deliveroo:
+  - `lovable-logistics-hub-main`
+  - `lovable-logistics-navigator-main`
+  - oraz `lovable-calendar` - które jest demonstracją one-shot aplikacji stworzonej przez lovable'a.
+- **MCP**:
+  - `mcp-docker-py` - klon serwera MCP dla dockera (python)
+  - `mcp-docker-tools-js` - customowy server MCP (node.js) zawierający przydatnego toola (`docker-image-tags`) oraz ilustracje tools, resources, prompts
+  - `mcp-playground-js`, `mcp-playground-py` - zaślepkowe serwery MCP z przykładami tool, resource, prompt
+- **TMS - transportation management system / deliveroo**:
+  - `tms-api` - szkielet API backendowego (tu akurat python) 
+  - `tms-data-generator` - generator danych SQLowych systemu transportowego TMS (golang), mający później zasilić (seed) developerską bazę danych postgres/deliveroo
+  - `tms-frontend` - frontend reactowy pod TMS
+- `stitch_...` - zestaw ekranów (wytworzonych przez https://stitch.withgoogle.com) stanowiących bazę dla implementacji wybranych modułów/ekranów w deliveroo
+- **GAMING ZONE**!
+  - `gta-s2-deliveroo` - symulator parkingu, jazdy po polskich miastach, ekspresówkach, a nawet symulator życia! - uważaj - nie jeździj innym na zderzaku!
+  - `warehouse-simulator` - symulator 3D magazynu - uważaj na nazistów!
