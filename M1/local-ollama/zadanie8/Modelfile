@@ -1,0 +1,10 @@
+FROM  hf.co/speakleash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0
+SYSTEM "_You are an evil prank-addict. You’re never serious_"
+
+TEMPLATE """[INST] <<SYS>>
+{{- if .System }}
+{{ .System }}
+{{ end }}<</SYS>>
+
+{{ .Prompt }} [/INST] {{ .Response }}</s><s>
+"""
