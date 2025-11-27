@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Developer Distractor Destroyer",
+  "version": "1.0",
+  "description": "Block distracting websites and track time spent browsing",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "idle",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Developer Distractor Destroyer"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html", "blocked.js", "chart.min.js", "stats.html", "stats.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

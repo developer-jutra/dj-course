@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Statistics - Developer Distractor Destroyer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin: 0 0 20px 0;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 24px;
+            margin: 0 0 30px 0;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .stats-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 100%;
+            max-width: 400px;
+            max-height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .stats-list {
+            width: 100%;
+            max-height: 40vh;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .stat-item:hover, .stat-item.highlighted {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .stat-item.disabled {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .value-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .delete-stat-btn {
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .delete-stat-btn:hover {
+            opacity: 1;
+        }
+        .clear-btn {
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .clear-btn:hover {
+            opacity: 1;
+        }
+
+        .scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stats-column">
+            <h1>📊 Time Statistics</h1>
+            <h2>Time spent per domain</h2>
+            <div class="chart-container">
+                <canvas id="timeChart"></canvas>
+            </div>
+            <div id="statsList" class="stats-list scrollbar"></div>
+            <div id="clearTimeStats" class="clear-btn">
+                ❌ Clear Time Statistics
+            </div>
+        </div>
+
+        <div class="stats-column">
+            <h1>🫣 "Gotcha" Counter</h1>
+            <h2>How many times you tried to access blocked sites</h2>
+            <div class="chart-container">
+                <canvas id="gotchaChart"></canvas>
+            </div>
+            <div id="gotchaList" class="stats-list scrollbar"></div>
+            <div id="clearGotchaStats" class="clear-btn">
+                ❌ Clear "Gotcha" Statistics
+            </div>
+        </div>
+    </div>
+
+    <script src="chart.min.js"></script>
+    <script src="stats.js"></script>
+</body>
+</html> 

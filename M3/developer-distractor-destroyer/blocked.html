@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Blocked - Developer Distractor Destroyer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .header-icon {
+            height: 120px;
+            width: 120px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin: 0 0 20px 0;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 30px;
+            margin: 0 0 30px 0;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        #quote-container {
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            padding-top: 30px;
+            margin-top: 30px;
+        }
+
+        .quote {
+            font-size: 22px;
+            font-style: italic;
+            line-height: 1.5;
+            margin: 20px auto;
+            max-width: 90%;
+        }
+        
+        .author {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            width: 80%;
+            margin: 15px auto 0 auto;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .icon {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="blockedContainer" class="container">
+        <img src="icon.png" alt="icon" class="header-icon" />
+        <h1>Site Blocked</h1>
+        <h2>Stay focused & productive <br /> - or consider taking a break.</h2>
+
+        <div id="quote-container">
+            <div id="quote" class="quote"></div>
+            <div id="author" class="author"></div>
+        </div>
+    </div>
+
+    <script src="blocked.js"></script>
+</body>
+</html>

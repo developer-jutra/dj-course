@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Distractor Destroyer - Devtools</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #2d3748 0%, #283e51 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: white;
+        }
+        .data-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section-header {
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .section-content {
+            padding: 25px;
+            display: none; /* Initially hidden */
+        }
+        .section-content pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #1a202c;
+            padding: 20px;
+            border-radius: 8px;
+            color: #90cdf4;
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+        .section-header.active .arrow {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Developer Data Viewer</h1>
+        <div id="data-container"></div>
+    </div>
+    <script src="dev.js"></script>
+</body>
+</html>
