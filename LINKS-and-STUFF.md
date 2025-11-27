@@ -4,9 +4,14 @@
 - cursor: https://cursor.com/dashboard?tab=usage
 - copilot: https://github.com/settings/billing/usage
 - openAI: https://platform.openai.com/usage
-- google: https://aistudio.google.com/app/usage
+- google/gemini: https://aistudio.google.com/app/usage
 - openrouter: https://openrouter.ai/settings/keys
 - huggingface: https://huggingface.co/settings/tokens
+
+### Ustaw klucz
+
+- google/gemini: https://aistudio.google.com/app/api-keys
+  - download Gemini CLI: https://github.com/google-gemini/gemini-cli
 
 ## Ile ważą lokalne modele:
 

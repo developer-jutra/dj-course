@@ -7,7 +7,7 @@
   - przykładowe wątki (historia konwersacji - text / screeny) 
   - inspiracje do jailbreaków
 - `sample-audio` - pliki audio (wav, mp3) na potrzeby testowania transcribera
-- `superwhisper` - przykładowe prompty przetworzone przez modele Speech-to-Text (`meta.json` zawiera dokładną anatomię prompta i kontekstu)
+- `superwhisper` - przykładowe prompty przetworzone przez modele Speech-to-Text (`meta.json` zawiera dokładną anatomię prompta i kontekstu), oraz custom modes
 - `text-to-song` - przykładowe "lyrics" na potrzeby generowania piosenek
 - text-to-speech (TTS) - kod do pracy domowej
   - `text-to-speach-suno-bark` - suno bark

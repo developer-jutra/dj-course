@@ -1,8 +1,11 @@
 # M3: LLM-Assisted Coding
 
+- `developer-distractor-destroyer` - wtyczka przeglądarkowa w myśl "productivity tools" (blokuj strony-dystraktory które rozwalają koncentrację), zbieraj statystyki czasowe dot. stron na jakich spędzasz czas
+  - w obecnej formie gotowe do użycia
+  - ale przede wszystkim - wykorzystamy do pracy domowej
 - **coding-agent-specific files**:
-  - `M3/claude` - pliki specyficzne dla CC (claude code)
-  - `M3/copilot` - pliki specyficzne dla GitHub Copilot
+  - `claude` - pliki specyficzne dla CC (claude code)
+  - `copilot` - pliki specyficzne dla GitHub Copilot
   - są "symlinkowane" zarówno do głównego folderu repo jak i do `M3/tms-data-generator`
 - **lovable** - dwie aplikacje frontendowe stworzone przy użyciu https://lovable.dev, które następnie będą rozbudowane w dalszej części DJ do aplikacji w ramach deliveroo:
   - `lovable-logistics-hub-main`

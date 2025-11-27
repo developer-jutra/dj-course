@@ -182,7 +182,15 @@ const CONFIG = {
     kmhFactor: 8,
     maxSpeed: 18.0, // ~216 km/h theoretical max
     maxReverseSpeed: -5.0, // ~60 km/h
-    acceleration: 0.15,
+
+    // Car mode: 'normal' (city car) or 'sport' (performance car)
+    carMode: 'normal', // Default: normal city car
+    accelerationNormal: 0.021, // ~10 seconds to 100 km/h (city car)
+    accelerationSport: 0.15,   // ~1.4 seconds to 100 km/h (sport car)
+    get acceleration() {
+        return this.carMode === 'sport' ? this.accelerationSport : this.accelerationNormal;
+    },
+
     friction: 0.06,
     brakingForce: 0.5,
 
