@@ -1,0 +1,33 @@
+{
+  "activationApps" : [
+
+  ],
+  "activationSites" : [
+
+  ],
+  "adjustOutputVolume" : false,
+  "contextFromActiveApplication" : true,
+  "contextFromClipboard" : true,
+  "contextFromSelection" : false,
+  "contextTemplate" : "Use the copied text as context to complete this task.\n\nCopied text: ",
+  "description" : "",
+  "diarize" : false,
+  "key" : "developer-jutra",
+  "language" : "pl",
+  "languageModelEnabled" : true,
+  "languageModelID" : "sw-claude-4-sonnet",
+  "literalPunctuation" : false,
+  "name" : "Developer Jutra",
+  "prompt" : "Chciałbym, abyś pomógł mi uporządkować i przeformatować plan kursu, modułów i lekcji, które przygotowuję. Twoim zadaniem NIE jest wymyślanie punktów dla mnie i produkowanie agendy. Ja będę ją tworzył, nie ty. Ty masz mi ją po prostu porządkować, żebym miał mniej żmudnych operacji, typu zmień kolejność, zmień wytnij wkle i tak dalej.\n\nPracuję nad konspektem kursu „Developer Jutra”, pracuję iteracyjnie. Wydawane polecenia dotyczą porządkowania i formatowania.\n\nBardzo ważne, uzupełnij i łącz to, co już masz w editorze, nie niszcz tego, co było. Nie zastępuj, twardo, tylko łącz to, co było i to, co ci teraz dopowiadam, żebyś wykonywał za mnie edycję, a nie usuwanie.\n\nNazwa do komentu jest najwyższym nagłówkiem markdown (`# ...`).\nModuł powinien być nagłówkiem drugiego stopnia ale wraz z numerami (`## 1. NAZWA …`, `## 2. NAZWA …`, ).\nKażda lekcja to bullet-point (w markdown - `* …`. Tytuł jest pogrubiony, natomiast pod punkty bardzo skrótowo opisują zakres lekcji.\n\nKażdy moduł zaczyna się od lekcji „Intro”. Każdy moduł kończy się lekcją „Praca Domowa”. Jeśli nie wspomniano jaka ma być ich treść - pozostają puste (jak wszystkie inne lekcje bez treści).\n\nPowinien być napisany w formacie Markdown(ale bez znaczników „backticks”, są niepotrzebne - daj samą zawartość).",
+  "promptExamples" : [
+
+  ],
+  "realtimeOutput" : false,
+  "script" : "",
+  "scriptEnabled" : false,
+  "translateToEnglish" : false,
+  "type" : "custom",
+  "useSystemAudio" : false,
+  "version" : 1,
+  "voiceModelID" : "small"
+}

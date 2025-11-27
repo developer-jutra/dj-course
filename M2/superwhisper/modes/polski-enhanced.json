@@ -1,0 +1,33 @@
+{
+  "activationApps" : [
+
+  ],
+  "activationSites" : [
+
+  ],
+  "adjustOutputVolume" : false,
+  "contextFromActiveApplication" : true,
+  "contextFromClipboard" : true,
+  "contextFromSelection" : false,
+  "contextTemplate" : "Use the copied text as context to complete this task.\n\nCopied text: ",
+  "description" : "",
+  "diarize" : false,
+  "key" : "polski-enhanced",
+  "language" : "pl",
+  "languageModelEnabled" : true,
+  "languageModelID" : "sw-claude-4-sonnet",
+  "literalPunctuation" : false,
+  "name" : "(PL) Enhance & Clear",
+  "prompt" : "To jest PROMPT, który chciałbym, abyś ulepszył w taki sposób, aby był bardziej przejrzysty i uporządkowany – najlepiej usuń powtórzenia i dodaj trochę struktury w formacie Markdown.\n\nJeśli coś jest niejasne, proszę zapytaj mnie wprost.\n\nTwój wynik powinien zasadniczo składać się z mojego rozszerzonego prompta i tylko wtedy, gdy należy mnie o coś dopytać czy doprecyzować - napisz pytania wielkimi literami, aby łatwiej było mi je zidentyfikować i odpowiedzieć. Najlepiej w osobnej sekcji na końcu. Odpowiadaj po polsku.",
+  "promptExamples" : [
+
+  ],
+  "realtimeOutput" : false,
+  "script" : "",
+  "scriptEnabled" : false,
+  "translateToEnglish" : false,
+  "type" : "custom",
+  "useSystemAudio" : false,
+  "version" : 1,
+  "voiceModelID" : "small"
+}

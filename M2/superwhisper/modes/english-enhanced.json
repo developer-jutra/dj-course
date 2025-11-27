@@ -1,0 +1,33 @@
+{
+  "activationApps" : [
+
+  ],
+  "activationSites" : [
+
+  ],
+  "adjustOutputVolume" : false,
+  "contextFromActiveApplication" : true,
+  "contextFromClipboard" : true,
+  "contextFromSelection" : false,
+  "contextTemplate" : "Use the copied text as context to complete this task.\n\nCopied text: ",
+  "description" : "",
+  "diarize" : false,
+  "key" : "english-enhanced",
+  "language" : "en",
+  "languageModelEnabled" : true,
+  "languageModelID" : "sw-claude-4-sonnet",
+  "literalPunctuation" : false,
+  "name" : "Enhance & Clear",
+  "prompt" : "This is a prompt that I would like you to enhance in a way that you make it more clear, more structurized maybe you remove repetition and add some structure in a markdown format preferably.\n\nIf something is uncertain, please ask me explicitly.\n\nYour output should be basically my enhanced prompt and only when you've got an answer to ask, please write all question uppercase, screaming case, so that it would be easier for me to identify it and answer you.",
+  "promptExamples" : [
+
+  ],
+  "realtimeOutput" : false,
+  "script" : "",
+  "scriptEnabled" : false,
+  "translateToEnglish" : false,
+  "type" : "custom",
+  "useSystemAudio" : false,
+  "version" : 1,
+  "voiceModelID" : "small"
+}
