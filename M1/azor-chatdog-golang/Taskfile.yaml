@@ -1,0 +1,52 @@
+version: '3'
+
+vars:
+  BINARY_NAME: azor-chatdog
+
+tasks:
+  default:
+    desc: Lista dostępnych zadań
+    cmds:
+      - task --list
+
+  install:
+    desc: Instalacja zależności
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  build:
+    desc: Kompilacja programu
+    cmds:
+      - go build -o {{.BINARY_NAME}} .
+
+  run:
+    desc: Uruchomienie programu
+    deps: [build]
+    cmds:
+      - ./{{.BINARY_NAME}}
+
+  clean:
+    desc: Czyszczenie plików
+    cmds:
+      - rm -f {{.BINARY_NAME}}
+
+  env:
+    desc: Utworzenie pliku .env z przykładu
+    cmds:
+      - |
+        if [ ! -f .env ]; then
+          cp .env.example .env
+          echo "✅ Utworzono .env - dodaj swój GEMINI_API_KEY"
+        else
+          echo "⚠️  Plik .env już istnieje"
+        fi
+
+  sessions:
+    desc: Lista zapisanych sesji
+    deps: [build]
+    cmds:
+      - echo '/session list' | ./{{.BINARY_NAME}} | grep -A 50 "Dostępne Sesje" || ./{{.BINARY_NAME}} <<EOF
+        /session list
+        /exit
+        EOF
