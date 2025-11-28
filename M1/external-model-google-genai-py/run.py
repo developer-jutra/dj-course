@@ -1,145 +1,125 @@
-from google import genai
-from google.genai import types
-import os 
-import tiktoken
+"""Gemini chat client using latest google-generativeai SDK.
+Refactored to remove deprecated google.genai.types usage.
+"""
 
+import os
+import google.generativeai as genai
+import tiktoken
 from dotenv import load_dotenv
+
 load_dotenv()
 
-# if set, print first 4 chars and last 4 chars and dots inside, else print NOT SET
-print(f"env var \"GEMINI_API_KEY\" is: { os.getenv('GEMINI_API_KEY', '')[:4] + '...' + os.getenv('GEMINI_API_KEY', '')[-4:] if len(os.getenv('GEMINI_API_KEY', '')) > 0 else 'NOT SET' }")
-if not os.getenv('GEMINI_API_KEY'):
-    raise ValueError("GEMINI_API_KEY environment variable is not set. Please set it to your Google Gemini API key.")
+API_KEY = os.getenv("GEMINI_API_KEY", "")
+print(
+    f'env var "GEMINI_API_KEY" is: '
+    f"{API_KEY[:4] + '...' + API_KEY[-4:] if API_KEY else 'NOT SET'}"
+)
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is not set.")
 
-client = genai.Client()
+genai.configure(api_key=API_KEY)
 
-model = "gemini-2.5-flash"
-# model = "gemini-1.5-pro"
+MODEL_NAME = "gemini-2.5-flash"  # adjust as needed
+# Alternative: MODEL_NAME = "gemini-1.5-pro"
 
-system_role = "you were Gandalf the Grey in the Lord of the Rings. You answer in max 15 words. Your answers are mysterious and magical."
+system_instruction = (
+    "jestes greta aktywistak ekologiczna i pomagasz ludziom dbac o srodowisko. "
+)
 
-# Initialize tiktoken encoder (using GPT-4 encoding as approximation)
+# Create GenerativeModel with system instruction (new SDK pattern)
+model = genai.GenerativeModel(
+    model_name=MODEL_NAME,
+    system_instruction=system_instruction,
+)
+
+# tiktoken for approximate visualization (not Gemini-native tokenization)
 encoder = tiktoken.get_encoding("cl100k_base")
 
-def visualize_tokens(text):
-    """Visualize individual tokens in text"""
+def visualize_tokens(text: str):
     tokens = encoder.encode(text)
-    token_strings = [encoder.decode([token]) for token in tokens]
-    
-    # Display tokens with separators
-    result = " | ".join([f"[{t}]" for t in token_strings])
-    return result, len(tokens)
+    parts = [encoder.decode([tid]) for tid in tokens]
+    return " | ".join(f"[{p}]" for p in parts), len(tokens)
 
-# Tokenize and display system instruction once
-print("\n" + "="*80)
+def gemini_count_tokens(content):
+    """Count tokens using model.count_tokens.
+    Accepts str or list of content dicts."""
+    return model.count_tokens(content).total_tokens
+
+print("\n" + "=" * 80)
 print("📋 SYSTEM INSTRUCTION")
-print("="*80)
-print(f"Text: {system_role}")
-system_tokens = client.models.count_tokens(
-    model=model,
-    contents=[types.Content(role="user", parts=[types.Part(text=system_role)])]
-)
-print(f"Gemini Tokens: {system_tokens.total_tokens}")
-# Show token visualization
-token_viz, tiktoken_count = visualize_tokens(system_role)
-print(f"Token Visualization (tiktoken ~{tiktoken_count} tokens):")
-print(f"  {token_viz}")
-print("="*80)
+print("=" * 80)
+print(f"Text: {system_instruction}")
+system_token_count = gemini_count_tokens(system_instruction)
+print(f"Gemini Tokens (approx count_tokens): {system_token_count}")
+viz, approx_count = visualize_tokens(system_instruction)
+print(f"Token Visualization (tiktoken ~{approx_count} tokens):")
+print(f"  {viz}")
+print("=" * 80)
 
-# Initialize conversation history
-conversation_history = []
+# Conversation stored as list of dicts: role + parts (strings)
+conversation_history = []  # e.g. {"role": "user", "parts": ["text"]}
 
-def count_tokens_for_message(msg):
-    """Count tokens for a single message"""
-    return client.models.count_tokens(model=model, contents=[msg])
-
-def display_user_message(user_text, tokens):
-    """Display user message with tokenization"""
-    print("\n" + "-"*80)
-    print(f"👤 USER MESSAGE")
-    print("-"*80)
+def display_user_message(user_text: str, gem_tokens: int):
+    print("\n" + "-" * 80)
+    print("👤 USER MESSAGE")
+    print("-" * 80)
     print(f"Text: {user_text}")
-    print(f"Gemini Tokens: {tokens}")
-    # Show token visualization
-    token_viz, tiktoken_count = visualize_tokens(user_text)
-    print(f"Token Visualization (tiktoken ~{tiktoken_count} tokens):")
-    print(f"  {token_viz}")
-    print("-"*80)
+    print(f"Gemini Tokens (count_tokens): {gem_tokens}")
+    viz, approx = visualize_tokens(user_text)
+    print(f"Token Visualization (tiktoken ~{approx} tokens):")
+    print(f"  {viz}")
+    print("-" * 80)
 
-def display_model_response(response_text, tokens, usage_metadata):
-    """Display model response with tokenization"""
-    print("\n" + "-"*80)
-    print(f"🤖 MODEL RESPONSE")
-    print("-"*80)
+def display_model_response(response_text: str, gem_tokens: int, usage):
+    print("\n" + "-" * 80)
+    print("🤖 MODEL RESPONSE")
+    print("-" * 80)
     print(f"Text: {response_text}")
-    print(f"Gemini Tokens: {tokens}")
-    # Show token visualization
-    token_viz, tiktoken_count = visualize_tokens(response_text)
-    print(f"Token Visualization (tiktoken ~{tiktoken_count} tokens):")
-    print(f"  {token_viz}")
-    if usage_metadata:
-        print(f"\n📊 Usage: Prompt={usage_metadata.prompt_token_count}, "
-              f"Response={usage_metadata.candidates_token_count}, "
-              f"Total={usage_metadata.total_token_count}")
-    print("-"*80)
+    print(f"Gemini Tokens (count_tokens): {gem_tokens}")
+    viz, approx = visualize_tokens(response_text)
+    print(f"Token Visualization (tiktoken ~{approx} tokens):")
+    print(f"  {viz}")
+    if usage:
+        # usage may differ between versions; guard attribute access
+        prompt_tokens = getattr(usage, "prompt_token_count", None)
+        resp_tokens = getattr(usage, "candidates_token_count", None)
+        total_tokens = getattr(usage, "total_token_count", None)
+        print("\n📊 Usage:")
+        print(f"  Prompt={prompt_tokens} Response={resp_tokens} Total={total_tokens}")
+    print("-" * 80)
 
-# Interactive loop
 print("\n💬 Interactive Chat (type 'exit' or 'quit' to end)")
-print("="*80)
+print("=" * 80)
 
 while True:
-    # Get user input
     user_input = input("\nYou: ").strip()
-    
-    if user_input.lower() in ['exit', 'quit', 'q']:
+    if user_input.lower() in {"exit", "quit", "q"}:
         print("\n👋 Goodbye!")
         break
-    
     if not user_input:
         continue
-    
-    # Create user message
-    user_message = types.Content(
-        role="user",
-        parts=[types.Part.from_text(text=user_input)]
-    )
-    
-    # Count tokens for user message
-    user_tokens = count_tokens_for_message(user_message)
-    display_user_message(user_input, user_tokens.total_tokens)
-    
-    # Add to conversation history
-    conversation_history.append(user_message)
-    
-    # Generate response
+
+    user_msg = {"role": "user", "parts": [user_input]}
+    user_token_count = gemini_count_tokens([user_msg])
+    display_user_message(user_input, user_token_count)
+    conversation_history.append(user_msg)
+
     try:
-        response = client.models.generate_content(
-            model=model,
-            contents=conversation_history,
-            config=types.GenerateContentConfig(
-                system_instruction=system_role,
-                thinking_config=types.ThinkingConfig(thinking_budget=0)
-            ),
+        response = model.generate_content(conversation_history)
+        # response.text may be None if empty; fallback join parts
+        response_text = response.text or "".join(
+            part.text for part in getattr(response, "parts", []) if hasattr(part, "text")
         )
-        
-        # Count tokens for response
-        response_message = types.Content(
-            role="model",
-            parts=[types.Part(text=response.text)]
-        )
-        response_tokens = count_tokens_for_message(response_message)
-        
-        # Display response with tokenization
+        model_msg = {"role": "model", "parts": [response_text]}
+        model_token_count = gemini_count_tokens([model_msg])
         display_model_response(
-            response.text, 
-            response_tokens.total_tokens,
-            response.usage_metadata if hasattr(response, 'usage_metadata') else None
+            response_text,
+            model_token_count,
+            getattr(response, "usage_metadata", None),
         )
-        
-        # Add response to conversation history
-        conversation_history.append(response_message)
-        
+        conversation_history.append(model_msg)
     except Exception as e:
         print(f"\n❌ Error: {e}")
-        # Remove last user message if there was an error
-        conversation_history.pop()
+        # remove last user message to keep conversation stable
+        if conversation_history and conversation_history[-1] is user_msg:
+            conversation_history.pop()
