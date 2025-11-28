@@ -1,3 +1,94 @@
+import os
+from typing import Any, Dict, List, Optional
+
+from anthropic import Anthropic
+
+
+class AnthropicChatSession:
+    """
+    Lightweight wrapper around an Anthropic chat interaction, keeping history
+    and exposing send_message() consistent with existing clients.
+    """
+
+    def __init__(self, client: Anthropic, model_name: str, system_instruction: str, history: List[Dict[str, Any]]):
+        self._client = client
+        self._model = model_name
+        self._system = system_instruction or ""
+        # History format: list of dicts with keys 'role' in {"user","assistant"} and 'content' string
+        self._history = list(history or [])
+
+    def send_message(self, text: str) -> str:
+        """Send a user message and return assistant reply; append both to history."""
+        self._history.append({"role": "user", "content": text})
+
+        # Build messages in Anthropic format (excluding system which goes separately)
+        messages = [{"role": h["role"], "content": h["content"]} for h in self._history]
+
+        # Read generation params from environment (with defaults)
+        temperature = float(os.getenv("TEMPERATURE", "1.0"))
+        top_p = float(os.getenv("TOP_P", "1.0"))
+        top_k = int(os.getenv("TOP_K", "0"))  # 0 means disabled in Anthropic
+
+        response = self._client.messages.create(
+            model=self._model,
+            max_tokens=1024,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k if top_k > 0 else None,
+            system=self._system if self._system else None,
+            messages=messages,
+        )
+
+        # Anthropic returns content as a list of blocks; join textual parts
+        parts = []
+        for block in getattr(response, "content", []):
+            if getattr(block, "type", "") == "text":
+                parts.append(getattr(block, "text", ""))
+        answer = "\n".join(p for p in parts if p is not None)
+
+        self._history.append({"role": "assistant", "content": answer})
+        return answer
+
+    def get_history(self) -> List[Dict[str, Any]]:
+        return self._history
+
+
+class AnthropicClient:
+    """
+    Anthropic API client compatible with the existing LLM client interface.
+    Expects environment variables:
+      - ANTHROPIC_API_KEY
+      - MODEL_NAME (optional; default 'claude-3-5-sonnet-20241022')
+    """
+
+    def __init__(self, client: Anthropic, model_name: str):
+        self._client = client
+        self._model = model_name
+
+    @classmethod
+    def from_environment(cls) -> "AnthropicClient":
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise RuntimeError("Missing ANTHROPIC_API_KEY in environment")
+        model_name = os.getenv("MODEL_NAME", "claude-3-5-sonnet-20241022")
+        client = Anthropic(api_key=api_key)
+        return cls(client=client, model_name=model_name)
+
+    def create_chat_session(self, system_instruction: str, history: Optional[List[Dict[str, Any]]], thinking_budget: int = 0) -> AnthropicChatSession:
+        return AnthropicChatSession(
+            client=self._client,
+            model_name=self._model,
+            system_instruction=system_instruction,
+            history=history or [],
+        )
+
+    def count_history_tokens(self, history: List[Dict[str, Any]]) -> int:
+        # Simple approximation: Anthropic SDK does not expose token counting directly.
+        # Use length of content as proxy or integrate a tokenizer later.
+        return sum(len(str(h.get("content", ""))) for h in history)
+
+    def get_model_name(self) -> str:
+        return self._model
 """
 Google Gemini LLM Client Implementation
 Encapsulates all Google Gemini AI interactions.
@@ -173,19 +264,11 @@ class GeminiLLMClient:
                         )
                         gemini_history.append(content)
         
-        # Read generation params from environment (with defaults)
-        temperature = float(os.getenv("TEMPERATURE", "1.0"))
-        top_p = float(os.getenv("TOP_P", "0.95"))
-        top_k = int(os.getenv("TOP_K", "40"))
-        
         gemini_session = self._client.chats.create(
             model=self.model_name,
             history=gemini_history,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
                 thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget)
             )
         )
