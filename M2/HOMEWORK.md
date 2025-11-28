@@ -238,6 +238,7 @@ W założeniu powinno generować przejrzystą dokumentacę/raport. W praktyce - 
 # Zadanie 6
 
 AZØR - Nadaj tytuł wątkowi
+(rozbuduj AZØRA z kodu bazowego z `M1/azor-chatdog-*`)
 
 Najpierw ZAPROJEKTUJ - potem ZAKODUJ ficzer który umożliwia AZØROWI tytułowanie wątków (konwersacji) podczas ich tworzenia.
 
@@ -247,26 +248,32 @@ W typowych aplikacjach konwersacyjnych działa to tak:
 - wątek jest domyślnie TYTUŁOWANY na podstawie Twojego pierwszego prompta
 - możesz potem wątek "przenazwić", ale wyłącznie ręcznie. Automatyczne nazywanie wątku dzieje się tylko przy pierwszym prompcie.
 
-**ZADANIE**:
-- najpierw PRZEMYŚL jak to zrobić. Omawiaj na discordzie pomysły. Różnych rozwiązań jest sporo, są lepsze i gorsze, prostsze i trudniejsze
-- ZAIMPLEMENTUJ. Obecnie wątki można identyfikować jedynie po ID sesji i - o ile w przypadku przełączania wątku to musi zostać - o tyle wyświetlenie tytułu wątku (wraz z jego wcześniejszym ustaleniem) byłoby bardzo user-friendly.
+**ZADANIE 6.1**:
+- najpierw **PRZEMYŚL** jak to zrobić. Omawiaj na discordzie pomysły. Różnych rozwiązań jest sporo, są lepsze i gorsze, prostsze i trudniejsze
+
+**ZADANIE 6.2**:
+- **ZAIMPLEMENTUJ**. Obecnie wątki można identyfikować jedynie po ID sesji i - o ile w przypadku przełączania wątku to musi zostać - o tyle wyświetlenie tytułu wątku (wraz z jego wcześniejszym ustaleniem) byłoby bardzo user-friendly.
 - Tytułowanie wątku dzieje się z automatu. Jeśli powstaje wątek (wysłałeś/aś prompta), to musi być zatytułowany
-- nowa komenda daje możliwość "przenazwić" tytuł wątku
-- Tytuł wątku jest (siłą rzeczy) przechowywany w plikach `.json`, dla spójności systemu
+- Tytuł wątku jest (siłą rzeczy) przechowywany w plikach `.json`, dla spójności systemu (persystencja)
+- Tytuł można zmienić (np. w oparciu o nową komendę `/session rename NEW_TITLE` )
+- Tytuł można też podejrzeć dla aktualnego wątku/sesji (np. w oparciu o nową komendę `/session title` -> `EXISTING_TITLE` )
 
 # Zadanie 7
 
 AZØR - Wyspecjalizowani asystenci
+(rozbuduj AZØRA z kodu bazowego z `M1/azor-chatdog-*`)
 
-Rozbuduj AZØRA (kod bazowy - z `M1/azor-chatdog`)
 - kodujesz możliwość tworzenia różnych **wyspecjalizowanych asystentów**.
 - użytkownik przełącza asystenta manualnie, np. nową komendą
 - asystenci mogą być zahardkodowani w kodzie (choć można zaprogramować tworzenie nowych dynamicznie np. nową komendą)
-- Wątek powinien mieć określonego aktualnego asystenta (aby było spójnie i jednoznacznie)
+- Wątek (sesja) powinien mieć określonego aktualnego asystenta (aby było spójnie i jednoznacznie)
+  - zapisując sesję, zapisywana jest nie tylko historia konwersacji, ale i asystent
+  - łądując starą sesję - analogicznie
+  - zmiana asystenta w trakcie sesji zostawia ślaj w historii konwersacji, aby model w następnych krokach wiedział, że zmiana miała miejsce (wówczas na podst. system prompta lepiej ogarnie kontekst)
 
 **CEL**: masz minimum 2 nowych asystentów (a AZØR zostaje - więc w sumie minimum trzech). I w możesz w trakcie trwania konwersacji ich przełączać.
 
-Inspiracje asystentów:
+**Inspiracje asystentów**:
 - perfekcjonista przykładający ogromną wagę do detali.
 - biznesmen zorientowany na cele, wypowiadający się bardzo rzeczowo i krótko.
 - optymistyczny pochlebca który zawsze pocieszy i dopytuje jak się czujesz.
