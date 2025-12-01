@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Environment } from '@react-three/drei';
 import { WarehouseLighting } from './WarehouseLighting';
 import { WarehouseStructure } from './WarehouseStructure';
-import { WarehouseContent } from './WarehouseContent';
+import { WarehouseContent, WarehouseContentRef } from './WarehouseContent';
 
-export const WarehouseEnvironment: React.FC = () => {
+export const WarehouseEnvironment = forwardRef<WarehouseContentRef, {}>((props, ref) => {
   return (
     <>
       <WarehouseLighting />
-      <WarehouseContent />
+      <WarehouseContent ref={ref} />
       <WarehouseStructure />
       <Environment preset="warehouse" />
     </>
   );
-};
+});

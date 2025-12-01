@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { CameraController } from './scene/CameraController';
 import { WarehouseEnvironment } from './scene/WarehouseEnvironment';
@@ -8,6 +8,7 @@ import { INITIAL_PLAYER_POSITION } from './model/position';
 import { INITIAL_PLAYER_ROTATION } from './configuration';
 import { PCFSoftShadowMap } from 'three';
 import { AudioControls } from './audio/AudioControls';
+import { WarehouseContentRef } from './scene/WarehouseContent';
 
 export const WarehouseScene: React.FC = () => {
   const [playerPosition, setPlayerPosition] = useState({ 
@@ -15,6 +16,20 @@ export const WarehouseScene: React.FC = () => {
     z: INITIAL_PLAYER_POSITION?.z ?? 0 
   });
   const [playerRotation, setPlayerRotation] = useState(INITIAL_PLAYER_ROTATION);
+  const contentRef = useRef<WarehouseContentRef>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.shiftKey && event.code === 'KeyD') {
+        contentRef.current?.killRandomSoldier();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const handlePositionChange = (pos: { x: number; z: number }, rot: number) => {
     setPlayerPosition(pos);
@@ -40,7 +55,7 @@ export const WarehouseScene: React.FC = () => {
         }}
       >
         <CameraController onPositionChange={handlePositionChange} />
-        <WarehouseEnvironment />
+        <WarehouseEnvironment ref={contentRef} />
       </Canvas>
       
       <Minimap 

@@ -1,0 +1,16 @@
+{
+  "name": "wolfenstein",
+  "author": "Developer Jutra",
+  "private": true,
+  "description": "Wolfenstein in the browser",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "three": "^0.181.2"
+  }
+}

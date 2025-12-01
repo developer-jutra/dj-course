@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js OOP Sprite System z Kontrolą Kamery</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: 'Inter', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        
+        #ui { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            right: 10px;
+            background: rgba(0,0,0,0.8); 
+            padding: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+
+        #ui h2 { margin-top: 0; margin-bottom: 10px; color: #f90; font-size: 1.5rem; }
+        #ui p { margin: 5px 0; font-size: 0.9rem; }
+        
+        .controls-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #ui button {
+            background-color: #f90;
+            color: #111;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            white-space: nowrap;
+        }
+        #ui button:hover { background-color: #ffaa33; transform: translateY(-1px); }
+        #ui button:active { background-color: #e88800; transform: translateY(0); }
+        
+        #start-audio {
+            background-color: #4CAF50; /* Zielony dla startu */
+            color: white;
+        }
+        #start-audio:hover { background-color: #6ed071; }
+        
+        .camera-instructions {
+            font-size: 0.85rem;
+            color: #bbb;
+            margin-left: 15px;
+            padding-left: 15px;
+            border-left: 1px solid #444;
+            align-self: center;
+        }
+
+        /* Ustawienia dla małych ekranów */
+        @media (max-width: 600px) {
+            #ui {
+                padding: 10px;
+            }
+            .controls-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+            #ui button {
+                width: 100%;
+                padding: 12px 10px;
+            }
+            .camera-instructions {
+                margin-top: 10px;
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                border-top: 1px solid #444;
+                padding-top: 8px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>System Sprite'ów 3D</h2>
+    <p>Liczba aktywnych obiektów: <span id="count">0</span></p>
+
+    <div class="controls-group">
+        <button id="start-audio">Włącz Audio i Rozpocznij Symulację</button>
+        <button id="add-soldier" style="display: none;">Dodaj Żołnierza</button>
+        <button id="kill-soldier" style="display: none;">Zestrzel Żołnierza</button>
+        <span id="camera-hint" class="camera-instructions" style="display: none;">
+             Sterowanie: **&larr;** i **&rarr;**
+        </span>
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

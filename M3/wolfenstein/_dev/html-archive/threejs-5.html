@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js OOP Sprite System z Dźwiękiem</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: monospace; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>System Sprite'ów 3D</h2>
+    <p>Liczba obiektów: <span id="count">0</span></p>
+    <p>Struktura klasowa (OOP)</p>
+    <button id="start-audio" style="pointer-events: all; padding: 5px 10px; margin-top: 5px; background-color: #f90; border: none; cursor: pointer;">
+        Kliknij, aby włączyć Audio
+    </button>
+    <p style="font-size: 12px; margin-top: 5px;">Wymagane kliknięcie do aktywacji Web Audio API.</p>
+</div>
+<div id="canvas-container"></div>
+
+<script>
+    // ==========================================
+    // 1. KONFIGURACJA DANYCH (Extensible)
+    // ==========================================
+    
+    // Definicja dla Żołnierza SS
+    const SS_SOLDIER_CONFIG = {
+        name: 'SS_Soldier',
+        src: './sprite-ss.png',
+        cols: 8,
+        rows: 7,
+        scale: 2.5, // Wielkość w świecie 3D
+        fps: 6,
+        
+        removeColors: [
+            { r: 99, g: 116, b: 125 }, 
+            { r: 125, g: 147, b: 158 } 
+        ],
+        
+        sequences: {
+            // ... (pozostałe sekwencje są zachowane)
+            'walk-front': [8, 16, 24, 32], 
+            'walk-back': [12, 20, 28, 36], 
+            'walk-left': [10, 18, 26, 34], 
+            'walk-right': [14, 22, 30, 38], 
+            'idle': [0], 
+            'attack': [48, 49, 50], // Klatki animacji ataku
+            'pain': [40, 41], 
+            'death': [42, 43, 44, 45] 
+        },
+        
+        defaultSequence: 'walk-front',
+
+        // NOWOŚĆ: Definicja ścieżek dźwiękowych
+        sounds: {
+            'attack': 'ATKMACHINEGUNSND.WAV' // Dźwięk strzału z karabinu maszynowego
+        }
+    };
+
+
+    // ==========================================
+    // 2. KLASY NARZĘDZIOWE (Logic & Processing)
+    // ==========================================
+
+    /**
+     * Odpowiada za przygotowanie tekstury (wycięcie tła).
+     */
+    class TextureProcessor {
+        static loadAndProcess(THREE, config) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = config.src;
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imgData.data;
+                    const tolerance = 30; 
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        let isBackground = false;
+                        const pixelR = data[i];
+                        const pixelG = data[i+1];
+                        const pixelB = data[i+2];
+
+                        for (const targetColor of config.removeColors) {
+                            const { r: tr, g: tg, b: tb } = targetColor;
+                            
+                            if (Math.abs(pixelR - tr) < tolerance && 
+                                Math.abs(pixelG - tg) < tolerance && 
+                                Math.abs(pixelB - tb) < tolerance) {
+                                isBackground = true;
+                                break; 
+                            }
+                        }
+
+                        if (isBackground) {
+                            data[i+3] = 0; // Alpha = 0 (Przezroczystość)
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.magFilter = THREE.NearestFilter; 
+                    texture.minFilter = THREE.NearestFilter;
+                    texture.repeat.set(1 / config.cols, 1 / config.rows);
+                    
+                    resolve(texture);
+                };
+                img.onerror = reject;
+            });
+        }
+    }
+
+    /**
+     * Zarządza ładowaniem i buforowaniem wszystkich dźwięków.
+     */
+    class SoundManager {
+        constructor(THREE, audioListener, config) {
+            this.THREE = THREE;
+            this.audioListener = audioListener;
+            this.config = config;
+            this.soundBuffers = {};
+            this.audioLoader = new THREE.AudioLoader();
+        }
+
+        async loadSounds() {
+            const soundKeys = Object.keys(this.config.sounds);
+            
+            for (const key of soundKeys) {
+                const path = this.config.sounds[key];
+                try {
+                    // Dźwięk jest ładowany do bufora
+                    const buffer = await new Promise((resolve, reject) => {
+                        this.audioLoader.load(path, resolve, undefined, reject);
+                    });
+                    this.soundBuffers[key] = buffer;
+                    console.log(`Załadowano bufor dźwięku dla: ${key}`);
+                } catch (error) {
+                    console.error(`Błąd ładowania dźwięku ${key} z ${path}:`, error);
+                }
+            }
+            return this.soundBuffers;
+        }
+
+        getSoundBuffer(key) {
+            return this.soundBuffers[key];
+        }
+    }
+
+    /**
+     * Zarządza stanem animacji pojedynczej tekstury oraz aktywacją dźwięku.
+     */
+    class SpriteAnimator {
+        constructor(texture, config, soundSystem) {
+            this.texture = texture;
+            this.cols = config.cols;
+            this.rows = config.rows;
+            this.allSequences = config.sequences; 
+            this.fps = config.fps;
+            this.soundSystem = soundSystem; // Przekazany PositionalAudio
+            
+            this.frameDuration = 1000 / this.fps;
+            this.lastTime = 0;
+            this.seqIndex = 0;
+            this.currentSequenceName = config.defaultSequence; 
+            this.loop = true; 
+            
+            // Nowy stan do zarządzania dźwiękiem
+            this.isAttacking = false;
+            
+            this.updateTextureOffset(); 
+        }
+        
+        setSequence(name, loop = true) {
+            const wasAttacking = this.isAttacking;
+            
+            if (this.currentSequenceName !== name) {
+                this.currentSequenceName = name;
+                this.seqIndex = 0; 
+                this.loop = loop;
+            }
+
+            // Sprawdzamy, czy nowa animacja to atak
+            this.isAttacking = (name === 'attack');
+
+            // Kontrola dźwięku
+            if (this.isAttacking && !wasAttacking) {
+                // Jeśli zaczynamy atak, włączamy dźwięk
+                this.soundSystem.playAttackSound(true); // true = start
+            } else if (!this.isAttacking && wasAttacking) {
+                // Jeśli kończymy atak, wyłączamy dźwięk
+                this.soundSystem.playAttackSound(false); // false = stop
+            }
+        }
+
+        update(time) {
+            const currentSequence = this.allSequences[this.currentSequenceName];
+            
+            if (!this.loop && this.seqIndex >= currentSequence.length) {
+                // WAŻNE: Jeśli animacja jednorazowa (np. śmierć, atak) dobiegła końca
+                if (this.isAttacking) {
+                    // Jeśli był to atak, ustawiamy się na 'idle' i zatrzymujemy dźwięk
+                    this.setSequence('idle', true);
+                }
+                return;
+            }
+            
+            if (time - this.lastTime > this.frameDuration) {
+                this.lastTime = time;
+                
+                this.seqIndex += 1;
+                
+                if (this.loop && this.seqIndex >= currentSequence.length) {
+                    this.seqIndex = 0;
+                }
+                
+                if (this.seqIndex < currentSequence.length) {
+                    this.updateTextureOffset();
+                }
+            }
+        }
+
+        updateTextureOffset() {
+            const currentSequence = this.allSequences[this.currentSequenceName];
+            const frameIndex = currentSequence[this.seqIndex];
+            
+            const col = frameIndex % this.cols;
+            const row = Math.floor(frameIndex / this.cols);
+
+            this.texture.offset.x = col / this.cols;
+            this.texture.offset.y = 1 - ((row + 1) / this.rows);
+        }
+    }
+
+    /**
+     * Kontroler dźwięku dla pojedynczej jednostki.
+     */
+    class EntitySoundSystem {
+        constructor(THREE, audioListener, soundBuffer) {
+            this.THREE = THREE;
+            this.audioListener = audioListener;
+            this.soundBuffer = soundBuffer;
+
+            // Tworzymy PositionalAudio, aby dźwięk był zlokalizowany
+            this.audio = new THREE.PositionalAudio(audioListener);
+            this.audio.setBuffer(soundBuffer);
+            this.audio.setLoop(true); // Dźwięk pętli
+            this.audio.setVolume(0.5); // Ustawienie głośności
+            this.audio.setRefDistance(5); // Dystans odniesienia
+        }
+
+        // Metoda do podłączania dźwięku do obiektu 3D
+        attachTo(mesh) {
+            mesh.add(this.audio);
+        }
+
+        // Metoda do sterowania odtwarzaniem
+        playAttackSound(shouldPlay) {
+            if (this.soundBuffer) {
+                if (shouldPlay && !this.audio.isPlaying) {
+                    this.audio.play();
+                } else if (!shouldPlay && this.audio.isPlaying) {
+                    this.audio.stop();
+                }
+            }
+        }
+    }
+
+
+    // ==========================================
+    // 3. KLASY GRY (Game Objects)
+    // ==========================================
+
+    /**
+     * Reprezentuje konkretną postać na scenie.
+     */
+    class GameEntity {
+        constructor(THREE, baseTexture, config, x, z, camera, attackSoundBuffer) {
+            this.THREE = THREE;
+            this.camera = camera; 
+            
+            this.texture = baseTexture.clone();
+            this.texture.needsUpdate = true; 
+
+            this.soundSystem = new EntitySoundSystem(THREE, gameWorld.audioListener, attackSoundBuffer);
+
+            this.animator = new SpriteAnimator(this.texture, config, this.soundSystem);
+            this.mesh = this.createMesh(config);
+            
+            // Podłączamy dźwięk do mesha
+            this.soundSystem.attachTo(this.mesh);
+            
+            this.mesh.position.set(x, config.scale / 2, z); 
+            
+            // Logika zmiany stanów
+            this.attackTimer = Math.random() * 5000; // Randomowy start ataku
+            this.attackInterval = 5000 + Math.random() * 3000; // 5-8 sekund
+            this.isAttacking = false;
+        }
+
+        createMesh(config) {
+            const material = new this.THREE.MeshBasicMaterial({
+                map: this.texture,
+                transparent: true,
+                side: this.THREE.DoubleSide,
+                alphaTest: 0.5 
+            });
+
+            const fullW = this.texture.image.width;
+            const fullH = this.texture.image.height;
+            const frameAspect = (fullW / config.cols) / (fullH / config.rows);
+
+            const geometry = new this.THREE.PlaneGeometry(
+                config.scale * frameAspect, 
+                config.scale
+            );
+
+            const mesh = new this.THREE.Mesh(geometry, material);
+            return mesh;
+        }
+
+        update(time) {
+            
+            // Logika, która kontroluje zmianę stanów (Walk -> Attack -> Idle)
+            if (!this.isAttacking) {
+                this.attackTimer += 16.66; 
+                if (this.attackTimer > this.attackInterval) {
+                    this.animator.setSequence('attack', false); // Nie zapętlaj animacji ataku
+                    this.isAttacking = true; 
+                    this.attackTimer = 0;
+                }
+            } else if (this.animator.currentSequenceName === 'idle') {
+                // Po ataku wracamy do chodzenia i resetujemy flagę
+                this.animator.setSequence('walk-front', true);
+                this.isAttacking = false;
+                this.attackInterval = 5000 + Math.random() * 3000;
+            }
+
+            this.animator.update(time);
+            
+            if (this.camera) {
+                this.mesh.lookAt(this.camera.position); 
+            }
+        }
+        
+        addToScene(scene) {
+            scene.add(this.mesh);
+        }
+    }
+
+
+    // ==========================================
+    // 4. SILNIK ŚWIATA (World & Main Loop)
+    // ==========================================
+
+    class World {
+        constructor(THREE, containerId) {
+            this.THREE = THREE;
+            this.container = document.getElementById(containerId);
+            this.entities = [];
+            this.audioListener = null; // Będzie zainicjowany po kliknięciu
+            
+            this.initThree();
+            this.addEnvironment();
+            // Czekamy na kliknięcie, aby załadować audio
+            document.getElementById('start-audio').addEventListener('click', () => this.initAudioAndSpawn());
+        }
+
+        initThree() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+
+            this.scene = new this.THREE.Scene();
+            this.scene.fog = new this.THREE.FogExp2(0x111111, 0.04);
+
+            this.camera = new this.THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+            this.camera.position.set(0, 5, 10); 
+            this.camera.lookAt(0, 0, 0);
+
+            this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
+            this.renderer.setSize(w, h);
+            this.renderer.setClearColor(0x111111);
+            this.container.appendChild(this.renderer.domElement);
+
+            window.addEventListener('resize', () => this.onResize());
+        }
+
+        async initAudioAndSpawn() {
+            // Inicjalizacja AudioListener i AudioContext po interakcji użytkownika
+            if (this.audioListener === null) {
+                this.audioListener = new this.THREE.AudioListener();
+                this.camera.add(this.audioListener); // Podłączamy do kamery
+                
+                const manager = new SoundManager(this.THREE, this.audioListener, SS_SOLDIER_CONFIG);
+                await manager.loadSounds();
+                this.attackSoundBuffer = manager.getSoundBuffer('attack');
+                
+                document.getElementById('start-audio').style.display = 'none';
+                console.log("Audio API aktywne i dźwięki załadowane.");
+                
+                // Uruchamiamy spawnowanie po załadowaniu dźwięków
+                this.spawnEntities(SS_SOLDIER_CONFIG, 10);
+                this.startLoop();
+            }
+        }
+
+        addEnvironment() {
+            const gridHelper = new this.THREE.GridHelper(50, 50, 0x444444, 0x222222);
+            this.scene.add(gridHelper);
+            
+            const planeGeo = new this.THREE.PlaneGeometry(50, 50);
+            const planeMat = new this.THREE.MeshBasicMaterial({ color: 0x222222 });
+            const plane = new this.THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -0.01;
+            this.scene.add(plane);
+        }
+
+        async spawnEntities(config, count) {
+            try {
+                // 1. Ładujemy teksturę bazową RAZ
+                console.log(`Ładowanie assetu: ${config.name}...`);
+                const baseTexture = await TextureProcessor.loadAndProcess(this.THREE, config);
+                
+                // 2. Tworzymy wiele instancji
+                for (let i = 0; i < count; i++) {
+                    const x = (Math.random() - 0.5) * 15;
+                    const z = (Math.random() - 0.5) * 15 - 5; 
+
+                    // Przekazujemy bufor dźwięku do GameEntity
+                    const entity = new GameEntity(this.THREE, baseTexture, config, x, z, this.camera, this.attackSoundBuffer);
+                    entity.addToScene(this.scene);
+                    this.entities.push(entity);
+                }
+                
+                document.getElementById('count').innerText = this.entities.length;
+                console.log(`Zespawnowano ${count} jednostek.`);
+
+            } catch (e) {
+                console.error("Błąd spawnowania:", e);
+            }
+        }
+
+        startLoop() {
+            const animate = (time) => {
+                requestAnimationFrame(animate);
+                
+                this.entities.forEach(entity => entity.update(time));
+                
+                const angle = time * 0.0002;
+                this.camera.position.x = Math.sin(angle) * 12;
+                this.camera.position.z = Math.cos(angle) * 12;
+                this.camera.lookAt(0, 1, 0);
+
+                this.renderer.render(this.scene, this.camera);
+            };
+            animate(0);
+        }
+
+        onResize() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(w, h);
+        }
+    }
+
+    // ==========================================
+    // 5. URUCHOMIENIE (Main)
+    // ==========================================
+
+    // Inicjalizacja świata (Loop startuje po kliknięciu Audio)
+    const gameWorld = new World(THREE, 'canvas-container');
+
+</script>
+</body>
+</html>

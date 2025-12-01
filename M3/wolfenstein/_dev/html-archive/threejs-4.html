@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js OOP Sprite System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: monospace; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>System Sprite'ów 3D</h2>
+    <p>Liczba obiektów: <span id="count">0</span></p>
+    <p>Struktura klasowa (OOP)</p>
+</div>
+<div id="canvas-container"></div>
+
+<script>
+    // ==========================================
+    // 1. KONFIGURACJA DANYCH (Extensible)
+    // ==========================================
+    
+    // Definicja dla Żołnierza SS
+    const SS_SOLDIER_CONFIG = {
+        name: 'SS_Soldier',
+        src: './sprite-ss.png',
+        cols: 8,
+        rows: 7,
+        scale: 2.5, // Wielkość w świecie 3D
+        fps: 6,
+        
+        // ZMIANA 1: Definicja tablicy kolorów do usunięcia (dla Chroma Key)
+        removeColors: [
+            { r: 99, g: 116, b: 125 }, 
+            { r: 125, g: 147, b: 158 } 
+        ],
+        
+        // NOWOŚĆ: Definicja wszystkich sekwencji animacji (Słownik akcji)
+        sequences: {
+            // Indeksy klatek ze sprite sheet'a dla akcji:
+            
+            // Chodzenie (klatki 0-3 w pierwszym rzędzie i 4-7 w drugim)
+            'walk-front': [8, 16, 24, 32], 
+            'walk-back': [12, 20, 28, 36], 
+            'walk-left': [10, 18, 26, 34], 
+            'walk-right': [14, 22, 30, 38], 
+            
+            // Postawa spoczynkowa (tylko pierwsza klatka chodzenia)
+            'idle': [0], 
+            
+            // Atak/Strzelanie (zazwyczaj 1 klatka lub 2-3 klatki)
+            'attack': [48, 49, 50], 
+            
+            // Ból (reakcja na trafienie)
+            'pain': [40, 41], 
+            
+            // Śmierć (cała sekwencja, która się nie zapętla)
+            'death': [42, 43, 44, 45] 
+        },
+        
+        // Domyślna sekwencja (używana przy starcie)
+        defaultSequence: 'walk-front'
+    };
+
+    // ==========================================
+    // 2. KLASY NARZĘDZIOWE (Logic & Processing)
+    // ==========================================
+
+    /**
+     * Odpowiada za przygotowanie tekstury (wycięcie tła).
+     */
+    class TextureProcessor {
+        static loadAndProcess(THREE, config) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = config.src;
+
+                img.onload = () => {
+                    // 1. Edycja pikseli na Canvasie w pamięci (Chroma Key)
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imgData.data;
+                    const tolerance = 30; 
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        let isBackground = false;
+                        const pixelR = data[i];
+                        const pixelG = data[i+1];
+                        const pixelB = data[i+2];
+
+                        // Iterowanie przez wszystkie zdefiniowane kolory do usunięcia
+                        for (const targetColor of config.removeColors) {
+                            const { r: tr, g: tg, b: tb } = targetColor;
+                            
+                            if (Math.abs(pixelR - tr) < tolerance && 
+                                Math.abs(pixelG - tg) < tolerance && 
+                                Math.abs(pixelB - tb) < tolerance) {
+                                isBackground = true;
+                                break; 
+                            }
+                        }
+
+                        if (isBackground) {
+                            data[i+3] = 0; // Alpha = 0 (Przezroczystość)
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+
+                    // 2. Tworzenie tekstury Three.js
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.magFilter = THREE.NearestFilter; // Pixel art look
+                    texture.minFilter = THREE.NearestFilter;
+                    
+                    // Ustawiamy powtarzanie, żeby móc "wycinać" okna (klatki)
+                    texture.repeat.set(1 / config.cols, 1 / config.rows);
+                    
+                    resolve(texture);
+                };
+                img.onerror = reject;
+            });
+        }
+    }
+
+    /**
+     * Zarządza stanem animacji pojedynczej tekstury.
+     */
+    class SpriteAnimator {
+        constructor(texture, config) {
+            this.texture = texture;
+            this.cols = config.cols;
+            this.rows = config.rows;
+            this.allSequences = config.sequences; // Słownik wszystkich sekwencji
+            this.fps = config.fps;
+            
+            this.frameDuration = 1000 / this.fps;
+            this.lastTime = 0;
+            this.seqIndex = 0;
+            this.currentSequenceName = config.defaultSequence; // Nazwa bieżącej sekwencji
+            this.loop = true; // Czy animacja ma się zapętlać
+            
+            this.updateTextureOffset(); // Ustawienie pierwszej klatki
+        }
+        
+        // NOWOŚĆ: Metoda do zmiany bieżącej animacji
+        setSequence(name, loop = true) {
+            if (this.currentSequenceName !== name) {
+                this.currentSequenceName = name;
+                this.seqIndex = 0; // Zawsze restartujemy klatkę przy zmianie animacji
+                this.loop = loop;
+            }
+        }
+
+        update(time) {
+            const currentSequence = this.allSequences[this.currentSequenceName];
+            
+            // Jeśli animacja się nie zapętla i dotarła do końca, nic nie robimy
+            if (!this.loop && this.seqIndex >= currentSequence.length) {
+                return;
+            }
+            
+            if (time - this.lastTime > this.frameDuration) {
+                this.lastTime = time;
+                
+                // Przechodzimy do kolejnej klatki
+                this.seqIndex += 1;
+                
+                // Zapętlanie: jeśli przekroczyliśmy ostatnią klatkę
+                if (this.loop && this.seqIndex >= currentSequence.length) {
+                    this.seqIndex = 0;
+                }
+                
+                // Aktualizujemy klatkę, jeśli nie wyszliśmy poza zakres
+                if (this.seqIndex < currentSequence.length) {
+                    this.updateTextureOffset();
+                }
+            }
+        }
+
+        updateTextureOffset() {
+            const currentSequence = this.allSequences[this.currentSequenceName];
+            const frameIndex = currentSequence[this.seqIndex];
+            
+            const col = frameIndex % this.cols;
+            const row = Math.floor(frameIndex / this.cols);
+
+            // Przesuwamy "okno" tekstury
+            this.texture.offset.x = col / this.cols;
+            // Three.js liczy Y od dołu, a sprite sheet jest od góry
+            this.texture.offset.y = 1 - ((row + 1) / this.rows);
+        }
+    }
+
+
+    // ==========================================
+    // 3. KLASY GRY (Game Objects)
+    // ==========================================
+
+    /**
+     * Reprezentuje konkretną postać na scenie.
+     */
+    class GameEntity {
+        constructor(THREE, baseTexture, config, x, z, camera) {
+            this.THREE = THREE;
+            this.camera = camera; 
+            
+            this.texture = baseTexture.clone();
+            this.texture.needsUpdate = true; 
+
+            // Komponenty
+            this.animator = new SpriteAnimator(this.texture, config);
+            this.mesh = this.createMesh(config);
+            
+            // Pozycja
+            this.mesh.position.set(x, config.scale / 2, z); 
+            
+            // Przykład ustawienia animacji na 'attack' raz na jakiś czas
+            this.attackTimer = 0;
+            this.attackInterval = 3000 + Math.random() * 2000; // 3-5 sekund
+        }
+
+        createMesh(config) {
+            const material = new this.THREE.MeshBasicMaterial({
+                map: this.texture,
+                transparent: true,
+                side: this.THREE.DoubleSide,
+                alphaTest: 0.5 
+            });
+
+            // Obliczamy proporcje klatki
+            const fullW = this.texture.image.width;
+            const fullH = this.texture.image.height;
+            const frameAspect = (fullW / config.cols) / (fullH / config.rows);
+
+            const geometry = new this.THREE.PlaneGeometry(
+                config.scale * frameAspect, 
+                config.scale
+            );
+
+            const mesh = new this.THREE.Mesh(geometry, material);
+            return mesh;
+        }
+
+        update(time) {
+            
+            // PRZYKŁAD: Zmiana animacji co jakiś czas
+            this.attackTimer += 16.66; // Przy założeniu ~60 FPS
+            if (this.attackTimer > this.attackInterval) {
+                // Najpierw ustawiamy animację ataku, która się nie zapętla
+                this.animator.setSequence('attack', false); 
+                // Po krótkim czasie wracamy do chodzenia
+                setTimeout(() => this.animator.setSequence('walk', true), 500);
+                this.attackTimer = 0;
+                this.attackInterval = 3000 + Math.random() * 2000;
+            }
+
+            this.animator.update(time);
+            
+            // Billboard (zawsze patrz na kamerę)
+            if (this.camera) {
+                this.mesh.lookAt(this.camera.position); 
+            }
+        }
+        
+        addToScene(scene) {
+            scene.add(this.mesh);
+        }
+    }
+
+
+    // ==========================================
+    // 4. SILNIK ŚWIATA (World & Main Loop)
+    // ==========================================
+
+    class World {
+        constructor(THREE, containerId) {
+            this.THREE = THREE;
+            this.container = document.getElementById(containerId);
+            this.entities = [];
+            
+            this.initThree();
+            this.addEnvironment();
+            this.startLoop();
+        }
+
+        initThree() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+
+            this.scene = new this.THREE.Scene();
+            // Lekka mgła dla klimatu
+            this.scene.fog = new this.THREE.FogExp2(0x111111, 0.04);
+
+            // Kamera Perspektywiczna (3D)
+            this.camera = new this.THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+            this.camera.position.set(0, 5, 10); // Wyżej i w tył
+            this.camera.lookAt(0, 0, 0);
+
+            this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
+            this.renderer.setSize(w, h);
+            this.renderer.setClearColor(0x111111);
+            this.container.appendChild(this.renderer.domElement);
+
+            window.addEventListener('resize', () => this.onResize());
+        }
+
+        addEnvironment() {
+            // Podłoga (Grid)
+            const gridHelper = new this.THREE.GridHelper(50, 50, 0x444444, 0x222222);
+            this.scene.add(gridHelper);
+            
+            // Prosta podłoga mesh
+            const planeGeo = new this.THREE.PlaneGeometry(50, 50);
+            const planeMat = new this.THREE.MeshBasicMaterial({ color: 0x222222 });
+            const plane = new this.THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -0.01;
+            this.scene.add(plane);
+        }
+
+        async spawnEntities(config, count) {
+            try {
+                // 1. Ładujemy teksturę bazową RAZ (optymalizacja)
+                console.log(`Ładowanie assetu: ${config.name}...`);
+                const baseTexture = await TextureProcessor.loadAndProcess(this.THREE, config);
+                
+                // 2. Tworzymy wiele instancji
+                for (let i = 0; i < count; i++) {
+                    // Losowa pozycja X i Z
+                    const x = (Math.random() - 0.5) * 15;
+                    const z = (Math.random() - 0.5) * 15 - 5; // Trochę w głąb sceny
+
+                    const entity = new GameEntity(this.THREE, baseTexture, config, x, z, this.camera);
+                    entity.addToScene(this.scene);
+                    this.entities.push(entity);
+                }
+                
+                document.getElementById('count').innerText = this.entities.length;
+                console.log(`Zespawnowano ${count} jednostek.`);
+
+            } catch (e) {
+                console.error("Błąd spawnowania:", e);
+            }
+        }
+
+        startLoop() {
+            const animate = (time) => {
+                requestAnimationFrame(animate);
+                
+                // Aktualizacja wszystkich bytów
+                this.entities.forEach(entity => entity.update(time));
+                
+                // Powolny obrót kamery wokół centrum
+                const angle = time * 0.0002;
+                this.camera.position.x = Math.sin(angle) * 12;
+                this.camera.position.z = Math.cos(angle) * 12;
+                this.camera.lookAt(0, 1, 0);
+
+                this.renderer.render(this.scene, this.camera);
+            };
+            animate(0);
+        }
+
+        onResize() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(w, h);
+        }
+    }
+
+    // ==========================================
+    // 5. URUCHOMIENIE (Main)
+    // ==========================================
+
+    // Inicjalizacja świata
+    const gameWorld = new World(THREE, 'canvas-container');
+
+    // Spawnowanie armii
+    gameWorld.spawnEntities(SS_SOLDIER_CONFIG, 12);
+
+</script>
+</body>
+</html>

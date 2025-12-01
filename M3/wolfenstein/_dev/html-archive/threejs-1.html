@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Wolfenstein SS Sprite</title>
+    <!-- Ładowanie Three.js z CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #ecf0f1;
+            font-family: monospace;
+            overflow: hidden;
+        }
+        #canvas-container {
+            width: 300px;
+            height: 300px;
+            border: 4px solid #c0392b;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: #1a1a1a; /* Ciemne tło, żeby widzieć, że sprite jest wycięty */
+        }
+        canvas {
+            display: block;
+            outline: none;
+        }
+        .controls {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    
+    <div class="controls">
+        <h3>Three.js Renderer</h3>
+        <p>Sekwencja: [0, 8, 16, 24]</p>
+    </div>
+
+<script>
+    // --- KONFIGURACJA ---
+    const IMAGE_URL = './sprite-ss.png';
+    
+    // Parametry Spritesheet
+    const COLS = 8;
+    const ROWS = 7;
+    
+    // Sekwencja klatek (Indeksy liniowe)
+    // 0, 8, 16, 24 to klatki chodu "w dół" (w naszą stronę)
+    const ANIMATION_SEQUENCE = [16, 24, 32, 16, 8];
+    
+    // Szybkość animacji
+    const FPS = 6;
+    const FRAME_DURATION = 1000 / FPS;
+
+    // --- PRZYGOTOWANIE SCENY THREE.JS ---
+    const container = document.getElementById('canvas-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    const scene = new THREE.Scene();
+    
+    // Kamera ortogonalna jest lepsza do piksel-artu 2D/2.5D niż perspektywiczna,
+    // bo nie zniekształca rozmiarów przy krawędziach.
+    const camera = new THREE.OrthographicCamera(
+        width / -2, width / 2, 
+        height / 2, height / -2, 
+        1, 1000
+    );
+    camera.position.z = 10;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false }); // alpha: true dla przezroczystego tła canvasu
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    // --- LOGIKA PRZETWARZANIA TEKSTURY (Cięcie w pamięci) ---
+    // Funkcja ładuje obraz, usuwa tło (chroma key) i zwraca teksturę Three.js
+    function createTextureWithChromaKey(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = url;
+            
+            img.onload = () => {
+                // 1. Tworzymy Canvas w pamięci do edycji pikseli
+                const memCanvas = document.createElement('canvas');
+                memCanvas.width = img.width;
+                memCanvas.height = img.height;
+                const ctx = memCanvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                // 2. Pobieramy dane pikseli
+                const imgData = ctx.getImageData(0, 0, img.width, img.height);
+                const data = imgData.data;
+
+                // Kolor do usunięcia (Cyan/Szary z Wolf3D)
+                const targetR = 99, targetG = 116, targetB = 125;
+                const tolerance = 20;
+
+                // 3. Iterujemy i czyścimy tło
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    if (Math.abs(r - targetR) < tolerance && 
+                        Math.abs(g - targetG) < tolerance && 
+                        Math.abs(b - targetB) < tolerance) {
+                        data[i+3] = 0; // Ustawiamy Alpha na 0
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+
+                // 4. Tworzymy teksturę Three.js z przetworzonego canvasu
+                const texture = new THREE.CanvasTexture(memCanvas);
+                
+                // Kluczowe ustawienia dla Pixel Art w Three.js:
+                texture.magFilter = THREE.NearestFilter; // Brak rozmycia przy powiększaniu
+                texture.minFilter = THREE.NearestFilter;
+                
+                resolve(texture);
+            };
+            img.onerror = reject;
+        });
+    }
+
+    // --- BUDOWANIE OBIEKTU 3D ---
+    let mesh;
+    let textureGlobal;
+
+    createTextureWithChromaKey(IMAGE_URL).then(texture => {
+        textureGlobal = texture;
+
+        // Skonfiguruj mapowanie UV, aby wyświetlić tylko jedną klatkę
+        // repeat.x = 1/ilość_kolumn
+        // repeat.y = 1/ilość_wierszy
+        texture.repeat.set(1 / COLS, 1 / ROWS);
+
+        // Ustawiamy początkowy offset (dla klatki 0)
+        texture.offset.x = 0;
+        texture.offset.y = 1 - (1 / ROWS); // Three.js liczy Y od dołu!
+
+        // Tworzymy materiał
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+
+        // Tworzymy geometrię (Plane)
+        // Obliczamy proporcje pojedynczej klatki, żeby nie rozciągnąć sprite'a
+        const imageAspect = texture.image.width / texture.image.height; 
+        // imageAspect to proporcje CAŁEGO arkusza. Musimy to przeliczyć na klatkę.
+        const frameW = texture.image.width / COLS;
+        const frameH = texture.image.height / ROWS;
+        
+        const scale = 3.5; // Skala powiększenia w świecie 3D
+        const geometry = new THREE.PlaneGeometry(frameW * scale, frameH * scale);
+
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Start pętli
+        requestAnimationFrame(animate);
+
+    }).catch(err => {
+        console.error("Błąd ładowania tekstury:", err);
+    });
+
+
+    // --- PĘTLA ANIMACJI ---
+    let lastTime = 0;
+    let seqIndex = 0;
+
+    function animate(time) {
+        requestAnimationFrame(animate);
+
+        // Limit klatek (FPS)
+        if (time - lastTime >= FRAME_DURATION) {
+            lastTime = time;
+
+            if (mesh && textureGlobal) {
+                // 1. Pobierz numer klatki z sekwencji
+                const frameIndex = ANIMATION_SEQUENCE[seqIndex];
+
+                // 2. Oblicz kolumnę i wiersz w arkuszu
+                const col = frameIndex % COLS;
+                const row = Math.floor(frameIndex / COLS);
+
+                // 3. Zaktualizuj offset tekstury ("przesuń okienko")
+                // offset.x: prosta sprawa, przesuwamy w prawo
+                textureGlobal.offset.x = col / COLS;
+
+                // offset.y: TRICKY w Three.js. 
+                // (0,0) to lewy dół. Arkusz czytamy od góry (row 0).
+                // Wzór: 1 - (aktualny_wiersz + 1) * wysokość_klatki
+                textureGlobal.offset.y = 1 - ((row + 1) / ROWS);
+
+                // 4. Przejdź do następnej klatki w sekwencji
+                seqIndex = (seqIndex + 1) % ANIMATION_SEQUENCE.length;
+            }
+        }
+
+        renderer.render(scene, camera);
+    }
+
+</script>
+</body>
+</html>

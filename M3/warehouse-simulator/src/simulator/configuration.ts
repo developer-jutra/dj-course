@@ -28,23 +28,6 @@ export const ZONE_COLORS = [
   '#ff4488', // Pink
 ];
 
-// Character positions - specific tile positions for animated characters
-// (type imported where needed)
-export const CHARACTER_POSITIONS = [
-  {
-    row: 4,
-    col: 8,
-    src: '/assets/shooter-1.gif',
-    scale: 3.0
-  },
-  {
-    row: 7,
-    col: 14,
-    src: '/assets/shooter-2.gif',
-    scale: 3.0
-  }
-];
-
 // Main hero starting tile (grid coordinates, 0-based)
 export const INITIAL_PLAYER_TILE = { row: 4, col: 5 };
 

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js OOP Sprite System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: monospace; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>System Sprite'ów 3D</h2>
+    <p>Liczba obiektów: <span id="count">0</span></p>
+    <p>Struktura klasowa (OOP)</p>
+</div>
+<div id="canvas-container"></div>
+
+<script>
+    // ==========================================
+    // 1. KONFIGURACJA DANYCH (Extensible)
+    // ==========================================
+    
+    // Definicja dla Żołnierza SS
+    const SS_SOLDIER_CONFIG = {
+        name: 'SS_Soldier',
+        src: './sprite-ss.png',
+        cols: 8,
+        rows: 7,
+        // Sekwencja animacji (chodzenie do przodu)
+        sequence: [16, 24, 32, 16, 8],
+        fps: 6,
+        scale: 2.5, // Wielkość w świecie 3D
+        removeColor: { r: 99, g: 116, b: 125 } // Kolor tła do wycięcia
+    };
+
+    // Tutaj w przyszłości możesz dodać np. DOG_CONFIG, BOSS_CONFIG itp.
+
+
+    // ==========================================
+    // 2. KLASY NARZĘDZIOWE (Logic & Processing)
+    // ==========================================
+
+    /**
+     * Odpowiada za przygotowanie tekstury (wycięcie tła).
+     * Jest statyczna, bo nie potrzebuje stanu instancji.
+     */
+    class TextureProcessor {
+        static loadAndProcess(THREE, config) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = config.src;
+
+                img.onload = () => {
+                    // 1. Edycja pikseli na Canvasie w pamięci
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imgData.data;
+                    const { r: tr, g: tg, b: tb } = config.removeColor;
+                    const tolerance = 20;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (Math.abs(data[i] - tr) < tolerance && 
+                            Math.abs(data[i+1] - tg) < tolerance && 
+                            Math.abs(data[i+2] - tb) < tolerance) {
+                            data[i+3] = 0; // Alpha = 0
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+
+                    // 2. Tworzenie tekstury Three.js
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.magFilter = THREE.NearestFilter; // Pixel art look
+                    texture.minFilter = THREE.NearestFilter;
+                    
+                    // Ustawiamy powtarzanie, żeby móc "wycinać" okna (klatki)
+                    texture.repeat.set(1 / config.cols, 1 / config.rows);
+                    
+                    resolve(texture);
+                };
+                img.onerror = reject;
+            });
+        }
+    }
+
+    /**
+     * Zarządza stanem animacji pojedynczej tekstury.
+     */
+    class SpriteAnimator {
+        constructor(texture, config) {
+            this.texture = texture;
+            this.cols = config.cols;
+            this.rows = config.rows;
+            this.sequence = config.sequence;
+            this.fps = config.fps;
+            
+            this.frameDuration = 1000 / this.fps;
+            this.lastTime = 0;
+            this.seqIndex = 0;
+            
+            // Randomizujemy start animacji, żeby nie wszyscy chodzili identycznie równo
+            this.seqIndex = Math.floor(Math.random() * this.sequence.length);
+        }
+
+        update(time) {
+            if (time - this.lastTime > this.frameDuration) {
+                this.lastTime = time;
+                this.seqIndex = (this.seqIndex + 1) % this.sequence.length;
+                this.updateTextureOffset();
+            }
+        }
+
+        updateTextureOffset() {
+            const frameIndex = this.sequence[this.seqIndex];
+            const col = frameIndex % this.cols;
+            const row = Math.floor(frameIndex / this.cols);
+
+            // Przesuwamy "okno" tekstury
+            this.texture.offset.x = col / this.cols;
+            // Three.js liczy Y od dołu, a sprite sheet jest od góry
+            this.texture.offset.y = 1 - ((row + 1) / this.rows);
+        }
+    }
+
+
+    // ==========================================
+    // 3. KLASY GRY (Game Objects)
+    // ==========================================
+
+    /**
+     * Reprezentuje konkretną postać na scenie.
+     */
+    class GameEntity {
+        constructor(THREE, baseTexture, config, x, z) {
+            this.THREE = THREE;
+            
+            // KLUCZOWE: Klonujemy teksturę dla każdej instancji!
+            // Dzięki temu każda postać może wyświetlać inną klatkę animacji w tym samym czasie.
+            // .clone() w Three.js jest lekkie - współdzieli dane obrazka w pamięci GPU,
+            // kopiuje tylko parametry takie jak offset czy repeat.
+            this.texture = baseTexture.clone();
+            this.texture.needsUpdate = true; // Czasem wymagane po klonowaniu
+
+            // Komponenty
+            this.animator = new SpriteAnimator(this.texture, config);
+            this.mesh = this.createMesh(config);
+            
+            // Pozycja
+            this.mesh.position.set(x, config.scale / 2, z); // Y = scale/2 żeby stał na podłodze
+        }
+
+        createMesh(config) {
+            const material = new this.THREE.MeshBasicMaterial({
+                map: this.texture,
+                transparent: true,
+                side: this.THREE.DoubleSide,
+                alphaTest: 0.5 // Pomaga w sortowaniu głębi w 3D
+            });
+
+            // Obliczamy proporcje klatki
+            // image.width to szerokość CAŁEGO arkusza
+            const fullW = this.texture.image.width;
+            const fullH = this.texture.image.height;
+            const frameAspect = (fullW / config.cols) / (fullH / config.rows);
+
+            const geometry = new this.THREE.PlaneGeometry(
+                config.scale * frameAspect, 
+                config.scale
+            );
+
+            const mesh = new this.THREE.Mesh(geometry, material);
+            return mesh;
+        }
+
+        update(time) {
+            this.animator.update(time);
+            
+            // Opcjonalnie: Billboard (zawsze patrz na kamerę)
+            // this.mesh.lookAt(cameraPosition); 
+            // Ale w Wolfenstein sprite'y czasem mają stały kąt, na razie zostawiamy statycznie.
+        }
+        
+        addToScene(scene) {
+            scene.add(this.mesh);
+        }
+    }
+
+
+    // ==========================================
+    // 4. SILNIK ŚWIATA (World & Main Loop)
+    // ==========================================
+
+    class World {
+        constructor(THREE, containerId) {
+            this.THREE = THREE;
+            this.container = document.getElementById(containerId);
+            this.entities = [];
+            
+            this.initThree();
+            this.addEnvironment();
+            this.startLoop();
+        }
+
+        initThree() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+
+            this.scene = new this.THREE.Scene();
+            // Lekka mgła dla klimatu
+            this.scene.fog = new this.THREE.FogExp2(0x111111, 0.04);
+
+            // Kamera Perspektywiczna (3D)
+            this.camera = new this.THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+            this.camera.position.set(0, 5, 10); // Wyżej i w tył
+            this.camera.lookAt(0, 0, 0);
+
+            this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
+            this.renderer.setSize(w, h);
+            this.renderer.setClearColor(0x111111);
+            this.container.appendChild(this.renderer.domElement);
+
+            window.addEventListener('resize', () => this.onResize());
+        }
+
+        addEnvironment() {
+            // Podłoga (Grid)
+            const gridHelper = new this.THREE.GridHelper(50, 50, 0x444444, 0x222222);
+            this.scene.add(gridHelper);
+            
+            // Prosta podłoga mesh
+            const planeGeo = new this.THREE.PlaneGeometry(50, 50);
+            const planeMat = new this.THREE.MeshBasicMaterial({ color: 0x222222 });
+            const plane = new this.THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -0.01;
+            this.scene.add(plane);
+        }
+
+        async spawnEntities(config, count) {
+            try {
+                // 1. Ładujemy teksturę bazową RAZ (optymalizacja)
+                console.log(`Ładowanie assetu: ${config.name}...`);
+                const baseTexture = await TextureProcessor.loadAndProcess(this.THREE, config);
+                
+                // 2. Tworzymy wiele instancji
+                for (let i = 0; i < count; i++) {
+                    // Losowa pozycja X i Z
+                    const x = (Math.random() - 0.5) * 15;
+                    const z = (Math.random() - 0.5) * 15 - 5; // Trochę w głąb sceny
+
+                    const entity = new GameEntity(this.THREE, baseTexture, config, x, z);
+                    entity.addToScene(this.scene);
+                    this.entities.push(entity);
+                }
+                
+                document.getElementById('count').innerText = this.entities.length;
+                console.log(`Zespawnowano ${count} jednostek.`);
+
+            } catch (e) {
+                console.error("Błąd spawnowania:", e);
+            }
+        }
+
+        startLoop() {
+            const animate = (time) => {
+                requestAnimationFrame(animate);
+                
+                // Aktualizacja wszystkich bytów
+                this.entities.forEach(entity => entity.update(time));
+                
+                // Powolny obrót kamery wokół centrum (dla efektu 3D)
+                const angle = time * 0.0002;
+                this.camera.position.x = Math.sin(angle) * 12;
+                this.camera.position.z = Math.cos(angle) * 12;
+                this.camera.lookAt(0, 1, 0);
+
+                this.renderer.render(this.scene, this.camera);
+            };
+            animate(0);
+        }
+
+        onResize() {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(w, h);
+        }
+    }
+
+    // ==========================================
+    // 5. URUCHOMIENIE (Main)
+    // ==========================================
+
+    // Inicjalizacja świata
+    const gameWorld = new World(THREE, 'canvas-container');
+
+    // Spawnowanie armii
+    gameWorld.spawnEntities(SS_SOLDIER_CONFIG, 12);
+
+</script>
+</body>
+</html>

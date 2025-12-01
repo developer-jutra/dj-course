@@ -1,17 +1,45 @@
-import React from 'react';
+import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import { warehouseMap } from '../warehouseMap';
 import { getWorldPosition } from '../model/warehouse-utilities';
 import { TILE_TYPES } from '../model/warehouse.types';
-import { CHARACTER_POSITIONS } from '../configuration';
 import { Rack } from '../elements/Rack';
 import { Dock } from '../elements/Dock';
 import { FloorTile } from '../elements/FloorTile';
 import { HangingLamp } from '../elements/HangingLamp';
-import { Character, CharacterConfig } from '../elements/Character';
+import { Soldier, SoldierRef } from '../characters/Soldier';
 
-export const WarehouseContent: React.FC = () => {
+const SOLDIER_POSITIONS = [
+  { row: 5, col: 11 },
+  { row: 3, col: 11 },
+  { row: 4, col: 8 },
+  { row: 7, col: 14 },
+  { row: 7, col: 3 },
+  { row: 10, col: 14 },
+  { row: 10, col: 3 },
+  { row: 11, col: 11 },
+  { row: 2, col: 17 },
+  { row: 5, col: 17 },
+  { row: 8, col: 17 },
+  { row: 11, col: 17 },
+];
+
+export interface WarehouseContentRef {
+  killRandomSoldier: () => void;
+}
+
+export const WarehouseContent = forwardRef<WarehouseContentRef, {}>((props, ref) => {
   const structure = warehouseMap.getStructure();
-  const characters: CharacterConfig[] = CHARACTER_POSITIONS;
+  const soldierRefs = useRef<(SoldierRef | null)[]>([]);
+
+  useImperativeHandle(ref, () => ({
+    killRandomSoldier: () => {
+      const livingSoldiers = soldierRefs.current.filter(s => s && !s.isDead());
+      if (livingSoldiers.length > 0) {
+        const randomIndex = Math.floor(Math.random() * livingSoldiers.length);
+        livingSoldiers[randomIndex]?.die();
+      }
+    }
+  }));
 
   return (
     <group>
@@ -91,18 +119,17 @@ export const WarehouseContent: React.FC = () => {
         );
       })()}
       
-      {/* Animated Characters */}
-      {characters.map((character, index) => {
-        const worldPos = getWorldPosition(character.row, character.col);
+      {/* Animated Soldiers */}
+      {SOLDIER_POSITIONS.map((pos, index) => {
+        const worldPos = getWorldPosition(pos.row, pos.col);
         return (
-          <Character
-            key={`character-${index}`}
+          <Soldier
+            ref={el => soldierRefs.current[index] = el}
+            key={`soldier-${index}`}
             position={[worldPos.x, 0, worldPos.z]}
-            src={character.src}
-            scale={character.scale || 3.0}
           />
         );
       })}
     </group>
   );
-};
+});

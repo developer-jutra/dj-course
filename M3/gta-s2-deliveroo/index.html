@@ -128,6 +128,37 @@
             text-align: center;
         }
         .mode-btn:hover { background: #2980b9; }
+
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+            padding: 10px;
+            background: #34495e;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .collapsible-header:hover {
+            background: #2c3e50;
+        }
+        .toggle-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+        }
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .collapsible-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -136,29 +167,37 @@
 
 <div id="ui-container">
     <div class="panel">
-        <h3>Sterowanie</h3>
-        <div><kbd>↑</kbd> Gaz</div>
-        <div><kbd>↓</kbd> Wsteczny</div>
-        <div><kbd>←</kbd> <kbd>→</kbd> Kierownica (Precyzyjna)</div>
-        <div><kbd>Spacja</kbd> Hamulec</div>
-    </div>
-    
-    <div class="panel">
-        <h3>Poziomy</h3>
-        <div id="levels-container">
-            <!-- Przyciski poziomów będą generowane tutaj dynamicznie -->
+        <h3 class="collapsible-header" onclick="toggleSection('sterowanie')">
+            <span class="toggle-icon" id="sterowanie-icon">▼</span> Sterowanie
+        </h3>
+        <div id="sterowanie-content" class="collapsible-content">
+            <div><kbd>↑</kbd> Gaz</div>
+            <div><kbd>↓</kbd> Wsteczny</div>
+            <div><kbd>←</kbd> <kbd>→</kbd> Kierownica (Precyzyjna)</div>
+            <div><kbd>Spacja</kbd> Hamulec</div>
         </div>
-        
-        <div style="margin-top:15px; border-top: 1px solid #555; padding-top:10px;">
-            <div class="stat-row">Prędkość: <span class="stat-val" id="ui-speed">0 km/h</span></div>
-            <div class="stat-row">Skręt: <span class="stat-val" id="ui-steer">0°</span></div>
-            <div class="stat-row">Silnik: <span class="stat-val" id="ui-engine">ON</span></div>
-            <div class="stat-row">Światła: <span class="stat-val" id="ui-lights">ON</span></div>
-            <div class="stat-row">Poślizg: <span class="stat-val" id="ui-drift" style="color: #3498db;">NIE</span></div>
-            <div class="stat-row">Boost: <span class="stat-val" id="ui-boost" style="color: #95a5a6;">0%</span></div>
-            <button class="mode-btn" id="toggle-steering-mode" onclick="game.player.toggleSteeringMode()">Asystent Kierownicy: WŁ</button>
-            <button class="mode-btn" id="toggle-winter-mode" onclick="game.player.toggleWinterMode()">Poślizgi Zimowe: WYŁ</button>
-            <button class="mode-btn" id="toggle-music-btn" onclick="game.toggleBackgroundMusic()">Dźwięk: WŁ</button>
+    </div>
+
+    <div class="panel">
+        <h3 class="collapsible-header" onclick="toggleSection('poziomy')">
+            <span class="toggle-icon" id="poziomy-icon">▼</span> Poziomy
+        </h3>
+        <div id="poziomy-content" class="collapsible-content">
+            <div id="levels-container">
+                <!-- Przyciski poziomów będą generowane tutaj dynamicznie -->
+            </div>
+
+            <div style="margin-top:15px; border-top: 1px solid #555; padding-top:10px;">
+                <div class="stat-row">Prędkość: <span class="stat-val" id="ui-speed">0 km/h</span></div>
+                <div class="stat-row">Skręt: <span class="stat-val" id="ui-steer">0°</span></div>
+                <div class="stat-row">Silnik: <span class="stat-val" id="ui-engine">ON</span></div>
+                <div class="stat-row">Światła: <span class="stat-val" id="ui-lights">ON</span></div>
+                <div class="stat-row">Poślizg: <span class="stat-val" id="ui-drift" style="color: #3498db;">NIE</span></div>
+                <div class="stat-row">Boost: <span class="stat-val" id="ui-boost" style="color: #95a5a6;">0%</span></div>
+                <button class="mode-btn" id="toggle-steering-mode" onclick="game.player.toggleSteeringMode()">Asystent Kierownicy: WŁ</button>
+                <button class="mode-btn" id="toggle-winter-mode" onclick="game.player.toggleWinterMode()">Poślizgi Zimowe: WYŁ</button>
+                <button class="mode-btn" id="toggle-music-btn" onclick="game.toggleBackgroundMusic()">Dźwięk: WŁ</button>
+            </div>
         </div>
     </div>
 </div>
@@ -168,6 +207,20 @@
 </div>
 
 <script>
+// --- COLLAPSIBLE SECTIONS ---
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId + '-content');
+    const icon = document.getElementById(sectionId + '-icon');
+
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        icon.classList.remove('collapsed');
+    } else {
+        content.classList.add('collapsed');
+        icon.classList.add('collapsed');
+    }
+}
+
 // --- CONFIGURATION ---
 const CONFIG = {
     // Car dimensions (approx 1px = 2cm scale)
@@ -185,7 +238,7 @@ const CONFIG = {
 
     // Car mode: 'normal' (city car) or 'sport' (performance car)
     carMode: 'normal', // Default: normal city car
-    accelerationNormal: 0.021, // ~10 seconds to 100 km/h (city car)
+    accelerationNormal: 0.05, // ~10 seconds to 100 km/h (city car)
     accelerationSport: 0.15,   // ~1.4 seconds to 100 km/h (sport car)
     get acceleration() {
         return this.carMode === 'sport' ? this.accelerationSport : this.accelerationNormal;
@@ -573,7 +626,10 @@ class NpcCar extends ObstacleCar {
         }
     }
 
-    update(game) {
+    update(game, deltaTime) {
+        // Normalize deltaTime to 60 FPS
+        const dt = deltaTime * 60;
+
         // === SPAWN QUEUE SYSTEM ===
         if (this.isWaitingToSpawn) {
             // Sprawdź czy jest wolna przestrzeń do spawnu
@@ -590,7 +646,7 @@ class NpcCar extends ObstacleCar {
 
         // === DEADLOCK PREVENTION - Sprawdź czy stuck nawet gdy isStopped ===
         if (this.isStopped) {
-            this.stuckTimer++;
+            this.stuckTimer += dt;
 
             // Jeśli stuck zbyt długo - ODBLOKUJ!
             if (this.stuckTimer > this.stuckThreshold) {
@@ -663,17 +719,17 @@ class NpcCar extends ObstacleCar {
         }
 
         if (obstacleAhead) {
-            this.speed *= brakingFactor;
+            this.speed *= Math.pow(brakingFactor, dt);
             if (Math.abs(this.speed) < 0.1) this.speed = 0;
         } else {
             if (Math.abs(this.speed) < Math.abs(this.originalSpeed)) {
-                this.speed += Math.sign(this.originalSpeed) * acceleration;
+                this.speed += Math.sign(this.originalSpeed) * acceleration * dt;
             } else {
                 this.speed = this.originalSpeed;
             }
         }
 
-        this.x += this.speed;
+        this.x += this.speed * dt;
 
         // === WRAPAROUND Z KOLEJKOWANIEM ===
         if (this.speed > 0 && this.x > canvas.width + this.l) {
@@ -906,7 +962,7 @@ class PlayerCar {
         }
     }
 
-    update(input) {
+    update(input, deltaTime) {
         // Engine toggle
         if (input.keys.Enter) {
             if (!this.enterKeyProcessed) {
@@ -919,24 +975,27 @@ class PlayerCar {
 
         // Wybierz fizykę w zależności od trybu
         if (this.winterMode) {
-            this.updateWinterPhysics(input);
+            this.updateWinterPhysics(input, deltaTime);
         } else {
-            this.updateSimplePhysics(input);
+            this.updateSimplePhysics(input, deltaTime);
         }
     }
 
     // === PROSTA FIZYKA (bezpieczna, przewidywalna) ===
-    updateSimplePhysics(input) {
+    updateSimplePhysics(input, deltaTime) {
+        // Normalize deltaTime to 60 FPS (deltaTime * 60 gives us a frame multiplier)
+        const dt = deltaTime * 60;
+
         // === HAMULEC RĘCZNY - STARTOWANIE ===
         const isHandbraking = input.keys.Space;
         const isThrottling = input.keys.ArrowUp || input.keys.ArrowDown;
 
         // Budowanie boost gdy trzyma hamulec + gaz
         if (isHandbraking && isThrottling && this.engineOn) {
-            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate);
+            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate * dt);
 
             // Hamuj auto podczas budowania boost
-            this.speed *= 0.8; // Mocne hamowanie
+            this.speed *= Math.pow(0.8, dt); // Mocne hamowanie
             if (Math.abs(this.speed) < 0.5) this.speed = 0;
 
             // Dźwięk silnika na wysokich obrotach
@@ -960,7 +1019,7 @@ class PlayerCar {
         }
         // Normalne zmniejszanie boost gdy nie używany
         else if (this.handbrakeBoost > 0) {
-            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay);
+            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay * dt);
 
             // Zatrzymaj dźwięk gdy boost spada
             if (this.handbrakeBoost < 0.1 && engineRevOscillator) {
@@ -974,25 +1033,25 @@ class PlayerCar {
         if (this.engineOn) {
             // 1. Acceleration (tylko jeśli NIE buduje boost)
             if (!(isHandbraking && isThrottling)) {
-                if (input.keys.ArrowUp) this.speed += CONFIG.acceleration;
-                else if (input.keys.ArrowDown) this.speed -= CONFIG.acceleration;
+                if (input.keys.ArrowUp) this.speed += CONFIG.acceleration * dt;
+                else if (input.keys.ArrowDown) this.speed -= CONFIG.acceleration * dt;
             }
 
             // 2. Braking (tylko jeśli NIE trzyma gazu równocześnie)
             if (input.keys.Space && !isThrottling) {
-                if (this.speed > 0) this.speed -= CONFIG.brakingForce;
-                else if (this.speed < 0) this.speed += CONFIG.brakingForce;
+                if (this.speed > 0) this.speed -= CONFIG.brakingForce * dt;
+                else if (this.speed < 0) this.speed += CONFIG.brakingForce * dt;
                 if (Math.abs(this.speed) < 0.5) this.speed = 0;
             }
         }
 
         // 3. Friction
         if (!input.keys.ArrowUp && !input.keys.ArrowDown && !input.keys.Space) {
-            this.speed *= (1 - CONFIG.friction);
+            this.speed *= Math.pow(1 - CONFIG.friction, dt);
             if (Math.abs(this.speed) < 0.05) this.speed = 0;
         }
         if (!this.engineOn) {
-            this.speed *= (1 - CONFIG.friction);
+            this.speed *= Math.pow(1 - CONFIG.friction, dt);
             if (Math.abs(this.speed) < 0.05) this.speed = 0;
         }
 
@@ -1003,17 +1062,17 @@ class PlayerCar {
         // 4. Steering
         if (this.engineOn) {
             if (input.keys.ArrowLeft) {
-                this.steeringAngle -= CONFIG.steerSpeed;
+                this.steeringAngle -= CONFIG.steerSpeed * dt;
             } else if (input.keys.ArrowRight) {
-                this.steeringAngle += CONFIG.steerSpeed;
+                this.steeringAngle += CONFIG.steerSpeed * dt;
             } else {
                 if (this.steeringMode === 'DRIVING') {
                     // Auto-straighten in Driving Mode
                     if (this.steeringAngle > 0) {
-                        this.steeringAngle -= CONFIG.steerRestoringDriving;
+                        this.steeringAngle -= CONFIG.steerRestoringDriving * dt;
                         if (this.steeringAngle < 0) this.steeringAngle = 0;
                     } else if (this.steeringAngle < 0) {
-                        this.steeringAngle += CONFIG.steerRestoringDriving;
+                        this.steeringAngle += CONFIG.steerRestoringDriving * dt;
                         if (this.steeringAngle > 0) this.steeringAngle = 0;
                     }
                 }
@@ -1029,19 +1088,19 @@ class PlayerCar {
             const L = CONFIG.wheelBase;
             const oldAngle = this.angle;
 
-            this.angle += (this.speed / L) * Math.tan(this.steeringAngle);
+            this.angle += (this.speed / L) * Math.tan(this.steeringAngle) * dt;
 
             const rearAxleX = this.x - (L / 2) * Math.cos(oldAngle);
             const rearAxleY = this.y - (L / 2) * Math.sin(oldAngle);
 
-            const newRearAxleX = rearAxleX + this.speed * Math.cos(oldAngle);
-            const newRearAxleY = rearAxleY + this.speed * Math.sin(oldAngle);
+            const newRearAxleX = rearAxleX + this.speed * Math.cos(oldAngle) * dt;
+            const newRearAxleY = rearAxleY + this.speed * Math.sin(oldAngle) * dt;
 
             this.x = newRearAxleX + (L / 2) * Math.cos(this.angle);
             this.y = newRearAxleY + (L / 2) * Math.sin(this.angle);
         } else {
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
+            this.x += Math.cos(this.angle) * this.speed * dt;
+            this.y += Math.sin(this.angle) * this.speed * dt;
         }
 
         // Synchronizuj velocityX/Y dla kompatybilności
@@ -1053,18 +1112,21 @@ class PlayerCar {
     }
 
     // === ZAAWANSOWANA FIZYKA Z POŚLIZGAMI (tryb zimowy) ===
-    updateWinterPhysics(input) {
+    updateWinterPhysics(input, deltaTime) {
+        // Normalize deltaTime to 60 FPS (deltaTime * 60 gives us a frame multiplier)
+        const dt = deltaTime * 60;
+
         // === HAMULEC RĘCZNY - STARTOWANIE ===
         const isHandbraking = input.keys.Space;
         const isThrottling = input.keys.ArrowUp || input.keys.ArrowDown;
 
         // Budowanie boost gdy trzyma hamulec + gaz
         if (isHandbraking && isThrottling && this.engineOn) {
-            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate);
+            this.handbrakeBoost = Math.min(CONFIG.handbrakeBoostMax, this.handbrakeBoost + CONFIG.handbrakeBoostRate * dt);
 
             // Hamuj auto podczas budowania boost
-            this.velocityX *= 0.75;
-            this.velocityY *= 0.75;
+            this.velocityX *= Math.pow(0.75, dt);
+            this.velocityY *= Math.pow(0.75, dt);
             const currentSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
             if (currentSpeed < 0.5) {
                 this.velocityX = 0;
@@ -1097,7 +1159,7 @@ class PlayerCar {
         }
         // Normalne zmniejszanie boost gdy nie używany
         else if (this.handbrakeBoost > 0) {
-            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay);
+            this.handbrakeBoost = Math.max(0, this.handbrakeBoost - CONFIG.handbrakeBoostDecay * dt);
 
             // Zatrzymaj dźwięk gdy boost spada
             if (this.handbrakeBoost < 0.1 && engineRevOscillator) {
@@ -1110,17 +1172,17 @@ class PlayerCar {
         // 1. Sterowanie - kąt skrętu
         if (this.engineOn) {
             if (input.keys.ArrowLeft) {
-                this.steeringAngle -= CONFIG.steerSpeed;
+                this.steeringAngle -= CONFIG.steerSpeed * dt;
             } else if (input.keys.ArrowRight) {
-                this.steeringAngle += CONFIG.steerSpeed;
+                this.steeringAngle += CONFIG.steerSpeed * dt;
             } else {
                 if (this.steeringMode === 'DRIVING') {
                     // Auto-prostowanie w trybie jazdy
                     if (this.steeringAngle > 0) {
-                        this.steeringAngle -= CONFIG.steerRestoringDriving;
+                        this.steeringAngle -= CONFIG.steerRestoringDriving * dt;
                         if (this.steeringAngle < 0) this.steeringAngle = 0;
                     } else if (this.steeringAngle < 0) {
-                        this.steeringAngle += CONFIG.steerRestoringDriving;
+                        this.steeringAngle += CONFIG.steerRestoringDriving * dt;
                         if (this.steeringAngle > 0) this.steeringAngle = 0;
                     }
                 }
@@ -1137,8 +1199,8 @@ class PlayerCar {
 
         // Akceleracja tylko jeśli NIE buduje boost (hamulec + gaz)
         if (this.engineOn && !(isHandbraking && isThrottling)) {
-            if (input.keys.ArrowUp) throttle = CONFIG.acceleration;
-            else if (input.keys.ArrowDown) throttle = -CONFIG.acceleration;
+            if (input.keys.ArrowUp) throttle = CONFIG.acceleration * dt;
+            else if (input.keys.ArrowDown) throttle = -CONFIG.acceleration * dt;
         }
 
         // 3. Oblicz prędkość w lokalnym układzie samochodu (forward/lateral)
@@ -1187,10 +1249,10 @@ class PlayerCar {
             this.driftAngle = Math.atan2(newLateralVelocity, newForwardVelocity);
 
             // Podczas poślizgu - wolniejsza rotacja
-            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle) * currentGrip;
+            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle) * currentGrip * dt;
 
             // Zastosuj tarcie podczas poślizgu
-            newForwardVelocity *= CONFIG.driftFriction;
+            newForwardVelocity *= Math.pow(CONFIG.driftFriction, dt);
 
             // Konwersja z powrotem do współrzędnych globalnych
             this.velocityX = newForwardVelocity * cos - newLateralVelocity * sin;
@@ -1216,7 +1278,7 @@ class PlayerCar {
             const newLateralVelocity = desiredLateralVelocity;
 
             // Normalna rotacja
-            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle);
+            this.angularVelocity = (newForwardVelocity / CONFIG.wheelBase) * Math.tan(this.steeringAngle) * dt;
 
             // Konwersja z powrotem do współrzędnych globalnych
             this.velocityX = newForwardVelocity * cos - newLateralVelocity * sin;
@@ -1230,7 +1292,7 @@ class PlayerCar {
 
         // 8. Hamowanie
         if (isBraking) {
-            const brakingDeceleration = CONFIG.brakingForce;
+            const brakingDeceleration = CONFIG.brakingForce * dt;
             const currentSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
 
             if (currentSpeed > 0.1) {
@@ -1245,13 +1307,13 @@ class PlayerCar {
 
         // 9. Tarcie naturalne
         if (!input.keys.ArrowUp && !input.keys.ArrowDown && !isBraking) {
-            this.velocityX *= (1 - CONFIG.friction);
-            this.velocityY *= (1 - CONFIG.friction);
+            this.velocityX *= Math.pow(1 - CONFIG.friction, dt);
+            this.velocityY *= Math.pow(1 - CONFIG.friction, dt);
         }
 
         if (!this.engineOn) {
-            this.velocityX *= (1 - CONFIG.friction);
-            this.velocityY *= (1 - CONFIG.friction);
+            this.velocityX *= Math.pow(1 - CONFIG.friction, dt);
+            this.velocityY *= Math.pow(1 - CONFIG.friction, dt);
         }
 
         // Zatrzymaj jeśli bardzo wolno
@@ -1271,11 +1333,11 @@ class PlayerCar {
 
         // 11. Aktualizuj rotację
         this.angle += this.angularVelocity;
-        this.angularVelocity *= CONFIG.angularDamping;
+        this.angularVelocity *= Math.pow(CONFIG.angularDamping, dt);
 
         // 12. Aktualizuj pozycję
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+        this.x += this.velocityX * dt;
+        this.y += this.velocityY * dt;
 
         // 13. Aktualizuj zmienną speed dla kompatybilności
         this.speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY) *
@@ -2019,21 +2081,21 @@ class Game {
         }
     }
 
-    update() {
+    update(deltaTime) {
         // Title screen - handled by mouse events
         if (this.state === 'TITLE_SCREEN') {
             return;
         }
-        
-        if (this.state === 'GAMEOVER' || this.state === 'LEVEL_COMPLETE') return;
-        
-        if (this.shakeTimer > 0) this.shakeTimer--;
 
-        this.player.update(input);
+        if (this.state === 'GAMEOVER' || this.state === 'LEVEL_COMPLETE') return;
+
+        if (this.shakeTimer > 0) this.shakeTimer -= deltaTime * 60; // Convert to frame-based (60 FPS equivalent)
+
+        this.player.update(input, deltaTime);
 
         this.currentCars.forEach(car => {
             if (typeof car.update === 'function') {
-                car.update(this);
+                car.update(this, deltaTime);
             }
         });
 
@@ -2775,9 +2837,15 @@ function resize() {
     }
 }
 
-function loop() {
+let lastTime = 0;
+function loop(timestamp = 0) {
     if (!game) return;
-    game.update();
+
+    // Calculate delta time in seconds
+    const deltaTime = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.1) : 0.016;
+    lastTime = timestamp;
+
+    game.update(deltaTime);
     game.draw();
     requestAnimationFrame(loop);
 }
