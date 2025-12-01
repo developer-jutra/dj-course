@@ -1,10 +1,13 @@
 import uuid
 from typing import List, Any, Union
 import os
+import time
 from files import session_files
 from files.wal import append_to_wal
 from llm.gemini_client import GeminiLLMClient
 from llm.llama_client import LlamaClient
+from llm.ollama_rest_client import OllamaRestClient
+from llm.ollama_python_client import OllamaPythonClient
 from assistant import Assistant
 from cli import console
 
@@ -14,6 +17,8 @@ from cli import console
 ENGINE_MAPPING = {
     'LLAMA_CPP': LlamaClient,
     'GEMINI': GeminiLLMClient,
+    'OLLAMA_REST': OllamaRestClient,
+    'OLLAMA_PYTHON': OllamaPythonClient,
 }
 
 
@@ -35,9 +40,10 @@ class ChatSession:
         self.assistant = assistant
         self.session_id = session_id or str(uuid.uuid4())
         self._history = history or []
-        self._llm_client: Union[GeminiLLMClient, LlamaClient, None] = None
+        self._llm_client: Union[GeminiLLMClient, LlamaClient, OllamaRestClient, OllamaPythonClient, None] = None
         self._llm_chat_session = None
         self._max_context_tokens = 32768
+        self._last_response_time: float = 0.0
         self._initialize_llm_session()
     
     def _initialize_llm_session(self):
@@ -106,19 +112,27 @@ class ChatSession:
     
     def send_message(self, text: str):
         """
-        Sends a message to the LLM and returns the response.
+        Sends a message to the LLM and returns the response with timing information.
         Updates internal history automatically and logs to WAL.
         
         Args:
             text: User's message
             
         Returns:
-            Response object from Google GenAI
+            tuple: (Response object, elapsed_time in seconds)
         """
         if not self._llm_chat_session:
             raise RuntimeError("LLM session not initialized")
         
+        # Start timing
+        start_time = time.time()
+        
         response = self._llm_chat_session.send_message(text)
+        
+        # End timing
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        self._last_response_time = elapsed_time
         
         # Sync history after message
         self._history = self._llm_chat_session.get_history()
@@ -138,7 +152,7 @@ class ChatSession:
             # Just log the error to stderr or similar - but for now we'll silently continue
             pass
         
-        return response
+        return response, elapsed_time
     
     def get_history(self) -> List[Any]:
         """Returns the current conversation history."""
@@ -216,6 +230,15 @@ class ChatSession:
         remaining_tokens = self._max_context_tokens - total_tokens
         max_tokens = self._max_context_tokens
         return total_tokens, remaining_tokens, max_tokens
+    
+    def get_last_response_time(self) -> float:
+        """
+        Gets the time taken for the last response.
+        
+        Returns:
+            float: Time in seconds for last response
+        """
+        return self._last_response_time
     
     @property
     def assistant_name(self) -> str:

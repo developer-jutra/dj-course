@@ -39,15 +39,15 @@ def main_loop():
             # Conversation with the model
             session = manager.get_current_session()
             
-            # Send message (handles WAL logging internally)
-            response = session.send_message(user_input)
+            # Send message (handles WAL logging internally, returns response and elapsed time)
+            response, elapsed_time = session.send_message(user_input)
             
             # Get token information
             total_tokens, remaining_tokens, max_tokens = session.get_token_info()
 
             # Display response
             console.print_assistant(f"\n{session.assistant_name}: {response.text}")
-            console.print_info(f"Tokens: {total_tokens} (Pozostało: {remaining_tokens} / {max_tokens})")
+            console.print_info(f"🪙  Tokens: {total_tokens} (Pozostało: {remaining_tokens}/{max_tokens}) | ⏱️  Czas: {elapsed_time:.2f}s")
 
             # Save session
             success, error = session.save_to_file()
