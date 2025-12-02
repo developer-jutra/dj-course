@@ -109,23 +109,24 @@ def get_assistant_registry() -> AssistantRegistry:
     return _registry
 
 
-def register_assistant(name: str, system_prompt: str) -> Assistant:
+def register_assistant(name: str, system_prompt: str, assistant_id: str) -> Assistant:
     """
     Convenience function to create and register an assistant.
-    Auto-generates ID from name (lowercase, spaces to underscores).
-    
+
     Args:
         name: Display name of the assistant
         system_prompt: System instruction/prompt for the assistant
-        
+        assistant_id: Explicit assistant ID. It will be normalized
+            (lowercased, spaces/dashes replaced with underscores) and used.
+
     Returns:
         Assistant: The registered assistant instance
-        
+
     Raises:
         RuntimeError: If registration fails (duplicate ID/name)
     """
-    # Auto-generate ID from name
-    assistant_id = name.lower().replace(' ', '_').replace('-', '_')
+    # Normalize the provided assistant_id (lowercase, trim, replace spaces/dashes).
+    assistant_id = assistant_id.lower().strip().replace(' ', '_').replace('-', '_')
     
     assistant = Assistant(
         assistant_id=assistant_id,
