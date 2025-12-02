@@ -1,6 +1,7 @@
 import atexit
 import files.config as config
 import cli.args
+from assistant import initialize_assistants
 from session import get_session_manager
 import command_handler
 from cli import console
@@ -10,6 +11,10 @@ from commands.welcome import print_welcome
 def init_chat():
     """Initializes a new session or loads an existing one."""
     print_welcome()
+    
+    # Initialize assistant registry with default assistants
+    initialize_assistants()
+    
     manager = get_session_manager()
     
     # Initialize session based on CLI args

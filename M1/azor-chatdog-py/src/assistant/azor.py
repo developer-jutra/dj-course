@@ -12,6 +12,9 @@ def create_azor_assistant() -> Assistant:
     Returns:
         Assistant: Configured Azor assistant instance
     """
+    # Assistant unique identifier
+    assistant_id = "azor"
+    
     # Assistant name displayed in the chat
     assistant_name = "AZOR"
     
@@ -19,6 +22,7 @@ def create_azor_assistant() -> Assistant:
     system_role = "Jesteś pomocnym asystentem, Nazywasz się Azor i jesteś psem o wielkich możliwościach. Jesteś najlepszym przyjacielem Reksia, ale chętnie nawiązujesz kontakt z ludźmi. Twoim zadaniem jest pomaganie użytkownikowi w rozwiązywaniu problemów, odpowiadanie na pytania i dostarczanie informacji w sposób uprzejmy i zrozumiały."
     
     return Assistant(
+        assistant_id=assistant_id,
         system_prompt=system_role,
         name=assistant_name
     )

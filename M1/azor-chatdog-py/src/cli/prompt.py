@@ -9,10 +9,12 @@ from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.filters import completion_is_selected
+from assistant import get_assistant_registry
 
 # --- Configuration ---
-SLASH_COMMANDS = ('/exit', '/quit', '/switch', '/help', '/session')
+SLASH_COMMANDS = ('/exit', '/quit', '/switch', '/help', '/session', '/pdf', '/assistant')
 SESSION_SUBCOMMANDS = ['list', 'display', 'pop', 'clear', 'new', 'remove']
+ASSISTANT_SUBCOMMANDS = ['list', 'switch']
 
 
 class SlashCommandLexer(Lexer):
@@ -28,8 +30,8 @@ class SlashCommandLexer(Lexer):
                     tokens = [('class:slash-command', cmd)]
                     remainder = line[len(cmd) :]
 
-                    # Special handling for /session with subcommands
-                    if cmd == '/session' and remainder.strip():
+                    # Special handling for commands with subcommands
+                    if cmd in ['/session', '/assistant'] and remainder.strip():
                         # Find the position where subcommand starts
                         space_prefix = len(remainder) - len(remainder.lstrip())
                         remainder_content = remainder[space_prefix:]
@@ -38,8 +40,31 @@ class SlashCommandLexer(Lexer):
                         parts = remainder_content.split(maxsplit=1)
                         subcommand = parts[0].strip()
 
+                        # Determine valid subcommands based on command
+                        valid_subcommands = []
+                        if cmd == '/session':
+                            valid_subcommands = SESSION_SUBCOMMANDS
+                        elif cmd == '/assistant':
+                            # For 'switch' subcommand, check the assistant ID (second argument)
+                            if subcommand == 'switch':
+                                valid_subcommands = ['switch']  # The subcommand itself is valid
+                                # Highlight the assistant ID if present
+                                if len(parts) > 1:
+                                    assistant_id = parts[1].strip()
+                                    available_ids = _get_available_assistant_ids()
+                                    tokens.append(('class:normal-text', remainder[:space_prefix]))
+                                    tokens.append(('class:subcommand', subcommand))
+                                    if assistant_id in available_ids:
+                                        tokens.append(('class:normal-text', ' '))
+                                        tokens.append(('class:subcommand', assistant_id))
+                                    else:
+                                        tokens.append(('class:normal-text', ' ' + assistant_id))
+                                    return tokens
+                            else:
+                                valid_subcommands = ASSISTANT_SUBCOMMANDS
+
                         # Check if it's a valid subcommand
-                        if subcommand in SESSION_SUBCOMMANDS:
+                        if subcommand in valid_subcommands:
                             # Add space before subcommand
                             tokens.append(('class:normal-text', remainder[:space_prefix]))
                             tokens.append(('class:subcommand', subcommand))
@@ -65,14 +90,37 @@ _prompt_style = Style.from_dict({
     'normal-text': '#aaaaaa',
 })
 
-# Nested auto-completion for slash commands with subcommands
-_commands_completer = NestedCompleter({
-    '/exit': None,
-    '/quit': None,
-    '/help': None,
-    '/switch': None,
-    '/session': WordCompleter(SESSION_SUBCOMMANDS, ignore_case=False)
-})
+
+def _get_available_assistant_ids():
+    """Get list of available assistant IDs from registry."""
+    try:
+        registry = get_assistant_registry()
+        assistants = registry.list_all()
+        return [assistant.id for assistant in assistants]
+    except Exception:
+        # If registry not initialized yet, return empty list
+        return []
+
+
+def _create_commands_completer():
+    """Create nested completer with dynamic assistant list."""
+    assistant_ids = _get_available_assistant_ids()
+    
+    # Create nested completer for /assistant with subcommands
+    assistant_completer = NestedCompleter({
+        'list': None,
+        'switch': WordCompleter(assistant_ids, ignore_case=False) if assistant_ids else None
+    })
+    
+    return NestedCompleter({
+        '/exit': None,
+        '/quit': None,
+        '/help': None,
+        '/switch': None,
+        '/pdf': None,
+        '/session': WordCompleter(SESSION_SUBCOMMANDS, ignore_case=False),
+        '/assistant': assistant_completer
+    })
 
 
 def _create_key_bindings():
@@ -101,6 +149,7 @@ def get_user_input(prompt_text: str = "TY: ") -> str:
     Features:
     - Syntax highlighting for slash commands and subcommands
     - Auto-completion for commands and subcommands
+    - Dynamic assistant ID completion for /switch-assistant
     - Smart Enter key behavior (accepts completions, submits prompt)
 
     Args:
@@ -113,9 +162,12 @@ def get_user_input(prompt_text: str = "TY: ") -> str:
         KeyboardInterrupt: When Ctrl+C is pressed
         EOFError: When Ctrl+D is pressed
     """
+    # Rebuild completer each time to get fresh assistant list
+    completer = _create_commands_completer()
+    
     return prompt(
         prompt_text,
-        completer=_commands_completer,
+        completer=completer,
         lexer=SlashCommandLexer(),
         style=_prompt_style,
         complete_while_typing=True,
