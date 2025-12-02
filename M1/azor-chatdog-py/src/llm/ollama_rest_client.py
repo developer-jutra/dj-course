@@ -9,6 +9,7 @@ from typing import Optional, List, Any, Dict
 from dotenv import load_dotenv
 from cli import console
 from .ollama_rest_validation import OllamaRestConfig
+from .env_utils import parse_env_param
 
 
 class OllamaRestChatSession:
@@ -18,7 +19,9 @@ class OllamaRestChatSession:
     """
     
     def __init__(self, model_name: str, base_url: str, timeout: int, 
-                 system_instruction: str, history: Optional[List[Dict]] = None):
+                 system_instruction: str, history: Optional[List[Dict]] = None,
+                 temperature: Optional[float] = None, top_p: Optional[float] = None,
+                 top_k: Optional[int] = None):
         """
         Initialize the Ollama chat session.
         
@@ -28,12 +31,18 @@ class OllamaRestChatSession:
             timeout: Request timeout in seconds
             system_instruction: System prompt for the assistant
             history: Previous conversation history
+            temperature: Temperature for response generation (0.0-2.0)
+            top_p: Top P (nucleus sampling) for response generation (0.0-1.0)
+            top_k: Top K for response generation
         """
         self.model_name = model_name
         self.base_url = base_url
         self.timeout = timeout
         self.system_instruction = system_instruction
         self._history = history or []
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
         
     def send_message(self, text: str) -> Any:
         """
@@ -53,14 +62,29 @@ class OllamaRestChatSession:
         ollama_messages = self._convert_to_ollama_format()
         
         try:
+            # Build request payload
+            request_payload = {
+                "model": self.model_name,
+                "messages": ollama_messages,
+                "stream": False # (msmet) check what if this will be tru - faster response but many calls and resposne as 'writing'?
+            }
+            
+            # Add optional parameters if set
+            options = {}
+            if self.temperature is not None:
+                options["temperature"] = self.temperature
+            if self.top_p is not None:
+                options["top_p"] = self.top_p
+            if self.top_k is not None:
+                options["top_k"] = self.top_k
+            
+            if options:
+                request_payload["options"] = options
+            
             # Call Ollama API
             response = requests.post(
                 f"{self.base_url}/api/chat",
-                json={
-                    "model": self.model_name,
-                    "messages": ollama_messages,
-                    "stream": False # (msmet) check what if this will be tru - faster response but many calls and resposne as 'writing'?
-                },
+                json=request_payload,
                 timeout=self.timeout
             )
             response.raise_for_status()
@@ -136,7 +160,9 @@ class OllamaRestClient:
     Provides a clean interface compatible with GeminiLLMClient and LlamaClient.
     """
     
-    def __init__(self, model_name: str, base_url: str = "http://localhost:11434", timeout: int = 120):
+    def __init__(self, model_name: str, base_url: str = "http://localhost:11434", timeout: int = 120,
+                 temperature: Optional[float] = None, top_p: Optional[float] = None,
+                 top_k: Optional[int] = None):
         """
         Initialize the Ollama client with explicit parameters.
         
@@ -144,6 +170,9 @@ class OllamaRestClient:
             model_name: Name of the Ollama model to use
             base_url: Base URL of Ollama server
             timeout: Request timeout in seconds
+            temperature: Temperature for response generation (0.0-2.0)
+            top_p: Top P (nucleus sampling) for response generation (0.0-1.0)
+            top_k: Top K for response generation
             
         Raises:
             ValueError: If model_name is empty
@@ -154,6 +183,9 @@ class OllamaRestClient:
         self.model_name = model_name
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
         
         # Verify Ollama server is available during construction
         self._check_availability()
@@ -181,20 +213,37 @@ class OllamaRestClient:
         """
         load_dotenv()
     
+        # Parse optional parameters
+        temperature = parse_env_param('TEMPERATURE', float)
+        top_p = parse_env_param('TOP_P', float)
+        top_k = parse_env_param('TOP_K', int)
+        
         # Walidacja z Pydantic
         config = OllamaRestConfig(
             model_name=os.getenv('MODEL_NAME', 'llama3.1:8b'),
             ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-            ollama_timeout=int(os.getenv('OLLAMA_TIMEOUT', '120'))
+            ollama_timeout=int(os.getenv('OLLAMA_TIMEOUT', '120')),
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k
         )
         
         console.print_info(f"Łączenie z serwerem Ollama: {config.ollama_base_url}")
         console.print_info(f"Model: {config.model_name}")
+        if config.temperature is not None:
+            console.print_info(f"🌡️  Temperature: {config.temperature}")
+        if config.top_p is not None:
+            console.print_info(f"Top P: {config.top_p}")
+        if config.top_k is not None:
+            console.print_info(f"🎰 Top K: {config.top_k}")
         
         return cls(
             model_name=config.model_name,
             base_url=config.ollama_base_url,
-            timeout=config.ollama_timeout
+            timeout=config.ollama_timeout,
+            temperature=config.temperature,
+            top_p=config.top_p,
+            top_k=config.top_k
         )
     
     def _check_availability(self) -> None:
@@ -250,7 +299,10 @@ class OllamaRestClient:
             base_url=self.base_url,
             timeout=self.timeout,
             system_instruction=system_instruction,
-            history=history or []
+            history=history or [],
+            temperature=self.temperature,
+            top_p=self.top_p,
+            top_k=self.top_k
         )
     
     def count_history_tokens(self, history: List[Dict]) -> int:

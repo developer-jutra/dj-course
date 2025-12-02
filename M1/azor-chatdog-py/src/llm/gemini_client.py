@@ -11,6 +11,7 @@ from google.genai import types
 from dotenv import load_dotenv
 from cli import console
 from .gemini_validation import GeminiConfig
+from .env_utils import parse_env_param
 
 class GeminiChatSessionWrapper:
     """
@@ -73,13 +74,17 @@ class GeminiLLMClient:
     Provides a clean interface for chat sessions, token counting, and configuration.
     """
     
-    def __init__(self, model_name: str, api_key: str):
+    def __init__(self, model_name: str, api_key: str, temperature: Optional[float] = None,
+                 top_p: Optional[float] = None, top_k: Optional[int] = None):
         """
         Initialize the Gemini LLM client with explicit parameters.
         
         Args:
             model_name: Model to use (e.g., 'gemini-2.5-flash')
             api_key: Google Gemini API key
+            temperature: Temperature for response generation (0.0-2.0)
+            top_p: Top P (nucleus sampling) for response generation (0.0-1.0)
+            top_k: Top K for response generation
         
         Raises:
             ValueError: If api_key is empty or None
@@ -89,6 +94,9 @@ class GeminiLLMClient:
         
         self.model_name = model_name
         self.api_key = api_key
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
         
         # Initialize the client during construction
         self._client = self._initialize_client()
@@ -116,13 +124,34 @@ class GeminiLLMClient:
         """
         load_dotenv()
     
+        # Parse optional parameters
+        temperature = parse_env_param('TEMPERATURE', float)
+        top_p = parse_env_param('TOP_P', float)
+        top_k = parse_env_param('TOP_K', int)
+        
         # Walidacja z Pydantic
         config = GeminiConfig(
             model_name=os.getenv('MODEL_NAME', 'gemini-2.5-flash'),
-            gemini_api_key=os.getenv('GEMINI_API_KEY', '')
+            gemini_api_key=os.getenv('GEMINI_API_KEY', ''),
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k
         )
         
-        return cls(model_name=config.model_name, api_key=config.gemini_api_key)
+        if config.temperature is not None:
+            console.print_info(f"🌡️  Temperature: {config.temperature}")
+        if config.top_p is not None:
+            console.print_info(f"Top P: {config.top_p}")
+        if config.top_k is not None:
+            console.print_info(f"🎰 Top K: {config.top_k}")
+        
+        return cls(
+            model_name=config.model_name,
+            api_key=config.gemini_api_key,
+            temperature=config.temperature,
+            top_p=config.top_p,
+            top_k=config.top_k
+        )
     
     def _initialize_client(self) -> genai.Client:
         """
@@ -171,13 +200,27 @@ class GeminiLLMClient:
                         )
                         gemini_history.append(content)
         
+        # Build generation config
+        generation_config_params = {}
+        if self.temperature is not None:
+            generation_config_params["temperature"] = self.temperature
+        if self.top_p is not None:
+            generation_config_params["top_p"] = self.top_p
+        if self.top_k is not None:
+            generation_config_params["top_k"] = self.top_k
+        
+        config_params = {
+            "system_instruction": system_instruction,
+            "thinking_config": types.ThinkingConfig(thinking_budget=thinking_budget)
+        }
+        
+        if generation_config_params:
+            config_params["generation_config"] = generation_config_params
+        
         gemini_session = self._client.chats.create(
             model=self.model_name,
             history=gemini_history,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget)
-            )
+            config=types.GenerateContentConfig(**config_params)
         )
         
         return GeminiChatSessionWrapper(gemini_session)

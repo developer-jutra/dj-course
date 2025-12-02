@@ -47,7 +47,7 @@ def main_loop():
 
             # Display response
             console.print_assistant(f"\n{session.assistant_name}: {response.text}")
-            console.print_info(f"🪙  Tokens: {total_tokens} (Pozostało: {remaining_tokens}/{max_tokens}) | ⏱️  Czas: {elapsed_time:.2f}s")
+            console.print_info(f"🧠  Tokens: {total_tokens} (Pozostało: {remaining_tokens}/{max_tokens}) | ⏱️  Czas: {elapsed_time:.2f}s")
 
             # Save session
             success, error = session.save_to_file()
