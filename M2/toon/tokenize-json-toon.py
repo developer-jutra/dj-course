@@ -30,7 +30,7 @@ if TOKENIZER_NAME not in ALL_TOKENIZERS:
 tokenizer = ALL_TOKENIZERS[TOKENIZER_NAME]
 print(f"✅ Successfully loaded tokenizer: {TOKENIZER_NAME}")
 
-SAMPLE_NAME = 'arch'
+SAMPLE_NAME = 'placeholder'
 
 sample_data = {}
 results = {}
