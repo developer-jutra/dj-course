@@ -101,9 +101,13 @@ Wykorzystujesz `M2/transcriber-UI`, które jest zbudowane w tkinter - pythonowym
 Aplikacja działa.
 
 **ZADANIE**: dodać 2 zakładki (na wzór superwhisper/czegokolwiek):
-- jedna przedstawia historię transkrypcji, czyli pojedynczych "uruchomień" transkrypcji wraz z tekstem wynikowym (w dowolnej formie)
-- możliwość usuwania pojedynczej transkrypcji
-- wymaganie - program przechowuje swoje dane "gdzieś" w formie i plików .wav i .json. Zarządzanie transkrypcjami ma być odzwierciedlane w plikach (tworzone/usuwane) - aby było spójnie
+- jedna przedstawia historię transkrypcji, czyli pojedynczych "uruchomień" transkrypcji:
+  - wraz z tekstem wynikowym (w dowolnej formie)
+  - możliwość usuwania pojedynczej transkrypcji
+  - wymaganie - program przechowuje swoje dane "gdzieś" w formie i plików .wav i .json. Zarządzanie transkrypcjami ma być odzwierciedlane w plikach (tworzone/usuwane) - aby było spójnie
+- druga definiuje ustawienia:
+  - "folder roboczy" w którym przechowywane są pliki programu
+  - ile zajmuje ów "folder roboczy"
 
 Zapewne nie znasz tkintera (byłoby dziwne gdybyś znał(a)) - i o to chodzi. Działaj z kodującym agentem.
 
