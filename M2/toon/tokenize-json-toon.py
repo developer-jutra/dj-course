@@ -30,7 +30,7 @@ if TOKENIZER_NAME not in ALL_TOKENIZERS:
 tokenizer = ALL_TOKENIZERS[TOKENIZER_NAME]
 print(f"✅ Successfully loaded tokenizer: {TOKENIZER_NAME}")
 
-SAMPLE_NAME = 'placeholder'
+SAMPLE_NAME = 'arch'
 
 sample_data = {}
 results = {}
@@ -71,8 +71,8 @@ if all(value == "" for value in sample_data.values()):
      print(f"--- 🚫 Skipping sample '{SAMPLE_NAME}': All required files are missing. ---")
 else:
     try:
-        encoded_json = tokenizer.encode(json.dumps(sample_data.get('json', '')))
-        encoded_nows_json = tokenizer.encode(json.dumps(sample_data.get('nows-json', '')))
+        encoded_json = tokenizer.encode(sample_data.get('json', ''))
+        encoded_nows_json = tokenizer.encode(sample_data.get('nows-json', ''))
 
         encoded_toon = tokenizer.encode(sample_data.get('toon', ''))
         encoded_yaml = tokenizer.encode(sample_data.get('yaml', ''))
