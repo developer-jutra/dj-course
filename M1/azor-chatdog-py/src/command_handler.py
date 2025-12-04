@@ -4,8 +4,9 @@ from commands.session_list import list_sessions_command
 from commands.session_display import display_full_session
 from commands.session_to_pdf import export_session_to_pdf
 from commands.session_remove import remove_session_command
+from commands.assistant_list import list_assistants_command
 
-VALID_SLASH_COMMANDS = ['/exit', '/quit', '/switch', '/help', '/session', '/pdf']
+VALID_SLASH_COMMANDS = ['/exit', '/quit', '/switch', '/help', '/session', '/pdf', '/assistant']
 
 def handle_command(user_input: str) -> bool:
     """
@@ -20,13 +21,13 @@ def handle_command(user_input: str) -> bool:
     if command not in VALID_SLASH_COMMANDS:
         console.print_error(f"Błąd: Nieznana komenda: {command}. Użyj /help.")
         current = manager.get_current_session()
-        console.display_help(current.session_id)
+        console.display_help(current.session_id, current.assistant_name)
         return False
     
     # Help command
     elif command == '/help':
         current = manager.get_current_session()
-        console.display_help(current.session_id)
+        console.display_help(current.session_id, current.assistant_name)
     
     # Exit commands
     if command in ['/exit', '/quit']:
@@ -53,7 +54,7 @@ def handle_command(user_input: str) -> bool:
                 else:
                     # Successfully switched
                     console.print_info(f"\n--- Przełączono na sesję: {new_session.session_id} ---")
-                    console.display_help(new_session.session_id)
+                    console.display_help(new_session.session_id, new_session.assistant_name)
                     
                     # Display history summary if session has content
                     if has_history:
@@ -72,6 +73,29 @@ def handle_command(user_input: str) -> bool:
     elif command == '/pdf':
         current = manager.get_current_session()
         export_session_to_pdf(current.get_history(), current.session_id, current.assistant_name)
+    
+    elif command == '/assistant':
+        if len(parts) < 2:
+            console.print_error("Błąd: Użycie: /assistant <list|switch>")
+        elif parts[1].lower() == 'list':
+            list_assistants_command()
+        elif parts[1].lower() == 'switch':
+            if len(parts) == 3:
+                assistant_id = parts[2].lower().strip()
+                
+                # Attempt to switch assistant through SessionManager
+                success, error = manager.switch_assistant(assistant_id)
+                
+                if not success:
+                    console.print_error(f"Nie można przełączyć na asystenta '{assistant_id}'. {error}")
+                else:
+                    current = manager.get_current_session()
+                    console.print_info(f"\n--- Przełączono na asystenta: {current.assistant.name} ---")
+                    console.print_info(f"Nowy asystent będzie używany w tej sesji.")
+            else:
+                console.print_error("Błąd: Użycie: /assistant switch <assistant-id>")
+        else:
+            console.print_error(f"Błąd: Nieznana podkomenda: {parts[1]}. Użyj 'list' lub 'switch'.")
 
     return False
 
@@ -110,7 +134,7 @@ def handle_session_subcommand(subcommand: str, manager):
         
         # Display new session info
         console.print_info(f"\n--- Rozpoczęto nową sesję: {new_session.session_id} ---")
-        console.display_help(new_session.session_id)
+        console.display_help(new_session.session_id, new_session.assistant_name)
 
     elif subcommand == 'remove':
         remove_session_command(manager)

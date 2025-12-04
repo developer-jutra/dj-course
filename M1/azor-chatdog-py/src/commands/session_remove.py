@@ -17,4 +17,4 @@ def remove_session_command(manager: SessionManager):
         console.print_warning(f"Nie można usunąć pliku sesji dla ID: {removed_session_id}. Powód: {error}")
 
     console.print_info(f"\n--- Rozpoczęto nową, anonimową sesję: {new_session.session_id} ---")
-    console.display_help(new_session.session_id)
+    console.display_help(new_session.session_id, new_session.assistant_name)

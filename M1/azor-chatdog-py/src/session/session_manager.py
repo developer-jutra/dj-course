@@ -1,6 +1,6 @@
 from cli import console
 from .chat_session import ChatSession
-from assistant import create_azor_assistant
+from assistant import get_assistant_registry
 from files import session_files
 
 
@@ -55,8 +55,9 @@ class SessionManager:
             if not success:
                 save_error = error
         
-        # Create new session
-        assistant = create_azor_assistant()
+        # Create new session with default assistant
+        registry = get_assistant_registry()
+        assistant = registry.get_default()
         new_session = ChatSession(assistant=assistant)
         self._current_session = new_session
         
@@ -88,8 +89,23 @@ class SessionManager:
             previous_session_id = self._current_session.session_id
             self._current_session.save_to_file()
         
-        # Load new session
-        assistant = create_azor_assistant()
+        # Load session metadata to get assistant_id
+        history, assistant_id, load_error = session_files.load_session_history(session_id)
+        
+        if load_error:
+            # Failed to load - don't change current session
+            return None, save_attempted, previous_session_id, False, load_error, False
+        
+        # Resolve assistant from registry
+        registry = get_assistant_registry()
+        assistant = registry.get(assistant_id)
+        
+        if assistant is None:
+            # Fallback to default assistant if not found
+            console.print_warning(f"Assistant '{assistant_id}' not found in registry. Using default assistant.")
+            assistant = registry.get_default()
+        
+        # Load session with resolved assistant
         new_session, error = ChatSession.load_from_file(assistant=assistant, session_id=session_id)
         
         if error:
@@ -118,12 +134,44 @@ class SessionManager:
         # Remove the session file
         remove_success, remove_error = session_files.remove_session_file(removed_session_id)
 
-        # Create a new session regardless of whether the file was successfully removed
-        assistant = create_azor_assistant()
+        # Create a new session with default assistant
+        registry = get_assistant_registry()
+        assistant = registry.get_default()
         new_session = ChatSession(assistant=assistant)
         self._current_session = new_session
 
         return new_session, removed_session_id, remove_success, remove_error
+    
+    def switch_assistant(self, assistant_id: str) -> tuple[bool, str | None]:
+        """
+        Switches the current session to use a different assistant.
+        
+        Args:
+            assistant_id: Unique identifier of the assistant to switch to
+            
+        Returns:
+            tuple: (success: bool, error_message: str | None)
+        """
+        if not self._current_session:
+            return False, "No active session."
+        
+        registry = get_assistant_registry()
+        assistant = registry.get(assistant_id)
+        
+        if assistant is None:
+            return False, f"Assistant '{assistant_id}' not found in registry."
+        
+        # Check if already using this assistant
+        if assistant.id == self._current_session.assistant.id:
+            return False, f"Already using assistant '{assistant.name}'."
+        
+        # Save current session before switching
+        self._current_session.save_to_file()
+        
+        # Switch assistant
+        self._current_session.switch_assistant(assistant)
+        
+        return True, None
 
     def initialize_from_cli(self, cli_session_id: str | None) -> ChatSession:
         """
@@ -136,28 +184,45 @@ class SessionManager:
         Returns:
             ChatSession: The initialized session
         """
+        registry = get_assistant_registry()
+        
         if cli_session_id:
-            assistant = create_azor_assistant()
-            session, error = ChatSession.load_from_file(assistant=assistant, session_id=cli_session_id)
+            # Load session metadata to get assistant_id
+            history, assistant_id, load_error = session_files.load_session_history(cli_session_id)
             
-            if error:
-                console.print_error(error)
-                # Fallback to new session
+            if load_error:
+                console.print_error(load_error)
+                # Fallback to new session with default assistant
+                assistant = registry.get_default()
                 session = ChatSession(assistant=assistant)
                 console.print_info(f"Rozpoczęto nową sesję z ID: {session.session_id}")
+            else:
+                # Resolve assistant from registry
+                assistant = registry.get(assistant_id)
+                if assistant is None:
+                    console.print_warning(f"Assistant '{assistant_id}' not found. Using default assistant.")
+                    assistant = registry.get_default()
+                
+                # Load session with resolved assistant
+                session, error = ChatSession.load_from_file(assistant=assistant, session_id=cli_session_id)
+                if error:
+                    console.print_error(error)
+                    assistant = registry.get_default()
+                    session = ChatSession(assistant=assistant)
+                    console.print_info(f"Rozpoczęto nową sesję z ID: {session.session_id}")
             
             self._current_session = session
             
-            console.display_help(session.session_id)
+            console.display_help(session.session_id, session.assistant_name)
             if not session.is_empty():
                 from commands.session_summary import display_history_summary
                 display_history_summary(session.get_history(), session.assistant_name)
         else:
             print("Rozpoczynanie nowej sesji.")
-            assistant = create_azor_assistant()
+            assistant = registry.get_default()
             session = ChatSession(assistant=assistant)
             self._current_session = session
-            console.display_help(session.session_id)
+            console.display_help(session.session_id, session.assistant_name)
         
         return session
     

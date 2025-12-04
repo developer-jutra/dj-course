@@ -83,11 +83,12 @@ class ChatSession:
         Returns:
             tuple: (ChatSession object or None, error_message or None)
         """
-        history, error = session_files.load_session_history(session_id)
+        history, assistant_id, error = session_files.load_session_history(session_id)
         
         if error:
             return None, error
         
+        # Note: assistant_id from file is ignored here - SessionManager resolves it
         session = cls(assistant=assistant, session_id=session_id, history=history)
         return session, None
     
@@ -107,7 +108,8 @@ class ChatSession:
             self.session_id, 
             self._history, 
             self.assistant.system_prompt, 
-            self._llm_client.get_model_name()
+            self._llm_client.get_model_name(),
+            self.assistant.id
         )
     
     def send_message(self, text: str):
@@ -188,6 +190,24 @@ class ChatSession:
         self.save_to_file()
         
         return True
+    
+    def switch_assistant(self, assistant: Assistant):
+        """
+        Switches to a different assistant while preserving conversation history.
+        Reinitializes the LLM session with the new assistant's system prompt.
+        
+        Args:
+            assistant: New assistant instance to use
+        """
+        # Update assistant
+        self.assistant = assistant
+        
+        # Reinitialize LLM session with new assistant's system prompt
+        # This preserves the history but uses the new system instruction
+        self._initialize_llm_session()
+        
+        # Save the session with new assistant
+        self.save_to_file()
     
     def count_tokens(self) -> int:
         """

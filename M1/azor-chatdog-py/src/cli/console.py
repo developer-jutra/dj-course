@@ -53,14 +53,27 @@ def print_help(message: str):
     print(Fore.YELLOW + message + Style.RESET_ALL)
 
 
-def display_help(session_id: str):
+def print_warning(message: str):
+    """Print a warning message in bright yellow color.
+    
+    Args:
+        message: The warning message to display
+    """
+    print(Fore.YELLOW + Style.BRIGHT + "⚠️  " + message + Style.RESET_ALL)
+
+
+def display_help(session_id: str, assistant_name: str = None):
     """Displays a short help message."""
     print_info(f"Aktualna sesja (ID): {session_id}")
+    if assistant_name:
+        print_info(f"Asystent: {assistant_name}")
     print_info(f"Pliki sesji są zapisywane na bieżąco w: {LOG_DIR}")
     print_help("Dostępne komendy (slash commands):")
-    print_help("  /switch <ID>      - Przełącza na istniejącą sesję.")
-    print_help("  /help             - Wyświetla tę pomoc.")
-    print_help("  /exit, /quit      - Zakończenie czatu.")
+    print_help("  /switch <ID>           - Przełącza na istniejącą sesję.")
+    print_help("  /assistant list        - Wyświetla dostępnych asystentów.")
+    print_help("  /assistant switch <ID> - Przełącza na innego asystenta.")
+    print_help("  /help                  - Wyświetla tę pomoc.")
+    print_help("  /exit, /quit           - Zakończenie czatu.")
     print_help("\n  /session list     - Wyświetla listę dostępnych sesji.")
     print_help("  /session display  - Wyświetla całą historię sesji.")
     print_help("  /session pop      - Usuwa ostatnią parę wpisów (TY i asystent).")
