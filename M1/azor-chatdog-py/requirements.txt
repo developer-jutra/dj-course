@@ -8,3 +8,11 @@ fpdf2
 markdown
 requests>=2.31.0
 ollama>=0.1.0
+pyttsx3>=2.90
+pydub>=0.25.1
+simpleaudio>=1.0.4 # check if we can remove it 
+TTS>=0.22.0
+edge-tts>=6.1.0
+transformers==4.33.3
+scipy>=1.11.0
+torch>=2.1.0,<2.5.0
