@@ -1,0 +1,60 @@
+sequenceDiagram
+    participant H as Human
+    participant A as Agent
+    participant P1 as Persona1
+    participant P2 as Persona2
+    participant M as Model (LLM)
+
+    Note over A, P2: Initializing Dialog
+    A ->> P1: set system prompt (SP)
+    A ->> P2: system system prompt (SP)
+
+    Note over H, A: Initializing conversation topic
+    H ->> A: Send Initial Prompt
+
+    Note over A, M: Persona1 turn
+    A ->> P1: ask(Initial)
+    activate P1
+    P1 ->> M: invoke<br/>⚙️ SYSTEM PROMPT=P1-ROLE<br/>❓ ROLE=User, TEXT=Initial
+    M -->> P1: result1
+    P1 -->> A: answer1
+    deactivate P1
+
+    A ->> H: continue?
+    H -->> A: yeah
+
+    Note over A, M: Persona2 turn
+    A ->> P2: ask(answer1)
+    activate P2
+    P2 ->> M: invoke<br/>⚙️ SYSTEM PROMPT=P2-ROLE<br/>❓ ROLE=User, TEXT=Initial + answer1
+    M -->> P2: result2
+    P2 -->> A: answer2
+    deactivate P2
+
+    A ->> H: continue?
+    H -->> A: yeah
+
+    Note over A, M: Persona1 turn
+    A ->> P1: ask(answer2)
+    activate P1
+    P1 ->> M: invoke<br/>⚙️ SYSTEM PROMPT=P1-ROLE<br/>❓ ROLE=User, TEXT=Initial<br/>✨ ROLE=Assistant, TEXT=answer1<br/>❓ ROLE=User, TEXT=answer2
+    M -->> P1: result 3
+    P1 -->> A: answer3
+    deactivate P1
+
+    A ->> H: continue?
+    H -->> A: yeah
+
+    Note over A, M: Persona2 turn
+    A ->> P2: ask(answer3)
+    activate P2
+    P2 ->> M: invoke<br/>⚙️ SYSTEM PROMPT=P2-ROLE<br/>❓ ROLE=User, TEXT=Initial + answer1<br/>✨ ROLE=Assistant, TEXT=answer2<br/>❓ ROLE=User, TEXT=answer3
+    M -->> P2: result 4
+    P2 -->> A: answer4
+    deactivate P2
+
+    A ->> H: continue?
+    H -->> A: nope
+
+    Note over A, M: DONE
+
