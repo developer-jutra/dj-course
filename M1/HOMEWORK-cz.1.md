@@ -10,10 +10,14 @@ Dostępne API: python / node.js, w sumie 6 różnych kombinacji:
 - `M1/external-model-openai-py`
 
 Foldery zawierają README z linkami do zakładania kont i kluczy API.
-Można zasilić model jednorazowo np. kwotą 5$ i ustawić zmienne typu "maxTokens" na skrtajnie niską wartość typu 128 - wówsczas pojedynczy request kosztuje ~0.002$.
+Można zasilić model jednorazowo np. kwotą 5$ i ustawić zmienne typu "maxTokens" na skrajnie niską wartość typu 128 - wówsczas pojedynczy request kosztuje ~0.002$.
 Google Gemini daje "hojne" darmowe quota na start.
 
-W wybranym setupie stokenizuj odpowiedzi na wzór ![tokenized prompts and responses](./tokenized.png)
+W wybranym setupie stokenizuj odpowiedzi na wzór ![tokenized prompts and responses](./tokenized.png), jednocześnie uwzględniając specyfikę vendorów:
+- **OpenAI**: pakiet `tiktoken` pozwala na **zliczenie tokenów** + **zwrócenie listy** konkretnych tokenów
+- **Google genai/Gemini**: pozwala tylko na **zliczenie tokenów** 
+- **Anthropic SDK**: pozwala tylko na **zliczenie tokenów** 
+- **modele otwarte / Hugging Face** (`transformers`/python): pozwala na "prawie wszystko", tj. **zliczenie tokenów** + **zwrócenie listy** konkretnych tokenów
 
 # Zadanie 2
 
@@ -24,41 +28,33 @@ Podepnij MLFlow - i podsłuchaj, co agent robi z (jakimś) modelem:
 
 zobacz `M1/mlflow/README.md`
 
-TROUBLESHOOTING: jeśli uruchamiasz `mlflow autolog claude --status` otrzymujesz błąd:
-`Error: No such command 'autolog'`
-to sprawdź po kolei:
-- upewnij się, że venv (wirtualne środowisko) jest włączone, i że paczka jest tam zainstalowana (przechodząc między projektami można zapomnieć w którym venv się jest)
-- sprawdź na której wersji pythona jesteś. Przykładowo, jeśli jesteś na 3.9 to podbij się do 3.13
-  - nie podbijaj się do 3.14 (zgłaszano błędy o problemach z tą wersją)
-  - w przypadku potrzeby zmiany wersji pythona, możesz albo reinstalować, albo (lepiej) skorzystać z `pyenv` - prostego toola do utrzymywania równoloegle wielu wersji pythona jednocześnie na Twojej maszynie
-- jeśli to nie zadziała to sprawdź czy nie masz przypadkiem przestarzałej wersji `mlflow` jako takiego (w zależności od Twojego systemu, komenda może być bardziej lub mniej podobna to tej: `cat .venv/lib/python3.13/site-packages/mlflow/version.py `)
-
 # Zadanie 3
 
-Robimy własny TOKENIZER. Folder: `M1/tokenizer`
+TASK: Robimy własny TOKENIZER ("słownik tokenów"). Folder: `M1/tokenizer`
 
 Korpusy danych treningowych do wyboru:
-- `M1/korpus-nkjp`
+- `M1/korpus-nkjp` (jest dostępny w [folderze `M1/korpus-nkjp/output`](./korpus-nkjp/output/), dodatkowo [więcej info dot. jak ściągać tutaj](./korpus-nkjp/README.md))
 - `M1/korpus-wolnelektury`
 - `M1/korpus-spichlerz` (Bielik Team)
 W repo znajdziesz instrukcje dla 3 różnych korpusów danych treningowych oraz bazowy kod pythonowy.
+(!) **Korzystaj z plik-utils do zarządzania korpusami**: `M1/tokenizer/corpora.py` (importujesz/przefiltrowujesz korpusy).
 
 Zadania:
-- stwórz własne tokenizery w oparciu o plik `tokenizer-build.py` (obecna wersja działa ale jest zahardkodowana). Zdynamizuj kod w taki sposób, aby móc dynamicznie tworzyć tokenizery w oparciu o zadane korpusy tekstowe. Stwórz
+1. stwórz własne tokenizery w oparciu o plik `tokenizer-build.py` (obecna wersja działa ale jest zahardkodowana). Zdynamizuj kod w taki sposób, aby móc dynamicznie tworzyć tokenizery w oparciu o zadane korpusy tekstowe. Stwórz
   - `tokenizer-pan-tadeusz.json` - tylko w oparciu o Pana Tadeusza ("wolnelektury")
   - `tokenizer-wolnelektury.json` - w oparciu o cały korpus "wolnelektury"
   - `tokenizer-nkjp.json` - w oparciu o cały korpus "nkjp"
   - `tokenizer-all-corpora.json` - w oparciu o wszystkie korpusy
-- z HuggingFace wybierz LLM i ściągnij jego tokenizer (byle inny niż Mistral-v0.1 - bo to ten sam co Bielik v0.1) i dodaj go do swoich tokenizerów
-- w nawiązaniu do sławnego badania ;) (https://arxiv.org/pdf/2503.01996) tokenizujemy różne teksty "na krzyż" różnymi tokenizerami
+2. z HuggingFace wybierz LLM i ściągnij jego tokenizer (byle inny niż Mistral-v0.1 - bo to ten sam co Bielik v0.1) i dodaj go do swoich tokenizerów
+3. w nawiązaniu do sławnego badania ;) (https://arxiv.org/pdf/2503.01996) tokenizujemy różne teksty "na krzyż" różnymi tokenizerami
   - teksty:
     - "Pan Tadeusz, Księga 1" ("wolnelektury")
     - "The Pickwick Papers" (mini korpus / projekt gutenberg)
     - "Fryderyk Chopin" (mini korpus / wikipedia)
   - tokenizery - wszystkie dostępne (3 bielikowe + wybrany z HF + 4 stworzone)
   - zmontuj statystyki, które mają odpowiedzieć na pytanie: **DLA KAŻDEGO TEKSTU, KTÓRY TOKENIZER BYŁ NAJEFEKTYWNIEJSZY POD KĄTEM NAJMNIEJSZEJ ILOŚCI WYNIKOWYCH TOKENÓW?**
-- spróbuj osiągnąć taki tokenizer, aby miał jak najdłuższe kawałki słów - to sprawi że embedding w następnym ćwiczeniu będzie mega efektywny
-- sprawdź czy dla customowych tokenizerów zmiana rozmiaru słownika (default: `32k`) robi różnicę na wyniki?
+4. spróbuj osiągnąć taki tokenizer, aby miał jak najdłuższe kawałki słów - to sprawi że embedding w następnym ćwiczeniu będzie mega efektywny
+5. sprawdź czy dla customowych tokenizerów zmiana rozmiaru słownika (default: `32k`) robi różnicę na wyniki?
 
 **Finalnie**: porównaj tokenizery: swój + wszystkie bieliki (`M1/tokenizer/tokenizers/*.json`).
 
