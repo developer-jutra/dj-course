@@ -22,6 +22,9 @@ class LlamaChatSession:
         llama_model: Llama,
         system_instruction: str,
         history: Optional[List[Dict]] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
     ):
         """
         Initialize the LLaMA chat session.
@@ -30,10 +33,16 @@ class LlamaChatSession:
             llama_model: Initialized Llama model instance
             system_instruction: System prompt for the assistant
             history: Previous conversation history
+            temperature: Sampling temperature
+            top_p: Top-P sampling
+            top_k: Top-K sampling
         """
         self.llama_model = llama_model
         self.system_instruction = system_instruction
         self._history = history or []
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
 
     def send_message(self, text: str) -> Any:
         """
@@ -53,13 +62,21 @@ class LlamaChatSession:
         prompt = self._build_prompt_from_history()
 
         try:
+            # Build generation parameters
+            generation_params = {
+                "max_tokens": 512,
+                "stop": ["User:", "Assistant:", "\n\nUser:", "\n\nAssistant:"],
+                "echo": False,
+            }
+            if self.temperature is not None:
+                generation_params["temperature"] = self.temperature
+            if self.top_p is not None:
+                generation_params["top_p"] = self.top_p
+            if self.top_k is not None:
+                generation_params["top_k"] = self.top_k
+
             # Generate response using LLaMA
-            output = self.llama_model(
-                prompt,
-                max_tokens=512,
-                stop=["User:", "Assistant:", "\n\nUser:", "\n\nAssistant:"],
-                echo=False,
-            )
+            output = self.llama_model(prompt, **generation_params)
 
             response_text = output["choices"][0]["text"].strip()
 
@@ -136,7 +153,8 @@ class LlamaClient:
     """
 
     def __init__(
-        self, model_name: str, model_path: str, n_gpu_layers: int = 1, n_ctx: int = 2048
+        self, model_name: str, model_path: str, n_gpu_layers: int = 1, n_ctx: int = 2048,
+        temperature: Optional[float] = None, top_p: Optional[float] = None, top_k: Optional[int] = None
     ):
         """
         Initialize the LLaMA client with explicit parameters.
@@ -146,6 +164,9 @@ class LlamaClient:
             model_path: Path to the GGUF model file
             n_gpu_layers: Number of layers to run on GPU
             n_ctx: Maximum context length
+            temperature: Sampling temperature
+            top_p: Top-P sampling
+            top_k: Top-K sampling
 
         Raises:
             ValueError: If model_path is empty or file doesn't exist
@@ -160,6 +181,9 @@ class LlamaClient:
         self.model_path = model_path
         self.n_gpu_layers = n_gpu_layers
         self.n_ctx = n_ctx
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
 
         # Initialize the model during construction
         self._llama_model = self._initialize_model()
@@ -193,6 +217,9 @@ class LlamaClient:
             llama_model_path=os.getenv("LLAMA_MODEL_PATH"),
             llama_gpu_layers=int(os.getenv("LLAMA_GPU_LAYERS", "1")),
             llama_context_size=int(os.getenv("LLAMA_CONTEXT_SIZE", "2048")),
+            temperature=os.getenv("TEMPERATURE"),
+            top_p=os.getenv("TOP_P"),
+            top_k=os.getenv("TOP_K"),
         )
 
         console.print_info(f"Ładowanie modelu LLaMA z: {config.llama_model_path}")
@@ -202,6 +229,9 @@ class LlamaClient:
             model_path=config.llama_model_path,
             n_gpu_layers=config.llama_gpu_layers,
             n_ctx=config.llama_context_size,
+            temperature=config.temperature,
+            top_p=config.top_p,
+            top_k=config.top_k,
         )
 
     def _initialize_model(self) -> Llama:
@@ -255,6 +285,9 @@ class LlamaClient:
             llama_model=self._llama_model,
             system_instruction=system_instruction,
             history=history or [],
+            temperature=self.temperature,
+            top_p=self.top_p,
+            top_k=self.top_k,
         )
 
     def count_history_tokens(self, history: List[Dict]) -> int:

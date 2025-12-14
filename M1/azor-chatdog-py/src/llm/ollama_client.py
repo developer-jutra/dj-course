@@ -26,6 +26,7 @@ class OllamaChatSession:
     Wrapper class that provides a chat session interface compatible with other clients.
     Manages conversation history and provides send_message() and get_history() methods.
     """
+    load_dotenv()
 
     def __init__(
         self,
@@ -34,12 +35,18 @@ class OllamaChatSession:
         api_base_url: str,
         system_instruction: str,
         history: Optional[List[Dict]] = None,
+        temperature: Optional[float] = float(v) if (v := os.getenv("TEMPERATURE")) else None,
+        top_p: Optional[float] = float(v) if (v := os.getenv("TOP_P")) else None,
+        top_k: Optional[int] = int(v) if (v := os.getenv("TOP_K")) else None,
     ):
         self.client = client
         self.model_name = model_name
         self.api_base_url = api_base_url
         self.system_instruction = system_instruction
         self._history = history or []
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
 
     def send_message(self, text: str) -> OllamaResponse:
         """
@@ -61,6 +68,11 @@ class OllamaChatSession:
             "model": self.model_name,
             "messages": ollama_messages,
             "stream": False,
+            "options": {
+                "temperature": self.temperature,
+                "top_p": self.top_p,
+                "top_k": self.top_k,
+            },
         }
 
         try:
@@ -110,11 +122,21 @@ class OllamaClient:
     Provides a clean interface compatible with GeminiLLMClient and LlamaClient.
     """
 
-    def __init__(self, model_name: str, api_base_url: str):
+    def __init__(
+        self,
+        model_name: str,
+        api_base_url: str,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+    ):
         if not api_base_url:
             raise ValueError("Ollama API base URL cannot be empty")
         self.model_name = model_name
         self.api_base_url = api_base_url.rstrip("/")
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
         self._client = self._initialize_client()
 
     @staticmethod

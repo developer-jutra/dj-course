@@ -75,13 +75,23 @@ class GeminiLLMClient:
     Provides a clean interface for chat sessions, token counting, and configuration.
     """
 
-    def __init__(self, model_name: str, api_key: str):
+    def __init__(
+        self,
+        model_name: str,
+        api_key: str,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+    ):
         """
         Initialize the Gemini LLM client with explicit parameters.
 
         Args:
             model_name: Model to use (e.g., 'gemini-2.5-flash')
             api_key: Google Gemini API key
+            temperature: Sampling temperature
+            top_p: Top-P sampling
+            top_k: Top-K sampling
 
         Raises:
             ValueError: If api_key is empty or None
@@ -91,6 +101,9 @@ class GeminiLLMClient:
 
         self.model_name = model_name
         self.api_key = api_key
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
 
         # Initialize the client during construction
         self._client = self._initialize_client()
@@ -120,11 +133,20 @@ class GeminiLLMClient:
 
         # Walidacja z Pydantic
         config = GeminiConfig(
-            model_name=os.getenv("MODEL_NAME", "gemini-2.5-flash"),
+            model_name=os.getenv("MODEL_NAME", "gemini-1.5-flash"),
             gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
+            temperature=os.getenv("TEMPERATURE"),
+            top_p=os.getenv("TOP_P"),
+            top_k=os.getenv("TOP_K"),
         )
 
-        return cls(model_name=config.model_name, api_key=config.gemini_api_key)
+        return cls(
+            model_name=config.model_name,
+            api_key=config.gemini_api_key,
+            temperature=config.temperature,
+            top_p=config.top_p,
+            top_k=config.top_k,
+        )
 
     def _initialize_client(self) -> genai.Client:
         """
@@ -174,12 +196,22 @@ class GeminiLLMClient:
                         )
                         gemini_history.append(content)
 
+        generation_config = types.GenerationConfig(
+            temperature=self.temperature,
+            top_p=self.top_p,
+            top_k=self.top_k,
+        )
+
         gemini_session = self._client.chats.create(
             model=self.model_name,
             history=gemini_history,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget),
+                temperature=generation_config.temperature,
+                top_p=generation_config.top_p,
+                top_k=generation_config.top_k,
+                max_output_tokens=generation_config.max_output_tokens,
             ),
         )
 
