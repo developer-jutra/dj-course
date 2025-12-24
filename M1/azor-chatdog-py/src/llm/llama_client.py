@@ -16,6 +16,7 @@ class LlamaChatSession:
     Wrapper class that provides a chat session interface compatible with Gemini's interface.
     Manages conversation history and provides send_message() and get_history() methods.
     """
+    load_dotenv()
 
     def __init__(
         self,
