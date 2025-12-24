@@ -12,14 +12,13 @@ sequenceDiagram
     loop
         A ->> H: ask for input
         H -->> A: input(prompt)
-        A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt
+        A ->> M: invoke<br/>⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt
         
         %% NEXT TURN:
-        %% A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=Previous Prompt<br/>✨ ROLE=Assistant, TEXT=Previous Answer<br/>❓ ROLE=User, TEXT=prompt
+        A ->> M: invoke<br/>⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=Previous Prompt<br/>✨ ROLE=Assistant, TEXT=Previous Answer<br/>❓ ROLE=User, TEXT=prompt
 
         %% WITH CONTEXT:
-        %% A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt + CTX<br/>❓ ROLE=User, TEXT=prompt
-        %% A ->> M: invoke<br />⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt + CTX
+        A ->> M: invoke<br/>⚙️ SYSTEM PROMPT=System Prompt<br/>❓ ROLE=User, TEXT=prompt + CTX
         M -->> A: answer
     end
 
