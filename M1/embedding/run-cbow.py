@@ -6,7 +6,7 @@ from tokenizers import Tokenizer
 import os
 import glob
 # import z corpora (zakładam, że jest to plik pomocniczy)
-from corpora import CORPORA_FILES # type: ignore 
+from corpora import CORPORA_FILES # type: ignore
 
 # Ustawienie logowania dla gensim
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -27,9 +27,9 @@ OUTPUT_MODEL_FILE = "embedding_word2vec_cbow_model.model"
 # Parametry treningu Word2Vec (CBOW)
 VECTOR_LENGTH = 20
 WINDOW_SIZE = 6
-MIN_COUNT = 2         
-WORKERS = 4           
-EPOCHS = 20          
+MIN_COUNT = 2
+WORKERS = 4
+EPOCHS = 20
 SAMPLE_RATE = 1e-2
 SG_MODE = 0 # 0 dla CBOW, 1 dla Skip-gram
 
@@ -114,9 +114,9 @@ def get_word_vector_and_similar(word: str, tokenizer: Tokenizer, model: Word2Vec
     # Tokenizacja słowa na tokeny podwyrazowe
     # Używamy .encode(), aby otoczyć słowo spacjami, co imituje kontekst w zdaniu
     # Ważne: tokenizator BPE/SentencePiece musi widzieć spację, by dodać prefiks '_'
-    encoding = tokenizer.encode(" " + word + " ") 
+    encoding = tokenizer.encode(" " + word + " ")
     word_tokens = [t.strip() for t in encoding.tokens if t.strip()] # Usuń puste tokeny
-    
+
     # Usuwamy tokeny początku/końca sekwencji, jeśli zostały dodane przez tokenizator
     if word_tokens and word_tokens[0] in ['[CLS]', '<s>', '<s>', 'Ġ']:
         word_tokens = word_tokens[1:]
@@ -125,7 +125,7 @@ def get_word_vector_and_similar(word: str, tokenizer: Tokenizer, model: Word2Vec
 
     valid_vectors = []
     missing_tokens = []
-    
+
     # 1. Zbieranie wektorów dla każdego tokenu
     for token in word_tokens:
         if token in model.wv:
@@ -152,7 +152,7 @@ def get_word_vector_and_similar(word: str, tokenizer: Tokenizer, model: Word2Vec
         positive=[word_vector],
         topn=topn
     )
-    
+
     return word_vector, similar_words
 
 # --- WERYFIKACJA UŻYCIA NOWEJ FUNKCJI ---
@@ -160,11 +160,11 @@ def get_word_vector_and_similar(word: str, tokenizer: Tokenizer, model: Word2Vec
 print("\n--- Weryfikacja: Szukanie podobieństw dla całych SŁÓW (uśrednianie wektorów tokenów) ---")
 
 # Przykłady, które wcześniej mogły nie działać
-words_to_test = ['wojsko', 'szlachta', 'choroba', 'król'] 
+words_to_test = ['wojsko', 'szlachta', 'choroba', 'król']
 
 for word in words_to_test:
     word_vector, similar_tokens = get_word_vector_and_similar(word, tokenizer, model, topn=10)
-    
+
     if word_vector is not None:
         print(f"\n10 tokenów najbardziej podobnych do SŁOWA '{word}' (uśrednione wektory tokenów {tokenizer.encode(word).tokens}):")
         # Wyświetlanie wektora (pierwsze 5 elementów)

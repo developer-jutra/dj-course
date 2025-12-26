@@ -11,21 +11,26 @@ from corpora import CORPORA_FILES
 # Ustawienie logowania dla gensim
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-# files = CORPORA_FILES["ALL"]
-files = CORPORA_FILES["WOLNELEKTURY"]
-# files = CORPORA_FILES["PAN_TADEUSZ"]
+# key = "ALL"
+key = "WOLNELEKTURY"
+# key = "PAN_TADEUSZ"
 
-TOKENIZER_FILE = "../tokenizer/tokenizers/bielik-v3-tokenizer.json"
+files = CORPORA_FILES[key]
+
+TOKENIZER_FILE = "../tokenizer/tokenizers/tokenizer-all-corpora.json"
+# TOKENIZER_FILE = "../tokenizer/tokenizers/tokenizer-nkjp.json"
+# TOKENIZER_FILE = "../tokenizer/tokenizers/tokenizer-wolnelektury.json"
+# TOKENIZER_FILE = "../tokenizer/tokenizers/tokenizer-pan-tadeusz.json"
 OUTPUT_MODEL_FILE = "doc2vec_model_combined.model"
 OUTPUT_SENTENCE_MAP = "doc2vec_model_sentence_map_combined.json"
 
 # Parametry treningu Doc2Vec
 VECTOR_LENGTH = 20
-WINDOW_SIZE = 6   
-MIN_COUNT = 4         
-WORKERS = 4           
-EPOCHS = 20           
-SG_MODE = 0   
+WINDOW_SIZE = 6
+MIN_COUNT = 4
+WORKERS = 4
+EPOCHS = 20
+SG_MODE = 0
 
 # --- ETAP 1: Wczytanie, Tokenizacja i Przygotowanie Danych ---
 try:
@@ -37,12 +42,12 @@ except FileNotFoundError:
 # Wczytywanie i agregacja tekstu
 raw_sentences = []
 print("Wczytywanie tekstu z plików...")
-print(f"Liczba plików do wczytania: {len(files)}") 
+print(f"Liczba plików do wczytania: {len(files)}")
 
 for file in files:
     try:
         with open(file, 'r', encoding='utf-8') as f:
-            lines = [line.strip() for line in f if line.strip()] 
+            lines = [line.strip() for line in f if line.strip()]
             raw_sentences.extend(lines)
     except FileNotFoundError:
         print(f"OSTRZEŻENIE: Nie znaleziono pliku '{file}'. Pomijam.")
@@ -87,7 +92,7 @@ print(f"Trening zakończony pomyślnie. Czas trwania: {end_time - start_time:.2f
 try:
     model_d2v.save(OUTPUT_MODEL_FILE)
     print(f"\nPełny model Doc2Vec zapisany jako: '{OUTPUT_MODEL_FILE}'.")
-    
+
     with open(OUTPUT_SENTENCE_MAP, "w", encoding="utf-8") as f:
         json.dump(raw_sentences, f, ensure_ascii=False, indent=4)
     print(f"Mapa zdań do ID zapisana jako: '{OUTPUT_SENTENCE_MAP}'.")
@@ -106,8 +111,19 @@ print("=== ROZPOCZYNAM ETAP WNIOSKOWANIA (INFERENCE) ===")
 print("="*50)
 
 #  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥testowanie🔥🔥🔥🔥🔥🔥🔥🔥
-new_sentence = "Jestem głodny." 
+new_sentence = "Jestem głodny."
+# new_sentence = "Jestem głodny i bardzo chętnie zjadłbym coś."
+# new_sentence = "Gdzie bursztynowy świerzop, gryka jak śnieg biała, Gdzie panieńskim rumieńcem dzięcielina pała"
 print(f"Zdanie do wnioskowania: \"{new_sentence}\"")
+print(f"Zbiór: {key}")
+print(f"Użycie tokenizera z pliku: {TOKENIZER_FILE}")
+print(f"VECTOR_LENGTH: {VECTOR_LENGTH}")
+print(f"WINDOW_SIZE: {WINDOW_SIZE}")
+print(f"MIN_COUNT: {MIN_COUNT}")
+print(f"WORKERS: {WORKERS}")
+print(f"EPOCHS: {EPOCHS}")
+print(f"SG_MODE: {SG_MODE}")
+print(f"Czas trwania treningu: {end_time - start_time:.2f}s")
 
 
 # Używamy obiektów już załadowanych/wytrenowanych: model_d2v, tokenizer, raw_sentences
@@ -130,7 +146,7 @@ print("\n5 najbardziej podobnych zdań z korpusu (Doc2Vec Inference):")
 for doc_id_str, similarity in most_similar_docs:
     # 1. Konwertujemy ID (string) z powrotem na indeks (int)
     doc_index = int(doc_id_str)
-    
+
     # 2. Używamy indeksu do odnalezienia oryginalnego tekstu
     # Zabezpieczenie na wypadek błędu indeksowania (choć nie powinno wystąpić)
     try:
