@@ -7,7 +7,7 @@ sequenceDiagram
     H ->> A: run application
     A ->> A: provide (available tools)
 
-    rect rgb(191, 223, 255)
+    rect rgba(55,55,55, 0.3)
     Note over A, M: No tool use
     A ->> H: ask for input
     H -->> A: input(prompt)
@@ -15,7 +15,7 @@ sequenceDiagram
     M -->> A: FINAL ANSWER
     end
     
-    rect rgb(191, 223, 255)
+    rect rgba(55,55,55, 0.3)
     Note over A, M: Tool use
     A ->> H: ask for input
     H -->> A: input(prompt)
