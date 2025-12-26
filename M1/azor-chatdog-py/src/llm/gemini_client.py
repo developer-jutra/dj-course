@@ -9,7 +9,8 @@ from typing import Optional, List, Any, Dict
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-from cli import console
+
+from ..cli import console
 from .gemini_validation import GeminiConfig
 
 

@@ -1,5 +1,5 @@
-from files import session_files
-from cli import console
+from ..files import session_files
+from ..cli import console
 
 def list_sessions_command():
     """Displays a formatted list of available sessions."""

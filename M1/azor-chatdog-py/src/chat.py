@@ -1,11 +1,11 @@
 import atexit
-import files.config as config
-import cli.args
-from session import get_session_manager
-import command_handler
-from cli import console
-from cli.prompt import get_user_input
-from commands.welcome import print_welcome
+from .cli.args import get_session_id_from_cli
+from .session import get_session_manager
+from .cli import console
+from .cli.prompt import get_user_input
+from .commands.welcome import print_welcome
+from . import command_handler
+
 
 
 def init_chat():
@@ -14,7 +14,7 @@ def init_chat():
     manager = get_session_manager()
 
     # Initialize session based on CLI args
-    cli_session_id = cli.args.get_session_id_from_cli()
+    cli_session_id = get_session_id_from_cli()
     session = manager.initialize_from_cli(cli_session_id)
 
     # Register cleanup handler

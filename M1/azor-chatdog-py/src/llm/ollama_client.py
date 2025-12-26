@@ -7,7 +7,8 @@ import os
 import httpx
 from typing import Optional, List, Any, Dict
 from dotenv import load_dotenv
-from cli import console
+
+from ..cli import console
 from .ollama_validation import OllamaConfig
 
 

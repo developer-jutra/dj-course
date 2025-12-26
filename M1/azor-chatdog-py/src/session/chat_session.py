@@ -1,13 +1,14 @@
 import uuid
-from typing import List, Any, Union
 import os
-from files import session_files
-from files.wal import append_to_wal
-from llm.gemini_client import GeminiLLMClient
-from llm.llama_client import LlamaClient
-from llm.ollama_client import OllamaClient
-from assistant import Assistant
-from cli import console
+from typing import List, Any, Union
+
+from ..files import session_files
+from ..files.wal import append_to_wal
+from ..llm.gemini_client import GeminiLLMClient
+from ..llm.llama_client import LlamaClient
+from ..llm.ollama_client import OllamaClient
+from ..assistant import Assistant
+from ..cli import console
 
 # Context token limit
 
@@ -236,3 +237,17 @@ class ChatSession:
             str: The assistant's display name
         """
         return self.assistant.name
+
+    def get_last_model_response(self) -> str | None:
+        """
+        Retrieves the text of the last model response from the history.
+
+        Returns:
+            The text of the last model response, or None if no model response is found.
+        """
+        for i in range(len(self._history) - 1, -1, -1):
+            entry = self._history[i]
+            if entry.get("role") == "model":
+                if entry.get("parts") and isinstance(entry["parts"], list) and len(entry["parts"]) > 0:
+                    return entry["parts"][0].get("text")
+        return None

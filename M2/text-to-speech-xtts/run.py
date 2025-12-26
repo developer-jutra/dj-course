@@ -1,38 +1,45 @@
 import time
 import threading
 from TTS.api import TTS
-import warnings 
+import warnings
 from animate import run_tts_animation, console
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-FILE_PATH = "sample-agent.wav"
+# FILE_PATH = "sample-agent.wav"
+# FILE_PATH = "Nie spotkało mnie w życiu nic śmiesznego.mp3"
+# FILE_PATH = "Z pierwszego filmu wyrzucili mnie.mp3"
+# FILE_PATH = "Oczom ich ukazał się las... krzyży.mp3"
+# FILE_PATH = "Stop kamera.mp3"
+FILE_PATH = "dzienswira/dzien swira-czy panowie.mp3"
 OUTPUT_WAV_PATH = "output.wav"
 
-GENERATION_DONE = threading.Event() 
+GENERATION_DONE = threading.Event()
+
+
 def generate_file_thread(tts_instance, text, file_path, speaker_wav, language):
     """
     Wątek do asynchronicznego generowania pliku audio TTS.
     """
     try:
         tts_instance.tts_to_file(
-            text=text,
-            file_path=file_path,
-            speaker_wav=speaker_wav,
-            language=language
+            text=text, file_path=file_path, speaker_wav=speaker_wav, language=language
         )
     finally:
         GENERATION_DONE.set()
+
 
 texts = [
     "witaj w szkoleniu DEVELOPER JUTRA! Mówi do Ciebie model XTTS!",
     "Sąd sądem, a sprawiedliwość musi być po naszej stronie.",
     "A może by tak rzucić to wszystko i wyjechać w Bieszczady?",
     "Nie matura, lecz chęć szczera zrobi z ciebie oficera.",
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    "Litwo! Ojczyzno moja! ty jesteś jak zdrowie. Ile cię trzeba cenić, ten tylko się dowie, Kto cię stracił. Dziś piękność twą w całej ozdobie Widzę i opisuję, bo tęsknię po tobie. Panno Święta, co jasnej bronisz Częstochowy I w Ostrej świecisz Bramie! Ty, co gród zamkowy Nowogródzki ochraniasz z jego wiernym ludem! Jak mnie dziecko do zdrowia powróciłaś cudem (Gdy od płaczącej matki pod Twoją opiekę Ofiarowany, martwą podniosłem powiekę I zaraz mogłem pieszo do Twych świątyń progu Iść za wrócone życie podziękować Bogu), Tak nas powrócisz cudem na Ojczyzny łono. Tymczasem przenoś moję duszę utęsknioną Do tych pagórków leśnych, do tych łąk zielonych, Szeroko nad błękitnym Niemnem rozciągnionych; Do tych pól malowanych zbożem rozmaitem, Wyzłacanych pszenicą, posrebrzanych żytem; Gdzie bursztynowy świerzop, gryka jak śnieg biała, Gdzie panieńskim rumieńcem dzięcielina pała, A wszystko przepasane, jakby wstęgą, miedzą Zieloną, na niej z rzadka ciche grusze siedzą.",
 ]
 
 if __name__ == "__main__":
-    
+
     try:
         console.print("\n[bold yellow]🤖 Ładowanie modelu TTS...[/bold yellow]")
         tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to("cpu")
@@ -46,20 +53,26 @@ if __name__ == "__main__":
         GENERATION_DONE.clear()
         generation_thread = threading.Thread(
             target=generate_file_thread,
-            args=(tts, text_to_synthesize, output_wav_path, FILE_PATH, "pl")
+            args=(tts, text_to_synthesize, output_wav_path, FILE_PATH, "pl"),
         )
         generation_thread.start()
 
-        console.print(f"[bold cyan]▶️  ({idx}/{len(texts)}) Uruchomienie generowania pliku audio...[/bold cyan]")
-        
+        console.print(
+            f"[bold cyan]▶️  ({idx}/{len(texts)}) Uruchomienie generowania pliku audio...[/bold cyan]"
+        )
+
         elapsed_time = run_tts_animation(
             target_text=" GENEROWANIE PLIKU AUDIO... ",
-            thread_to_monitor=generation_thread
+            thread_to_monitor=generation_thread,
         )
 
         if GENERATION_DONE.is_set():
-            console.print(f"[bold green]✅ Sukces! Plik '{output_wav_path}' został wygenerowany w {elapsed_time:.2f}s.[/bold green]")
+            console.print(
+                f"[bold green]✅ Sukces! Plik '{output_wav_path}' został wygenerowany w {elapsed_time:.2f}s.[/bold green]"
+            )
         else:
-            console.print(f"[bold red]❌ BŁĄD: Generowanie pliku '{output_wav_path}' nie powiodło się lub zostało przerwane.[/bold red]")
-    
+            console.print(
+                f"[bold red]❌ BŁĄD: Generowanie pliku '{output_wav_path}' nie powiodło się lub zostało przerwane.[/bold red]"
+            )
+
     console.print("[bold magenta]Operacja zakończona.[/bold magenta]")

@@ -1,5 +1,6 @@
 .env
 output/*
+src/audio_output/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

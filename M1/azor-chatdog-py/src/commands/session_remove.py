@@ -1,5 +1,5 @@
-from cli import console
-from session.session_manager import SessionManager
+from ..cli import console
+from ..session.session_manager import SessionManager
 
 def remove_session_command(manager: SessionManager):
     """
@@ -14,7 +14,7 @@ def remove_session_command(manager: SessionManager):
         console.print_info(f"Pomyślnie usunięto plik sesji dla ID: {removed_session_id}")
     else:
         # Even if the file removal failed (e.g., file not found), a new session is created.
-        console.print_warning(f"Nie można usunąć pliku sesji dla ID: {removed_session_id}. Powód: {error}")
+        console.print_error(f"Nie można usunąć pliku sesji dla ID: {removed_session_id}. Powód: {error}")
 
     console.print_info(f"\n--- Rozpoczęto nową, anonimową sesję: {new_session.session_id} ---")
     console.display_help(new_session.session_id)

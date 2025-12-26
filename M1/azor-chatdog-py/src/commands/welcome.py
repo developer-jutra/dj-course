@@ -1,5 +1,6 @@
 import textwrap
-from cli import console
+
+from ..cli import console
 
 _DOG_ART_BASE_RAW = r"""
            ,////,

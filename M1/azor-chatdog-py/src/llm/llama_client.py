@@ -7,7 +7,8 @@ import os
 from typing import Optional, List, Any, Dict
 from llama_cpp import Llama
 from dotenv import load_dotenv
-from cli import console
+
+from ..cli import console
 from .llama_validation import LlamaConfig
 
 
