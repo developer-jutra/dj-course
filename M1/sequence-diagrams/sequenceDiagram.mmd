@@ -1,0 +1,50 @@
+sequenceDiagram
+    participant User
+    participant Agent
+    participant Cache
+    participant LLM as LLM API
+    participant DB as Database
+
+    User->>Agent: User Input: "Jak zbudować mapę?"
+    
+    activate Agent
+    Agent->>Agent: 1. Validate input
+    Agent->>DB: 2. Load conversation history
+    activate DB
+    DB-->>Agent: History: []
+    deactivate DB
+    
+    Agent->>Agent: 3. Load system prompt template
+    Agent->>Agent: 4. Build analysis prompt
+    Agent->>Agent: 5. Tokenize & validate length
+    
+    Agent->>Cache: 6. Check cache for similar prompt
+    activate Cache
+    Cache-->>Agent: Cache miss
+    deactivate Cache
+    
+    Agent->>LLM: 7. POST /analyze<br/>{<br/>  "system": "Analyze and return JSON",<br/>  "messages": [...history],<br/>  "user_input": "Jak zbudować mapę?",<br/>  "temperature": 0.3,<br/>  "max_tokens": 500,<br/>  "response_format": "json_object"<br/>}
+    
+    activate LLM
+    LLM->>LLM: 8. Process analysis
+    LLM-->>Agent: 9. Return analysis result:<br/>{<br/>  "needs_clarification": true,<br/>  "reasoning": "Too general...",<br/>  "confidence": 0.92<br/>}
+    deactivate LLM
+    
+    Agent->>Agent: 10. Parse JSON response
+    Agent->>Agent: 11. Validate response structure
+    Agent->>Agent: 12. Check confidence >= threshold
+    
+    alt needs_clarification == true
+        Agent->>Agent: 13a. Build clarification prompt
+        
+        Agent->>LLM: 14a. POST /generate<br/>{<br/>  "system": "Generate clarification question",<br/>  "messages": [...history],<br/>  "analysis_result": {...},<br/>  "temperature": 0.5,<br/>  "max_tokens": 200,<br/>  "response_format": "json_object"<br/>}
+        
+        activate LLM
+        LLM->>LLM: 15a. Generate question
+        LLM-->>Agent: 16a. Return:<br/>{<br/>  "question": "Jaki framework..?"<br/>}
+        deactivate LLM
+        
+        Agent->>Agent: 17a. Parse clarification
+        Agent->>Agent: 18a. Format response
+        
+        Agent->>DB: 19a. Save to conversation history<b
