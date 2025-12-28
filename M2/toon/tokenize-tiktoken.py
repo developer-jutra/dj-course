@@ -1,32 +1,36 @@
-from tokenizers import Tokenizer
+import tiktoken
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKENIZER_DIR = os.path.join(SCRIPT_DIR, "tokenizers")
 SAMPLES_DIR = os.path.join(SCRIPT_DIR, "samples")
 
-# Load all tokenizers
+# Load all tokenizers from tiktoken
 ALL_TOKENIZERS = {}
 
-if not os.path.isdir(TOKENIZER_DIR):
-    print(f"❌ Error: Tokenizer directory not found at {TOKENIZER_DIR}")
-    exit(1)
+# Get available encoding names from tiktoken
+available_encodings = [
+    "gpt2",
+    "r50k_base",
+    "p50k_base",
+    "p50k_edit",
+    "cl100k_base",
+    "o200k_base",
+]
 
-for filename in os.listdir(TOKENIZER_DIR):
-    if filename.endswith(".json"):
-        key = filename[:-5]  # remove .json
-        full_path = os.path.join(TOKENIZER_DIR, filename)
-        try:
-            ALL_TOKENIZERS[key] = Tokenizer.from_file(full_path)
-        except Exception as e:
-            print(f"❌ Error loading tokenizer '{key}' from '{full_path}': {e}")
+# Try to load each available encoding
+for encoding_name in available_encodings:
+    try:
+        ALL_TOKENIZERS[encoding_name] = tiktoken.get_encoding(encoding_name)
+    except Exception as e:
+        print(f"⚠️ Could not load encoding '{encoding_name}': {e}")
 
 if not ALL_TOKENIZERS:
-    print(f"❌ Error: No tokenizers found in {TOKENIZER_DIR}")
+    print(f"❌ Error: No tokenizers could be loaded from tiktoken")
     exit(1)
 
 print(
-    f"✅ Loaded {len(ALL_TOKENIZERS)} tokenizer(s): {', '.join(ALL_TOKENIZERS.keys())}\n"
+    f"✅ Loaded {len(ALL_TOKENIZERS)} tiktoken encoding(s): {', '.join(ALL_TOKENIZERS.keys())}\n"
 )
 
 
@@ -97,25 +101,25 @@ for sample_name in SAMPLES:
 
     results[sample_name] = {}
 
-    for tokenizer_name, tokenizer in ALL_TOKENIZERS.items():
+    for encoding_name, encoding in ALL_TOKENIZERS.items():
         try:
             format_counts = {}
             for format_key, content in sample_data.items():
                 if content:
-                    encoded = tokenizer.encode(content)
-                    format_counts[format_key] = len(encoded.ids)
+                    tokens = encoding.encode(content)
+                    format_counts[format_key] = len(tokens)
                 else:
                     format_counts[format_key] = None
 
-            results[sample_name][tokenizer_name] = format_counts
+            results[sample_name][encoding_name] = format_counts
         except Exception as e:
             print(
-                f"❌ Error processing sample '{sample_name}' with tokenizer '{tokenizer_name}': {e}"
+                f"❌ Error processing sample '{sample_name}' with encoding '{encoding_name}': {e}"
             )
 
 # Display results
 print("\n" + "=" * 100)
-print("TOKENIZATION EFFECTIVENESS COMPARISON")
+print("TOKENIZATION EFFECTIVENESS COMPARISON (tiktoken)")
 print("=" * 100)
 
 formats = ["json", "nows-json", "yaml", "toon"]
@@ -128,37 +132,39 @@ for sample_name in SAMPLES:
     print(f"\n📊 Sample: {sample_name}")
     print("-" * 100)
 
-    tokenizer_results = results[sample_name]
+    encoding_results = results[sample_name]
 
     # Find max width for alignment
-    max_tokenizer_width = max(len(name) for name in tokenizer_results.keys())
+    max_encoding_width = max(len(name) for name in encoding_results.keys())
 
     # Find global max count for scaling
     max_count = 0
-    for tokenizer_name in tokenizer_results:
+    for encoding_name in encoding_results:
         for fmt in formats:
-            count = tokenizer_results[tokenizer_name].get(fmt)
+            count = encoding_results[encoding_name].get(fmt)
             if count:
                 max_count = max(max_count, count)
 
     # Header
-    header = f"{'Tokenizer':<{max_tokenizer_width}}  {'Format':<12}  {'Tokens':>10}  │ Visual"
+    header = (
+        f"{'Encoding':<{max_encoding_width}}  {'Format':<12}  {'Tokens':>10}  │ Visual"
+    )
     print(header)
     print("-" * 100)
 
     # Rows with visual bars - one row per format
-    for tokenizer_name in sorted(tokenizer_results.keys()):
-        counts = tokenizer_results[tokenizer_name]
+    for encoding_name in sorted(encoding_results.keys()):
+        counts = encoding_results[encoding_name]
 
         for fmt_idx, fmt in enumerate(formats):
             count = counts.get(fmt)
 
             if fmt_idx == 0:
-                # Show tokenizer name only on first row
-                row = f"{tokenizer_name:<{max_tokenizer_width}}"
+                # Show encoding name only on first row
+                row = f"{encoding_name:<{max_encoding_width}}"
             else:
                 # Empty space for other rows
-                row = f"{' ' * max_tokenizer_width}"
+                row = f"{' ' * max_encoding_width}"
 
             if count is not None:
                 row += f"  {fmt:<12}  {count:>10}  │ "
@@ -174,7 +180,7 @@ for sample_name in SAMPLES:
 
             print(row)
 
-        print()  # Empty line between tokenizers
+        print()  # Empty line between encodings
 
     # Legend
     print("  Legend:")
