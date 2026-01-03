@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchVehicles } from '../../api/vehicles.api';
+import { fetchVehicles } from '../../http/vehicles.http';
 import { Vehicle } from '../../model/vehicles';
 
 interface UseVehiclesListOptions {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDocumentEntities } from '../../api/documents.api';
+import { fetchDocumentEntities } from '../../http/documents.http';
 
 export const useDocumentEntitiesList = () => {
   return useQuery({

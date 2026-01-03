@@ -1,5 +1,5 @@
-import { Document, DocumentEntity, sampleDocuments, getDocumentEntities } from '../model/documents';
-import { createApiResponse, simulateApiError } from './utils';
+import { Document, DocumentEntity, mockDocuments, getDocumentEntities } from '../model/documents';
+import { createApiResponse, simulateApiError } from './http-utils';
 
 /**
  * Documents API - Simulates HTTP endpoints for document management
@@ -16,7 +16,7 @@ export const fetchDocuments = async (filters?: {
 }): Promise<Document[]> => {
   simulateApiError(0.02, 'Failed to fetch documents');
   
-  let documents = [...sampleDocuments];
+  let documents = [...mockDocuments];
   
   if (filters) {
     if (filters.entityType) {
@@ -40,7 +40,7 @@ export const fetchDocuments = async (filters?: {
 export const fetchDocumentById = async (id: string): Promise<Document | null> => {
   simulateApiError(0.02, 'Failed to fetch document');
   
-  const document = sampleDocuments.find(doc => doc.id === id) || null;
+  const document = mockDocuments.find(doc => doc.id === id) || null;
   return createApiResponse(document);
 };
 
@@ -90,7 +90,7 @@ export const createDocument = async (documentData: Partial<Document>): Promise<D
 export const updateDocument = async (id: string, updates: Partial<Document>): Promise<Document> => {
   simulateApiError(0.03, 'Failed to update document');
   
-  const existingDocument = sampleDocuments.find(doc => doc.id === id);
+  const existingDocument = mockDocuments.find(doc => doc.id === id);
   if (!existingDocument) {
     throw new Error('Document not found');
   }
@@ -111,7 +111,7 @@ export const updateDocument = async (id: string, updates: Partial<Document>): Pr
 export const deleteDocument = async (id: string): Promise<void> => {
   simulateApiError(0.03, 'Failed to delete document');
   
-  const documentExists = sampleDocuments.some(doc => doc.id === id);
+  const documentExists = mockDocuments.some(doc => doc.id === id);
   if (!documentExists) {
     throw new Error('Document not found');
   }

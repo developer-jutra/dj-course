@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Clock } from 'lucide-react';
-import { useShipmentDetailsQuery } from '@/http/shipments.queries';
+import { useShipmentDetailsQuery, useShipmentTrackingEventsQuery } from '@/http/shipments.queries';
 import { FleetMap } from '../vehicles/FleetMap';
-import { vehicles } from '@/model/vehicles/vehicles.mocks';
-import { sampleShipments } from '@/model/shipments/shipments.mocks';
+import { mockVehicles } from '@/model/vehicles/vehicles.mocks'; // Keep for now
+import { getMockShipments } from '@/model/shipments/shipments.mocks'; // Keep for now
 import { generateShipmentRoutePDF } from '@/lib/pdf/shipmentRoutePdfGenerator'
 import { useDriversQuery } from '@/http/drivers.queries';
 import { Link } from 'react-router-dom';
@@ -15,40 +15,19 @@ import { Link } from 'react-router-dom';
 const ShipmentTracking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: shipment, isLoading } = useShipmentDetailsQuery(id || '');
+  const { data: shipment, isLoading: isLoadingShipment } = useShipmentDetailsQuery(id || '');
+  const { data: trackingEvents = [], isLoading: isLoadingTrackingEvents } = useShipmentTrackingEventsQuery(id || '');
   const { data: drivers = [] } = useDriversQuery();
 
-  const currentShipment = sampleShipments.find(s => s.id === id);
+  // These lines use mocks and are outside the scope of the current request.
+  // They should be refactored in a separate task.
+  const currentShipment = getMockShipments().find(s => s.id === id);
   const vehicleId = currentShipment?.route.vehicle.id;
-  const vehicle = vehicles.find(v => v.id === vehicleId);
+  const vehicle = mockVehicles.find(v => v.id === vehicleId);
 
   const latitude = vehicle?.currentLocation?.lat ?? 52.2297; // Default to Warsaw
   const longitude = vehicle?.currentLocation?.lng ?? 21.0122;
   const driver = drivers.find(d => d.name === shipment?.driver);
-
-  const trackingEvents = [
-    {
-      id: 1,
-      status: 'Package Picked Up',
-      location: shipment?.origin || 'New York, NY',
-      timestamp: '2024-01-15 14:15:00',
-      description: 'Package collected from sender'
-    },
-    {
-      id: 2,
-      status: 'In Transit',
-      location: 'Newark, NJ',
-      timestamp: '2024-01-15 16:30:00',
-      description: 'Package in transit to destination'
-    },
-    {
-      id: 3,
-      status: 'In Transit',
-      location: 'Hartford, CT',
-      timestamp: '2024-01-16 09:45:00',
-      description: 'Package continues journey'
-    }
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -59,7 +38,7 @@ const ShipmentTracking = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingShipment || isLoadingTrackingEvents) {
     return <div className="flex items-center justify-center h-64">Loading shipment details...</div>;
   }
 

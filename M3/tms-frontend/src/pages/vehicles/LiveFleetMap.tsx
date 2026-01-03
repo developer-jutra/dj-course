@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FleetMap } from './FleetMap';
 import { Vehicle } from '@/model/vehicles';
-import { sampleShipments } from '@/model/shipments/shipments.mocks';
+import { mockShipments } from '@/model/shipments/shipment-data';
 import { Link } from 'react-router-dom';
 
 interface LiveFleetMapProps {
@@ -36,7 +36,7 @@ const LiveFleetMap: React.FC<LiveFleetMapProps> = ({ vehicles }) => {
       </div>
       <CardContent className="h-96 rounded-lg overflow-hidden p-0">
         <FleetMap items={vehicles.map(vehicle => {
-          const activeShipment = sampleShipments.find(s => s.route.vehicle.id === vehicle.id && s.route.status === 'active');
+          const activeShipment = mockShipments.find(s => s.route.vehicle.id === vehicle.id && s.route.status === 'active');
           return {
             coordinates: [vehicle.currentLocation?.lat ?? 0, vehicle.currentLocation?.lng ?? 0],
             description: {

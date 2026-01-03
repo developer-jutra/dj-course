@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { vehicles as allVehicles } from '@/model/vehicles/vehicles.mocks';
+import { mockVehicles } from '@/model/vehicles/vehicles.mocks';
 import { VehicleMaintenance } from '@/pages/vehicles/VehicleMaintenance';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -14,11 +14,11 @@ export const MaintenancePage = () => {
     queryKey: ['maintenance', id || 'all'],
     queryFn: () => {
       if (id) {
-        const vehicle = allVehicles.find(v => v.id === id);
+        const vehicle = mockVehicles.find(v => v.id === id);
         if (vehicle) return Promise.resolve(vehicle);
         return Promise.reject(new Error('Vehicle not found'));
       }
-      return Promise.resolve(allVehicles);
+      return Promise.resolve(mockVehicles);
     },
     enabled: true,
   });

@@ -548,9 +548,9 @@ type SidebarMenuButtonProps = React.ComponentProps<"button"> &
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuButtonProps
->(({ variant, className, children, label, ...props }, ref) => {
+>(({ variant, className, children, label, asChild, ...props }, ref) => {
   const { isMobile, state } = useSidebar()
-  const Comp = props.asChild ? Slot : "button"
+  const Comp = asChild ? Slot : "button"
 
   if (state === "collapsed" && !isMobile) {
     return (

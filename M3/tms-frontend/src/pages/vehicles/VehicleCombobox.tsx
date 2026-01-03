@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../../components/ui/popover';
-import { vehicles as allVehicles } from '../../model/vehicles/vehicles.mocks';
+import { mockVehicles } from '../../model/vehicles/vehicles.mocks';
 import { Vehicle } from '../../model/vehicles/vehicle.types';
 
 interface VehicleComboboxProps {
@@ -35,7 +35,7 @@ export const VehicleCombobox: React.FC<VehicleComboboxProps> = ({ currentVehicle
     }
   };
 
-  const currentVehicle = allVehicles.find(v => v.id === currentVehicleId);
+  const currentVehicle = mockVehicles.find(v => v.id === currentVehicleId);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -62,7 +62,7 @@ export const VehicleCombobox: React.FC<VehicleComboboxProps> = ({ currentVehicle
                 />
                 All Vehicles
               </CommandItem>
-              {allVehicles.map((vehicle) => (
+              {mockVehicles.map((vehicle) => (
                 <CommandItem
                   key={vehicle.id}
                   value={vehicle.plateNumber}

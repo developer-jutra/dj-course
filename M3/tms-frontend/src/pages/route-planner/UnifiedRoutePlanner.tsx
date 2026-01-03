@@ -3,13 +3,11 @@ import { LogisticsMap } from './LogisticsMap';
 import { RouteControls } from './RouteControls';
 import { RouteSummary } from './RouteSummary';
 import { VehicleStatus } from './VehicleStatus';
-import { ShipmentSelector } from './ShipmentSelector';
 import { RouteData, RoutePoint, Vehicle, Coordinates, Shipment } from '../../model/shipments';
 import { Driver, DriverRoute } from '../../model/drivers';
 import { Vehicle as VehicleType } from '../../model/vehicles';
 import { calculateRouteDistance, estimateTravelTime, generateOptimizedRoute, addRestStops } from './routeUtils';
-import { calculateETA, addMinutes, formatDateTime, formatDate } from '../../lib/date/dateUtils';
-import { ArrowLeft, Filter, Calendar, Route as RouteIcon, User, Truck, MapPin, Clock, Search, ChevronDown, X, Navigation, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Filter, Route as RouteIcon, User, Truck, MapPin, Clock, Search, X, Navigation, AlertTriangle, CheckCircle } from 'lucide-react';
 
 export type RouteContext = 'active-shipments' | 'driver-routes' | 'vehicle-routes' | 'route-planning';
 
@@ -692,13 +690,6 @@ export const UnifiedRoutePlanner: React.FC<UnifiedRoutePlannerProps> = ({
   const isEditingAllowed = context === 'active-shipments' || context === 'route-planning';
   const hasValidData = (context === 'route-planning' && planningRoute) || (contextualShipments.length > 0 && selectedShipment);
   const currentRoute = context === 'route-planning' ? planningRoute : selectedShipment;
-
-  console.log('Render state:', { 
-    context, 
-    pendingPointType, 
-    currentRoute: currentRoute?.route.points.length,
-    isEditingAllowed 
-  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

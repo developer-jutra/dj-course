@@ -3,5 +3,4 @@ export interface Notification {
   type: 'success' | 'info' | 'message' | 'warning';
   message: string;
   time: string;
-  icon: string;
 }

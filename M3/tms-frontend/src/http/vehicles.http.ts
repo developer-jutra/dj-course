@@ -1,5 +1,5 @@
-import { Vehicle, vehicles } from '../model/vehicles';
-import { createApiResponse, simulateApiError } from './utils';
+import { Vehicle, mockVehicles } from '../model/vehicles';
+import { createApiResponse, simulateApiError } from './http-utils';
 
 /**
  * Vehicles API - Simulates HTTP endpoints for vehicle management
@@ -16,7 +16,7 @@ export const fetchVehicles = async (filters?: {
 }): Promise<Vehicle[]> => {
   simulateApiError(0.02, 'Failed to fetch vehicles');
   
-  let allVehicles = [...vehicles];
+  let allVehicles = [...mockVehicles];
   
   if (filters) {
     if (filters.status) {
@@ -46,7 +46,7 @@ export const fetchVehicles = async (filters?: {
 export const fetchVehicleById = async (id: string): Promise<Vehicle | null> => {
   simulateApiError(0.02, 'Failed to fetch vehicle');
   
-  const vehicle = vehicles.find(v => v.id === id) || null;
+  const vehicle = mockVehicles.find(v => v.id === id) || null;
   return createApiResponse(vehicle);
 };
 
@@ -60,7 +60,7 @@ export const fetchVehicleMaintenance = async (id: string): Promise<{
 }> => {
   simulateApiError(0.02, 'Failed to fetch vehicle maintenance');
   
-  const vehicle = vehicles.find(v => v.id === id);
+  const vehicle = mockVehicles.find(v => v.id === id);
   if (!vehicle) {
     throw new Error('Vehicle not found');
   }
@@ -85,7 +85,7 @@ export const fetchVehicleRoutes = async (id: string): Promise<Array<{
 }>> => {
   simulateApiError(0.02, 'Failed to fetch vehicle routes');
   
-  const vehicle = vehicles.find(v => v.id === id);
+  const vehicle = mockVehicles.find(v => v.id === id);
   if (!vehicle) {
     throw new Error('Vehicle not found');
   }
@@ -118,7 +118,7 @@ export const fetchVehicleRoutes = async (id: string): Promise<Array<{
 export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Promise<Vehicle> => {
   simulateApiError(0.03, 'Failed to update vehicle');
   
-  const existingVehicle = vehicles.find(v => v.id === id);
+  const existingVehicle = mockVehicles.find(v => v.id === id);
   if (!existingVehicle) {
     throw new Error('Vehicle not found');
   }
@@ -138,7 +138,7 @@ export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Prom
 export const updateVehicleStatus = async (id: string, status: Vehicle['status']): Promise<Vehicle> => {
   simulateApiError(0.03, 'Failed to update vehicle status');
   
-  const existingVehicle = vehicles.find(v => v.id === id);
+  const existingVehicle = mockVehicles.find(v => v.id === id);
   if (!existingVehicle) {
     throw new Error('Vehicle not found');
   }

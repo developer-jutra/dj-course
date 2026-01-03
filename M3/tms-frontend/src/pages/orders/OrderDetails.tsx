@@ -5,55 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, User } from 'lucide-react';
-import { useOrderDetailsQuery } from '@/http/orders.queries';
+import { useOrderDetailsQuery, useOrderEventsQuery } from '@/http/orders.queries';
 
 const OrderDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: order, isLoading } = useOrderDetailsQuery(id || '');
-
-  const orderEvents = [
-    {
-      id: 1,
-      status: 'Order Created',
-      timestamp: '2024-06-06 10:00:00',
-      description: 'Order placed by customer',
-      employee: 'System',
-      details: 'Initial order creation and validation'
-    },
-    {
-      id: 2,
-      status: 'Payment Confirmed',
-      timestamp: '2024-06-06 10:15:00',
-      description: 'Payment successfully processed',
-      employee: 'Payment System',
-      details: 'Credit card payment of $1,250 processed'
-    },
-    {
-      id: 3,
-      status: 'Order Approved',
-      timestamp: '2024-06-06 11:30:00',
-      description: 'Order approved for processing',
-      employee: 'Sarah Johnson',
-      details: 'Order review completed and approved for shipment preparation'
-    },
-    {
-      id: 4,
-      status: 'Preparing Shipment',
-      timestamp: '2024-06-06 14:20:00',
-      description: 'Shipment preparation started',
-      employee: 'Mike Wilson',
-      details: 'Items picked from warehouse and packaging initiated'
-    },
-    {
-      id: 5,
-      status: 'Ready for Pickup',
-      timestamp: '2024-06-06 16:45:00',
-      description: 'Package ready for carrier pickup',
-      employee: 'David Chen',
-      details: 'Final quality check completed, package sealed and labeled'
-    }
-  ];
+  const { data: order, isLoading: isLoadingOrder } = useOrderDetailsQuery(id || '');
+  const { data: orderEvents = [], isLoading: isLoadingEvents } = useOrderEventsQuery(id || '');
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -66,7 +24,7 @@ const OrderDetails = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingOrder || isLoadingEvents) {
     return <div className="flex items-center justify-center h-64">Loading order details...</div>;
   }
 

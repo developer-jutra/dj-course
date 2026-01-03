@@ -1,4 +1,4 @@
-import { sampleVehicles } from "../model/vehicles/vehicles.mocks";
+import { mockVehicles } from "../model/vehicles/vehicles.mocks";
 import { Vehicle } from "../model/vehicles/vehicle.types";
 
 export type FleetLocation = {
@@ -10,7 +10,7 @@ export type FleetLocation = {
   truck: Vehicle;
 }
 
-export const mockFleetLocation: FleetLocation[] = sampleVehicles.map(vehicle => {
+export const mockFleetLocation: FleetLocation[] = mockVehicles.map(vehicle => {
   return {
     truckId: vehicle.id,
     coordinates: {

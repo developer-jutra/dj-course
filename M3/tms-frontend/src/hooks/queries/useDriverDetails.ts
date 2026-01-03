@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDriverById } from '../../api/drivers.api';
+import { getDriverDetails as fetchDriverById } from '../../http/drivers.http';
 
 export const useDriverDetails = (id: string) => {
   return useQuery({

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchShipmentById } from '../../api/shipments.api';
+import { getShipmentDetails as fetchShipmentById } from '../../http/shipments.http';
 
 export const useShipmentDetails = (id: string) => {
   return useQuery({

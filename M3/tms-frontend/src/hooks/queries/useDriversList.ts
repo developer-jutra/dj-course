@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDrivers } from '../../api/drivers.api';
+import { getDrivers as fetchDrivers } from '../../http/drivers.http';
 import { Driver } from '../../model/drivers';
 
 interface UseDriversListOptions {

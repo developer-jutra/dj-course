@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDocuments } from '../../api/documents.api';
+import { fetchDocuments } from '../../http/documents.http';
 import { Document } from '../../model/documents';
 
 interface UseDocumentsListOptions {

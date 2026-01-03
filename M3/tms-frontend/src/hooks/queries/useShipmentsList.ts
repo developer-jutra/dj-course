@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchShipments } from '../../api/shipments.api';
+import { getShipments as fetchShipments } from '../../http/shipments.http';
 import { Shipment } from '../../model/shipments';
 
 interface UseShipmentsListOptions {

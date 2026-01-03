@@ -1,7 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../http/model';
+import { User } from '../http/auth.model';
 import { mockUser } from '@/http/auth.mocks';
+import { login as loginUser } from '../http/auth.http';
 
 interface AuthContextType {
   user: User | null;
@@ -36,19 +36,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const success = await loginUser(email, password);
     
-    // Use mock user data with provided email
-    const userWithEmail: User = {
-      ...mockUser,
-      email: email,
-    };
+    if (success) {
+      // Use mock user data with provided email
+      const userWithEmail: User = {
+        ...mockUser,
+        email: email,
+      };
 
-    setUser(userWithEmail);
-    localStorage.setItem('deliveroo_user', JSON.stringify(userWithEmail));
+      setUser(userWithEmail);
+      localStorage.setItem('deliveroo_user', JSON.stringify(userWithEmail));
+    }
+    
     setIsLoading(false);
-    return true;
+    return success;
   };
 
   const logout = () => {

@@ -1,6 +1,6 @@
 import { Vehicle } from './vehicle.types';
 
-export const vehicles: Vehicle[] = [
+export const mockVehicles: Vehicle[] = [
   {
     id: 'vehicle-001',
     plateNumber: 'WA-LOG 2024',
@@ -820,7 +820,7 @@ export const vehicles: Vehicle[] = [
   }
 ];
 
-export const vehicleCoordinates = vehicles.reduce((acc, vehicle) => {
+export const vehicleCoordinates = mockVehicles.reduce((acc, vehicle) => {
   if (vehicle.currentLocation) {
     acc[vehicle.id] = {
       latitude: vehicle.currentLocation.lat,

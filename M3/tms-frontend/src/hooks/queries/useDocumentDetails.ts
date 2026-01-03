@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDocumentById } from '../../api/documents.api';
+import { fetchDocumentById } from '../../http/documents.http';
 
 export const useDocumentDetails = (id: string) => {
   return useQuery({

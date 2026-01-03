@@ -6,6 +6,15 @@ export interface Order {
   date: string;
 }
 
+export interface OrderEvent {
+  id: number;
+  status: string;
+  timestamp: string;
+  description: string;
+  employee: string;
+  details: string;
+}
+
 export interface IncomingRequest {
   id: string;
   customer: string;

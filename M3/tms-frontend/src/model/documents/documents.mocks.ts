@@ -1,7 +1,7 @@
 import { Document, DocumentEntity } from './document.types';
 
-// Sample customers and suppliers
-const sampleCustomers: DocumentEntity[] = [
+// Mock customers and suppliers
+const mockCustomers: DocumentEntity[] = [
   { id: 'customer-001', name: 'Fabryka BMW', type: 'customer' },
   { id: 'customer-002', name: 'Mercedes-Benz Polska', type: 'customer' },
   { id: 'customer-003', name: 'Volkswagen Grupa', type: 'customer' },
@@ -9,7 +9,7 @@ const sampleCustomers: DocumentEntity[] = [
   { id: 'customer-005', name: 'DHL Express Polska', type: 'customer' }
 ];
 
-const sampleSuppliers: DocumentEntity[] = [
+const mockSuppliers: DocumentEntity[] = [
   { id: 'supplier-001', name: 'Shell Polska', type: 'supplier' },
   { id: 'supplier-002', name: 'Orlen Paliwa', type: 'supplier' },
   { id: 'supplier-003', name: 'Serwis Mercedes Warszawa', type: 'supplier' },
@@ -17,7 +17,7 @@ const sampleSuppliers: DocumentEntity[] = [
   { id: 'supplier-005', name: 'PZU Ubezpieczenia', type: 'supplier' }
 ];
 
-const sampleCompany: DocumentEntity[] = [
+const mockCompany: DocumentEntity[] = [
   { id: 'company-001', name: 'Deliveroo TMS Sp. z o.o.', type: 'company' }
 ];
 
@@ -36,12 +36,12 @@ export const setDriverEntities = (entities: DocumentEntity[]) => {
 export const getDocumentEntities = (): DocumentEntity[] => [
   ...vehicleEntities,
   ...driverEntities,
-  ...sampleCustomers,
-  ...sampleSuppliers,
-  ...sampleCompany
+  ...mockCustomers,
+  ...mockSuppliers,
+  ...mockCompany
 ];
 
-export const sampleDocuments: Document[] = [
+export const mockDocuments: Document[] = [
   // Vehicle documents
   {
     id: 'doc-001',

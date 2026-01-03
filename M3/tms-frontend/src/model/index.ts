@@ -1,18 +1,18 @@
 // Main model index file that sets up cross-references and exports everything
-import { sampleVehicles } from './vehicles';
-import { sampleDrivers } from './drivers';
+import { mockVehicles } from './vehicles';
+import { mockDrivers } from './drivers';
 import { setVehicleEntities, setDriverEntities, getDocumentEntities } from './documents';
 import { DocumentEntity } from './documents';
 
 // Convert vehicles to document entities
-const vehicleEntities: DocumentEntity[] = sampleVehicles.map(vehicle => ({
+const vehicleEntities: DocumentEntity[] = mockVehicles.map(vehicle => ({
   id: vehicle.id,
   name: `${vehicle.make} ${vehicle.model} (${vehicle.plateNumber})`,
   type: 'vehicle' as const
 }));
 
 // Convert drivers to document entities
-const driverEntities: DocumentEntity[] = sampleDrivers.map(driver => ({
+const driverEntities: DocumentEntity[] = mockDrivers.map(driver => ({
   id: driver.id,
   name: driver.name,
   type: 'driver' as const

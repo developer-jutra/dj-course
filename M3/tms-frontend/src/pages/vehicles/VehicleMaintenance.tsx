@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Vehicle, MaintenanceRecord, MaintenanceTask } from '../../model/vehicles/vehicle.types';
 import { 
-  ArrowLeft, Calendar, Clock, AlertTriangle, CheckCircle, 
-  Wrench, DollarSign, User, FileText, Plus, Filter,
-  TrendingUp, AlertCircle, Settings, MapPin, List, Rows
+  ArrowLeft, Calendar, Clock, AlertTriangle, Wrench, DollarSign, FileText, Plus, TrendingUp, AlertCircle, Settings, List, Rows
 } from 'lucide-react';
-import { formatDateTime, formatDate } from '../../lib/date/dateUtils';
+import { formatDate } from '../../lib/date/dateUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip';
 import { VehicleCombobox } from './VehicleCombobox';
 import { Button } from '../../components/ui/button';
@@ -513,7 +511,7 @@ export const VehicleMaintenance: React.FC<VehicleMaintenanceProps> = ({ data, on
             <VehicleCombobox currentVehicleId={vehicle?.id} />
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     onClick={() => setShowAddTask(prev => !prev)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

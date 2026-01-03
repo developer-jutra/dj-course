@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { delay } from "./mock.http";
-import { getKPIs } from "./kpis.http";
-import { mockKPIWidgets } from "./kpis.mocks";
+import { getKPIs, getKPIWidgets } from "./kpis.http";
 
 export const useKPIsQuery = () => {
   return useQuery({
@@ -13,9 +11,6 @@ export const useKPIsQuery = () => {
 export const useKPIWidgetsQuery = () => {
   return useQuery({
     queryKey: ['kpi-widgets'],
-    queryFn: async () => {
-      await delay(300);
-      return mockKPIWidgets;
-    },
+    queryFn: () => getKPIWidgets(),
   });
 };
