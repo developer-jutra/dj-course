@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -152,53 +153,49 @@ const Claims = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium text-blue-800">Total Claims</p>
-                <p className="text-2xl font-bold text-blue-600">{claims.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={FileText}
+          label="Total Claims"
+          value={claims.length}
+          bgColor="bg-blue-50"
+          borderColor="border-blue-200"
+          labelColor="text-blue-800"
+          valueColor="text-blue-600"
+          iconColor="text-blue-600"
+        />
         
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm font-medium text-orange-800">Pending Review</p>
-                <p className="text-2xl font-bold text-orange-600">{pendingClaims}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={Clock}
+          label="Pending Review"
+          value={pendingClaims}
+          bgColor="bg-orange-50"
+          borderColor="border-orange-200"
+          labelColor="text-orange-800"
+          valueColor="text-orange-600"
+          iconColor="text-orange-600"
+        />
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-green-800">Approved</p>
-                <p className="text-2xl font-bold text-green-600">{approvedClaims}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={CheckCircle}
+          label="Approved"
+          value={approvedClaims}
+          bgColor="bg-green-50"
+          borderColor="border-green-200"
+          labelColor="text-green-800"
+          valueColor="text-green-600"
+          iconColor="text-green-600"
+        />
 
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-800">Total Claimed</p>
-                <p className="text-2xl font-bold text-red-600">${totalClaimAmount.toLocaleString()}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={DollarSign}
+          label="Total Claimed"
+          value={`$${totalClaimAmount.toLocaleString()}`}
+          bgColor="bg-red-50"
+          borderColor="border-red-200"
+          labelColor="text-red-800"
+          valueColor="text-red-600"
+          iconColor="text-red-600"
+        />
       </div>
 
       {/* Claims List */}

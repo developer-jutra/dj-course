@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -255,53 +256,41 @@ const Expenses = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">💰</div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-                <p className="text-2xl font-bold text-blue-600">{totalAmount.toLocaleString()} PLN</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon="💰"
+          label="Total Expenses"
+          value={`${totalAmount.toLocaleString()} PLN`}
+          bgColor="bg-white"
+          labelColor="text-gray-600"
+          valueColor="text-blue-600"
+        />
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">⏳</div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending Approval</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon="⏳"
+          label="Pending Approval"
+          value={pendingCount}
+          bgColor="bg-white"
+          labelColor="text-gray-600"
+          valueColor="text-yellow-600"
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">💳</div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Unpaid</p>
-                <p className="text-2xl font-bold text-red-600">{unpaidCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon="💳"
+          label="Unpaid"
+          value={unpaidCount}
+          bgColor="bg-white"
+          labelColor="text-gray-600"
+          valueColor="text-red-600"
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">📊</div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Records</p>
-                <p className="text-2xl font-bold text-green-600">{filteredExpenses.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon="📊"
+          label="Total Records"
+          value={filteredExpenses.length}
+          bgColor="bg-white"
+          labelColor="text-gray-600"
+          valueColor="text-green-600"
+        />
       </div>
 
       {/* Search and Filters */}

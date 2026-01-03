@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MetricCard } from '@/components/ui/metric-card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useOrdersQuery } from '@/http/orders.queries';
@@ -39,20 +40,15 @@ const Dashboard = () => {
       {/* KPI Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {kpiWidgets.map((kpi, index) => (
-          <Card key={index} className={`${kpi.bgColor} border-0`}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{kpi.title}</p>
-                  <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
-                  <p className="text-xs text-gray-500 mt-1">{kpi.description}</p>
-                </div>
-                <div className={`text-xs font-semibold ${kpi.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                  {kpi.trend}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MetricCard
+            key={index}
+            title={kpi.title}
+            value={kpi.value}
+            description={kpi.description}
+            trend={kpi.trend}
+            bgColor={kpi.bgColor}
+            valueColor={kpi.color}
+          />
         ))}
       </div>
 

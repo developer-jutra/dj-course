@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, MapPin, Clock, Camera, FileText } from 'lucide-react';
@@ -121,59 +122,49 @@ const Incidents = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-800">Urgent Incidents</p>
-                <p className="text-2xl font-bold text-red-600">{urgentIncidents}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={AlertTriangle}
+          label="Urgent Incidents"
+          value={urgentIncidents}
+          bgColor="bg-red-50"
+          borderColor="border-red-200"
+          labelColor="text-red-800"
+          valueColor="text-red-600"
+          iconColor="text-red-600"
+        />
         
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium text-blue-800">Under Investigation</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {incidents.filter(inc => inc.status === 'Under Investigation').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={Clock}
+          label="Under Investigation"
+          value={incidents.filter(inc => inc.status === 'Under Investigation').length}
+          bgColor="bg-blue-50"
+          borderColor="border-blue-200"
+          labelColor="text-blue-800"
+          valueColor="text-blue-600"
+          iconColor="text-blue-600"
+        />
 
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm font-medium text-orange-800">In Progress</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {incidents.filter(inc => inc.status === 'Action in Progress').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={FileText}
+          label="In Progress"
+          value={incidents.filter(inc => inc.status === 'Action in Progress').length}
+          bgColor="bg-orange-50"
+          borderColor="border-orange-200"
+          labelColor="text-orange-800"
+          valueColor="text-orange-600"
+          iconColor="text-orange-600"
+        />
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Camera className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-green-800">Resolved</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {incidents.filter(inc => inc.status === 'Resolved').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={Camera}
+          label="Resolved"
+          value={incidents.filter(inc => inc.status === 'Resolved').length}
+          bgColor="bg-green-50"
+          borderColor="border-green-200"
+          labelColor="text-green-800"
+          valueColor="text-green-600"
+          iconColor="text-green-600"
+        />
       </div>
 
       {/* Incidents List */}
