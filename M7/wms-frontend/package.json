@@ -1,0 +1,41 @@
+{
+  "name": "wms-frontend",
+  "author": "Developer Jutra",
+  "private": true,
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --configuration production",
+    "build:watch": "ng build --watch --configuration production",
+    "dev": "ng serve",
+    "visualise:deps": "npx madge ./src/main.ts -i madge.jpg"
+  },
+  "dependencies": {
+    "@angular/animations": "^19.2.1",
+    "@angular/common": "^19.2.1",
+    "@angular/compiler": "^19.2.1",
+    "@angular/core": "^19.2.1",
+    "@angular/forms": "^19.2.1",
+    "@angular/platform-browser": "^19.2.1",
+    "@angular/router": "^19.2.1",
+    "@ngrx/operators": "^19.2.1",
+    "@ngrx/signals": "^19.2.1",
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "lucide-angular": "^0.447.0",
+    "rxjs": "^7.8.1",
+    "tslib": "^2.5.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^19.2.15",
+    "@angular/build": "^19.2.1",
+    "@angular/cli": "^19.2.1",
+    "@angular/compiler-cli": "^19.2.1",
+    "@compodoc/compodoc": "^1.1.26",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.8.2"
+  }
+}
