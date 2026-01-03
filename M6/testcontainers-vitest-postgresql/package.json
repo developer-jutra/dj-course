@@ -1,0 +1,16 @@
+{
+  "name": "testcontainers-vitest-postgresql",
+  "author": "Developer Jutra",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+  "testcontainers": "^11.5.1",
+    "@testcontainers/postgresql": "^11.5.1",
+    "pg": "^8.16.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

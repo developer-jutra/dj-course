@@ -1,0 +1,19 @@
+# Node, npm, and editor junk
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Secrets and sensitive files
+*.env
+.env.*
+
+# Editor and OS files
+.DS_Store
+.vscode/
+.idea/
+.cursor/
+
+# Ignore backup files
+*~
+# Temporary files
+*.tmp 
