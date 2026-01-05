@@ -29,7 +29,7 @@ const InTransitTab = () => {
   const [viewMode, setViewMode] = React.useState<ViewMode>("tiles");
   const [filters, setFilters] = useAtom(shipmentFiltersAtom);
   const [selectedDriver, setSelectedDriver] = useAtom(selectedDriverAtom);
-  const { data: drivers = [] } = useDriversQuery();
+  const { data } = useDriversQuery();
   
   // Apply selected driver filter when coming from driver details
   useEffect(() => {

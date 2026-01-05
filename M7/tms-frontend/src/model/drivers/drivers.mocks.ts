@@ -546,7 +546,15 @@ export const mockGetDriverDetails = (id: string): Driver | null => {
 export const mockGetDriverShipments = (id: Driver['id']): UIShipment[] => {
   const driver = mockDrivers.find(d => d.id === id);
   if (!driver) return [];
-  return getMockShipments({ driver: driver.name });
+  const shipments = getMockShipments({ driver: driver.name });
+  return shipments.map(shipment => ({
+    id: shipment.id,
+    driver: shipment.route.vehicle.driver,
+    status: shipment.route.status,
+    origin: shipment.route.points[0]?.name || 'N/A',
+    destination: shipment.route.points[shipment.route.points.length - 1]?.name || 'N/A',
+    eta: shipment.route.estimatedCompletion.toLocaleString(),
+  }));
 }
 
 export const mockFetchDriverRoutes = (id: string): Driver['routes'] => {

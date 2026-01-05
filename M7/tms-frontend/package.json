@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "madge": "npx madge --image graph.png --extensions ts,tsx --ts-config tsconfig.json src/main.tsx",
+    "dependency-cruiser": "npx depcruise src --include-only \"^src\" --output-type err-html > dependency-report.html"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -47,6 +49,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dependency-cruiser": "^17.3.6",
     "embla-carousel-react": "^8.3.0",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",

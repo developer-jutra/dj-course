@@ -12,14 +12,14 @@ export const useDriversQuery = () => {
 
 export const useDriverDetailsQuery = (id: string) => {
   return useQuery({
-    queryKey: ['driver', id],
+    queryKey: ['drivers', id],
     queryFn: () => getDriverDetails(id),
   });
 };
 
 export const useDriverShipmentsQuery = (driverId: string) => {
   return useQuery({
-    queryKey: ['driver', driverId, 'shipments'],
+    queryKey: ['drivers', driverId, 'shipments'],
     queryFn: () => getDriverShipments(driverId),
   });
 };

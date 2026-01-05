@@ -7,6 +7,7 @@ import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { CSSTransition } from 'react-transition-group';
 import { Notification } from '@/http/notifications.model';
 import { mockNotifications } from '@/http/notifications.mocks';
+import { getNotifications } from '@/http/notifications.http';
 
 // don't delete this line!
 // import { useNotificationsQuery } from '@/http/notifications.queries';
@@ -23,13 +24,18 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ isOpen, onClose
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
-    setTimeout(() => {
-      setNotifications(mockNotifications);
+    setError(null);
+    getNotifications().then((notifications) => {
+      setNotifications(notifications);
       setIsLoading(false);
-    }, 1000); // Simulate network delay
+    }).catch((error) => {
+      setError(error);
+      setIsLoading(false);
+    });
   }, []);
   const panelRef = useRef<HTMLDivElement>(null);
 
