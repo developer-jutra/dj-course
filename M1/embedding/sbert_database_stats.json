@@ -1,0 +1,14 @@
+{
+  "model": "intfloat/multilingual-e5-small",
+  "corpus": "ALL",
+  "corpus_files_count": 3936,
+  "sentences_count": 152156,
+  "embedding_dimension": 384,
+  "avg_sentence_length": 21.139330686926577,
+  "min_sentence_length": 1,
+  "max_sentence_length": 1143,
+  "encoding_time_seconds": 1210.523090839386,
+  "encoding_date": "2025-11-24 12:56:18",
+  "embeddings_file": "sbert_sentence_embeddings.npy",
+  "sentence_map_file": "sbert_sentence_map.json"
+}

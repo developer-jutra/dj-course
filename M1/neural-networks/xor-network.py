@@ -40,8 +40,7 @@ class SimpleXORNet(nn.Module):
 ## 2. Inicjalizacja Modelu
 
 model = SimpleXORNet()
-model_epochs = 0
-
+model_epochs =0
 LEARNING_RATE = 0.5 # 🔥🔥🔥
 
 # BCELoss dla klasyfikacji binarnej (używamy go po Sigmoidzie)
@@ -53,7 +52,7 @@ optimizer = optim.SGD(model.parameters(), LEARNING_RATE)
 ## 3. Przygotowanie Danych i Pętla Treningowa
 # Ważne: PyTorch oczekuje liczb zmiennoprzecinkowych dla wejść sieci.
 
-NUM_EPOCHS = 2000 # 🔥🔥🔥
+NUM_EPOCHS = 500 # 🔥🔥🔥
 
 # Dane wejściowe (4 pary: [0, 0], [0, 1], [1, 0], [1, 1])
 X = torch.tensor([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
