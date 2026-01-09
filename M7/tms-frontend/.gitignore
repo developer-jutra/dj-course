@@ -1,3 +1,5 @@
+cucumber-report.html
+
 # Logs
 logs
 *.log
@@ -26,3 +28,8 @@ dist-ssr
 
 *storybook.log
 storybook-static
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

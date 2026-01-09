@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../../components/ui/tooltip';
+import { ActionTile } from '../../components/ui/action-tile';
 import { formatDateTime } from '../../lib/date/dateUtils';
 
 interface DriverTileProps {
@@ -112,13 +113,16 @@ export const DriverTile: React.FC<DriverTileProps> = ({
           <div className="grid grid-cols-3 gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="hidden sm:inline">Details</span>
+                    </>
+                  }
+                  variant="blue"
                   onClick={() => onDriverSelect(driver)}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span className="hidden sm:inline">Details</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Driver Details</p>
@@ -127,13 +131,16 @@ export const DriverTile: React.FC<DriverTileProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <Route className="w-4 h-4" />
+                      <span className="hidden sm:inline">Routes</span>
+                    </>
+                  }
+                  variant="green"
                   onClick={() => onDriverRoutes(driver)}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm"
-                >
-                  <Route className="w-4 h-4" />
-                  <span className="hidden sm:inline">Routes</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Driver Routes</p>
@@ -142,13 +149,16 @@ export const DriverTile: React.FC<DriverTileProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="hidden sm:inline">Calendar</span>
+                    </>
+                  }
+                  variant="purple"
                   onClick={() => onDriverCalendar(driver)}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm"
-                >
-                  <CalendarDays className="w-4 h-4" />
-                  <span className="hidden sm:inline">Calendar</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Driver Calendar</p>

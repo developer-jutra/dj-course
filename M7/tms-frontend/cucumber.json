@@ -1,0 +1,20 @@
+{
+  "default": {
+    "formatOptions": {
+      "snippetInterface": "async-await"
+    },
+    "paths": [
+      "features/**/*.feature"
+    ],
+    "dryRun": false,
+    "import": [
+      "features/step_definitions/*.ts",
+      "features/support/*.ts"
+    ],
+    "worldParameters": {},
+    "format": [
+      "progress-bar",
+      "html:cucumber-report.html"
+    ]
+  }
+}

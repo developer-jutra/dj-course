@@ -3,6 +3,7 @@ import { Document } from '../../model/documents';
 import { FileText, Eye, Edit, Building, User, Truck, Download } from 'lucide-react';
 import { formatDate } from '../../lib/date/dateUtils';
 import { generateDocumentPDF, generateDocumentPDFBlob } from '../../lib/pdf/documentPdfGenerator';
+import { ActionTile } from '../../components/ui/action-tile';
 
 interface DocumentTileProps {
   document: Document;
@@ -222,50 +223,62 @@ export const DocumentTile: React.FC<DocumentTileProps> = ({
       )}
 
       <div className="flex items-center gap-2">
-        <button 
-          onClick={handleViewPDF}
-          disabled={isGeneratingPDF}
-          className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors disabled:opacity-50"
-        >
-          {isGeneratingPDF ? (
-            <>
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              Generating...
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              View PDF
-            </>
-          )}
-        </button>
+        {isGeneratingPDF ? (
+          <button 
+            disabled
+            className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors disabled:opacity-50"
+          >
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Generating...
+          </button>
+        ) : (
+          <ActionTile
+            label={
+              <>
+                <Eye className="w-4 h-4" />
+                View PDF
+              </>
+            }
+            variant="blue"
+            size="SMALL"
+            onClick={handleViewPDF}
+          />
+        )}
         
-        <button 
-          onClick={handleDownloadPDF}
-          disabled={isGeneratingPDF}
-          className="flex items-center gap-1 px-3 py-1 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors disabled:opacity-50"
-        >
-          {isGeneratingPDF ? (
-            <>
-              <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-              Generating...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4" />
-              Download
-            </>
-          )}
-        </button>
+        {isGeneratingPDF ? (
+          <button 
+            disabled
+            className="flex items-center gap-1 px-3 py-1 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors disabled:opacity-50"
+          >
+            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+            Generating...
+          </button>
+        ) : (
+          <ActionTile
+            label={
+              <>
+                <Download className="w-4 h-4" />
+                Download
+              </>
+            }
+            variant="green"
+            size="SMALL"
+            onClick={handleDownloadPDF}
+          />
+        )}
         
         {!isEditing && (
-          <button 
+          <ActionTile
+            label={
+              <>
+                <Edit className="w-4 h-4" />
+                Edit
+              </>
+            }
+            variant="orange"
+            size="SMALL"
             onClick={() => onEdit(document.id, document.name)}
-            className="flex items-center gap-1 px-3 py-1 text-sm bg-orange-50 text-orange-700 rounded hover:bg-orange-100 transition-colors"
-          >
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
+          />
         )}
       </div>
     </div>

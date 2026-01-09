@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { formatDateTime } from '../../lib/date/dateUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip';
+import { ActionTile } from '../../components/ui/action-tile';
 import { Link } from 'react-router-dom';
 import { useDriversList } from '../../hooks/queries';
 import Currency from '../../components/Currency';
@@ -206,13 +207,16 @@ export const VehicleTile: React.FC<VehicleTileProps> = ({ vehicle, onVehicleSele
           <div className="grid grid-cols-3 gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <Route className="w-4 h-4" />
+                      <span className="hidden sm:inline">Routes</span>
+                    </>
+                  }
+                  variant="blue"
                   onClick={() => onVehicleSelect(vehicle, 'routes')}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-                >
-                  <Route className="w-4 h-4" />
-                  <span className="hidden sm:inline">Routes</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Vehicle Routes</p>
@@ -221,13 +225,16 @@ export const VehicleTile: React.FC<VehicleTileProps> = ({ vehicle, onVehicleSele
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <Wrench className="w-4 h-4" />
+                      <span className="hidden sm:inline">Maintenance</span>
+                    </>
+                  }
+                  variant="orange"
                   onClick={() => onVehicleSelect(vehicle, 'maintenance')}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors text-sm"
-                >
-                  <Wrench className="w-4 h-4" />
-                  <span className="hidden sm:inline">Maintenance</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Vehicle Maintenance</p>
@@ -236,13 +243,16 @@ export const VehicleTile: React.FC<VehicleTileProps> = ({ vehicle, onVehicleSele
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <ActionTile
+                  label={
+                    <>
+                      <FileText className="w-4 h-4" />
+                      <span className="hidden sm:inline">Docs</span>
+                    </>
+                  }
+                  variant="green"
                   onClick={() => onVehicleSelect(vehicle, 'documents')}
-                  className="flex items-center justify-center gap-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span className="hidden sm:inline">Docs</span>
-                </button>
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Vehicle Documents</p>
