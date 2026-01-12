@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# UI Library
+
+* UI library components are domain agnostic. They never know about the entities that they are dealing with.
+
+* UI library components have their dedicated storybook files.

@@ -9,6 +9,7 @@ import { LucideAngularModule, DollarSign, FileText, CheckCircle, AlertCircle, Se
 import { DropdownComponent } from '../../ui-library/Dropdown.component';
 import { StatsComponent } from '../../ui-library/Stats.component';
 import { Heading1Component, Heading3Component, Heading4Component, SubtitleComponent } from '../../ui-library/Typography/Typography.component';
+import { generateFinancialReportPDF } from '../../lib/pdf/financialReportPdfGenerator';
 
 @Component({
   selector: 'app-billing-payments',
@@ -198,7 +199,7 @@ import { Heading1Component, Heading3Component, Heading4Component, SubtitleCompon
                   <lucide-icon [img]="DownloadIcon" size="18" class="mr-2"></lucide-icon>
                   Export Report
                 </button>
-                <button class="btn btn-primary">
+                <button (click)="downloadFinancialReportPDF()" class="btn btn-primary">
                   <lucide-icon [img]="DownloadIcon" size="18" class="mr-2"></lucide-icon>
                   Download PDF
                 </button>
@@ -399,5 +400,15 @@ export class BillingPaymentsComponent implements OnInit {
         iconColor: 'text-error-600'
       }
     ];
+  }
+
+  async downloadFinancialReportPDF(): Promise<void> {
+    if (!this.overview || !this.invoices.length) return;
+
+    await generateFinancialReportPDF({
+      overview: this.overview,
+      invoices: this.invoices,
+      reportPeriod: `Financial Period: ${new Date().getFullYear()}`
+    });
   }
 }

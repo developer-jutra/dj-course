@@ -1,7 +1,6 @@
 import { Component, OnInit, inject, effect, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { LucideAngularModule, SquareChevronLeft, SquareChevronRight, Bell, LogOut, BarChart3, Package, FileText, MapPin, Truck, Users, CreditCard, Home, Calendar, UserCheck, Settings, Shield, Cog, X } from 'lucide-angular';
 
 import { AuthService } from './auth/auth.service';
@@ -12,7 +11,7 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, 
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive,
             LucideAngularModule, Heading3Component],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-dark-900">
@@ -43,7 +42,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
         <!-- Navigation -->
         <nav class="flex-1 space-y-2 p-4">
           <a routerLink="/dashboard" 
-               [class.active]="isRouteActive('/dashboard')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="HomeIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -57,7 +57,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
 
             @if (canAccessReports()) {
               <a routerLink="/reports" 
-                 [class.active]="isRouteActive('/reports')"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{exact: false}"
                  class="sidebar-nav-item group"
                  [class.justify-center]="sidebarCollapsed">
                 <lucide-icon [img]="BarChart3Icon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -71,7 +72,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             }
             
             <a routerLink="/reservations" 
-               [class.active]="isRouteActive('/reservations')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="CalendarIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -84,7 +86,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/cargo-management" 
-               [class.active]="isRouteActive('/cargo-management')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="PackageIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -97,7 +100,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/warehouse-operations" 
-               [class.active]="isRouteActive('/warehouse-operations')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="CogIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -110,7 +114,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/storage-requests" 
-               [class.active]="isRouteActive('/storage-requests')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="FileTextIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -123,7 +128,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/dock-management" 
-               [class.active]="isRouteActive('/dock-management')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="TruckIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -136,7 +142,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/warehouse-map" 
-               [class.active]="isRouteActive('/warehouse-map')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="MapPinIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -149,7 +156,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/contractors"
-               [class.active]="isRouteActive('/contractors')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="UsersIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -162,7 +170,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             </a>
 
             <a routerLink="/billing-payments" 
-               [class.active]="isRouteActive('/billing-payments')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="CreditCardIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -176,7 +185,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
 
             @if (canAccessEmployeeManagement()) {
               <a routerLink="/employees" 
-                 [class.active]="isRouteActive('/employees')"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{exact: false}"
                  class="sidebar-nav-item group"
                  [class.justify-center]="sidebarCollapsed">
                 <lucide-icon [img]="UserCheckIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -191,7 +201,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
 
             @if (canAccessRoleManagement()) {
               <a routerLink="/role-management" 
-                 [class.active]="isRouteActive('/role-management')"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{exact: false}"
                  class="sidebar-nav-item group"
                  [class.justify-center]="sidebarCollapsed">
                 <lucide-icon [img]="ShieldIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -205,7 +216,8 @@ import { Heading3Component } from './ui-library/Typography/Typography.component'
             }
 
             <a routerLink="/settings" 
-               [class.active]="isRouteActive('/settings')"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: false}"
                class="sidebar-nav-item group"
                [class.justify-center]="sidebarCollapsed">
               <lucide-icon [img]="SettingsIcon" size="20" class="flex-shrink-0"></lucide-icon>
@@ -394,7 +406,6 @@ export class LayoutComponent implements OnInit {
   XIcon = X;
 
   sidebarCollapsed = false;
-  currentRoute = '';
   showNotifications = false;
   notifications = signal<Notification[]>([]);
   unreadNotifications = computed(() => this.notifications().filter(n => !n.isRead).length);
@@ -413,14 +424,7 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Track current route for active navigation highlighting
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        this.currentRoute = event.urlAfterRedirects;
-      }
-    });
+    // RouterLinkActive handles active route highlighting automatically
   }
 
   loadNotifications(): void {
@@ -497,10 +501,6 @@ export class LayoutComponent implements OnInit {
       case 'info': return 'bg-info-50 text-info-800 dark:bg-info-800 dark:text-info-50';
       default: return 'bg-gray-50 text-gray-800 dark:bg-gray-800 dark:text-gray-50';
     }
-  }
-
-  isRouteActive(route: string): boolean {
-    return this.currentRoute.startsWith(route);
   }
 
   getUserRole(): string {

@@ -9,7 +9,6 @@ import OrderDetails from "@/pages/orders/OrderDetails";
 import NewOrderForm from "@/pages/orders/NewOrderForm";
 import IncidentReportForm from "@/pages/Incident-new";
 import CustomerClaimForm from "@/pages/Claim-new";
-import ShipmentTracking from "@/pages/shipments/ShipmentTracking";
 import { DriversPage } from "@/pages/DriversPage";
 import { DriverDetailsPage } from "@/pages/DriverDetailsPage";
 import { DriverCalendarPage } from "@/pages/DriverCalendarPage";
@@ -24,6 +23,7 @@ import ExpenseDetails from "@/pages/Expense-Details";
 import Urgent from "@/pages/Urgent";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
+import ShipmentTracking from "@/pages/shipments/ShipmentTracking";
 
 const ProtectedLayout = () => (
     <ProtectedRoute>
@@ -61,6 +61,7 @@ export const AppRoutes = () => {
                 <Route path="/claims" element={<Claims />} />
                 <Route path="/urgent" element={<Urgent />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/shipments/:id/track" element={<ShipmentTracking />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

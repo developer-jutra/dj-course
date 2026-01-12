@@ -9,6 +9,7 @@ import { CargoDetailDocumentationComponent } from './cargo-detail-documentation.
 import { LucideAngularModule, ArrowLeft, Clock, MapPin, FileText, Package } from 'lucide-angular';
 import { CargoService } from './cargo.service';
 import { Heading1Component, Heading3Component } from '../../ui-library/Typography/Typography.component';
+import { generateCargoReportPDF } from '../../lib/pdf/cargoReportPdfGenerator';
 
 @Component({
   selector: 'app-cargo-detail',
@@ -44,7 +45,7 @@ import { Heading1Component, Heading3Component } from '../../ui-library/Typograph
           </div>
           <div class="flex space-x-3">
             <button class="btn btn-secondary">Edit Details</button>
-            <button class="btn btn-primary">Generate Report</button>
+            <button (click)="generateReport()" class="btn btn-primary">Generate Report</button>
           </div>
         </div>
 
@@ -141,5 +142,11 @@ export class CargoDetailComponent implements OnInit {
       case 'expired': return 'bg-warning-100 text-warning-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  }
+
+  async generateReport(): Promise<void> {
+    if (!this.cargoItem) return;
+
+    await generateCargoReportPDF(this.cargoItem);
   }
 }

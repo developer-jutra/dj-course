@@ -7,6 +7,10 @@ export interface OperationalMetrics {
     name: string;
     value: number;
   }[];
+  dailyThroughputTrend?: {
+    date: string;
+    value: number;
+  }[];
 }
 
 export interface UtilizationReport {

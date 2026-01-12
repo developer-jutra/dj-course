@@ -21,8 +21,10 @@ import {
 } from '@angular/core';
 
 import {
-  Observable
+  Observable,
+  of
 } from 'rxjs';
+import { delay } from 'rxjs/operators';
 
 import type {
   ContractorDetails,
@@ -33,6 +35,8 @@ import type {
   StorageRequestStatusUpdate,
   StorageRequestSummary
 } from '.././contract';
+
+import { MOCK_CONTRACTORS, MOCK_CONTRACTOR_DETAILS_LIST } from '../../mock/contractors.mock';
 
 
 
@@ -67,12 +71,11 @@ export class ContractAPIService {
   ): Observable<AngularHttpResponse<TData>>;
     getContractors<TData = ContractorsSummaryCollection>(
      options?: Omit<HttpClientOptions, 'observe'> & { observe?: 'events' }
-  ): Observable<HttpEvent<TData>>;getContractors<TData = ContractorsSummaryCollection>(
+  ): Observable<HttpEvent<TData>>; getContractors<TData = ContractorsSummaryCollection>(
      options?: HttpClientOptions
   ): Observable<TData>  {
-    return this.http.get<TData>(
-      `http://localhost:8080/wms/api/contractors`,options
-    );
+    // Return mock data instead of making HTTP request
+    return of(MOCK_CONTRACTORS as TData).pipe(delay(300));
   }
 /**
  * @summary Get contractor details
@@ -85,12 +88,12 @@ export class ContractAPIService {
   ): Observable<AngularHttpResponse<TData>>;
     getContractorsId<TData = ContractorDetails>(
     id: string, options?: Omit<HttpClientOptions, 'observe'> & { observe?: 'events' }
-  ): Observable<HttpEvent<TData>>;getContractorsId<TData = ContractorDetails>(
+  ): Observable<HttpEvent<TData>>; getContractorsId<TData = ContractorDetails>(
     id: string, options?: HttpClientOptions
   ): Observable<TData>  {
-    return this.http.get<TData>(
-      `http://localhost:8080/wms/api/contractors/${id}`,options
-    );
+    // Return mock data instead of making HTTP request
+    const contractor = MOCK_CONTRACTOR_DETAILS_LIST.find(c => c.id === id);
+    return of(contractor as TData).pipe(delay(300));
   }
 /**
  * @summary Update contractor status
@@ -106,14 +109,12 @@ export class ContractAPIService {
     patchContractorsId<TData = void>(
     id: string,
     contractorStatusUpdate: ContractorStatusUpdate, options?: Omit<HttpClientOptions, 'observe'> & { observe?: 'events' }
-  ): Observable<HttpEvent<TData>>;patchContractorsId<TData = void>(
+  ): Observable<HttpEvent<TData>>; patchContractorsId<TData = void>(
     id: string,
     contractorStatusUpdate: ContractorStatusUpdate, options?: HttpClientOptions
   ): Observable<TData>  {
-    return this.http.patch<TData>(
-      `http://localhost:8080/wms/api/contractors/${id}`,
-      contractorStatusUpdate,options
-    );
+    // Return mock success response instead of making HTTP request
+    return of(undefined as TData).pipe(delay(300));
   }
 /**
  * @summary List storage requests

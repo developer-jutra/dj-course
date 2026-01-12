@@ -6,6 +6,7 @@ import { Invoice, InvoiceItem } from './billing.model';
 import { LucideAngularModule, ArrowLeft, FileText, Calendar, DollarSign, User, Download, Send, Edit } from 'lucide-angular';
 import { MOCK_INVOICE_ITEMS } from '../../mock/invoice-items.mock';
 import { Heading1Component, Heading2Component, Heading3Component, Heading4Component } from '../../ui-library/Typography/Typography.component';
+import { generateInvoicePDF } from '../../lib/pdf/invoicePdfGenerator';
 
 @Component({
   selector: 'app-invoice-detail',
@@ -38,7 +39,7 @@ import { Heading1Component, Heading2Component, Heading3Component, Heading4Compon
               <lucide-icon [img]="SendIcon" size="18" class="mr-2"></lucide-icon>
               Send
             </button>
-            <button class="btn btn-primary">
+            <button (click)="downloadPDF()" class="btn btn-primary">
               <lucide-icon [img]="DownloadIcon" size="18" class="mr-2"></lucide-icon>
               Download PDF
             </button>
@@ -237,5 +238,14 @@ export class InvoiceDetailComponent implements OnInit {
       case 'draft': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  }
+
+  async downloadPDF(): Promise<void> {
+    if (!this.invoice) return;
+
+    await generateInvoicePDF({
+      ...this.invoice,
+      taxRate: 0.085
+    });
   }
 }
