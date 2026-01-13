@@ -38,7 +38,7 @@ def main():
     # Display results
     print(f"{'Lines':>8} | {'Path'}")
     print("-" * 50)
-    for path, line_count in stats:
+    for path, line_count in reversed(stats):
         print(f"{line_count:8} | {path}")
 
 if __name__ == "__main__":
