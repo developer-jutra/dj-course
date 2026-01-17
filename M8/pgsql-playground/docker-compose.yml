@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: strongpassword123
+      POSTGRES_DB: jsonbdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - postgres-network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:9.4
+    container_name: pgadmin-container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@example.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin_password
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    networks:
+      - postgres-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  pgadmin_data:

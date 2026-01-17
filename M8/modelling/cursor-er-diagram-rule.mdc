@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+# SQL Data Generation Workflow Rules
+
+Files:
+- [TMS ER Diagram](./tms-er-diagram.mmd)
+- [TMS SQL script](./tms-er-diagram.sql)
+
+Your task is to synchronize changes in ER Diagram file to the SQL script (SQL reflects database model).
+
+## Critical Rules for Modifications
+
+### 0. Changes to ER diagram should be followed by updates to the SQL scripts.
+- However, this doesn't have to be in one step. Most probably, I need to verify the changes to the ER diagram separately. And when this is done, I would like you to suggest to update the SQL script and the data generator.
+- I would like this suggestion to include what do you actually plan to do? I would like to see the plan before confirmation.
+
+### 1. SQL Script contains: `DROP TABLE IF EXISTS ...`, `CREATE TABLE ...`, `CREATE INDEX ...` and `INSERT INTO ...`
+- each table should have several rows inserted
+- PostgreSQL
