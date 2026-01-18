@@ -1,0 +1,8 @@
+flask
+flask-cors
+jsonify
+grpcio
+requests
+sqlalchemy
+psycopg2-binary
+pydantic >= 2

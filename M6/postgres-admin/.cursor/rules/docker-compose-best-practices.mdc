@@ -1,0 +1,54 @@
+---
+description: 
+globs: **/docker-compose*.yml
+alwaysApply: false
+---
+# Docker Compose Best Practices
+
+When creating Docker Compose files, follow these best practices to ensure maintainability, security, and clarity:
+
+1. **Image Tagging**
+   - Always use explicit image tags (avoid `latest` for production). For example, `postgres:17-alpine` instead of `postgres:latest`.
+
+2. **Environment Variables**
+   - Store sensitive values (passwords, secrets) in environment files (`.env`) and reference them using `env_file` or variable substitution.
+   - Example:
+     ```yaml
+     env_file:
+       - .env
+     ```
+
+3. **Volumes**
+   - Use named volumes for persistent data (e.g., `postgres_data`).
+   - Mount configuration or initialization scripts as needed.
+
+4. **Networks**
+   - Define custom networks for service isolation and communication.
+
+5. **Port Mapping**
+   - Only expose necessary ports to the host. Avoid exposing internal-only services.
+
+6. **Depends On**
+   - Use `depends_on` to control startup order, but remember it does not wait for service readiness.
+
+7. **Restart Policies**
+   - Set appropriate restart policies (e.g., `unless-stopped`, `on-failure`).
+
+8.  **Secrets and Configs**
+    - For production, use Docker secrets and configs for sensitive data and configuration files.
+
+9.  **Resource Limits**
+    - Set resource constraints (`mem_limit`, `cpus`) for production workloads.
+
+10. **Documentation**
+    - Comment your Compose files to explain non-obvious settings.
+
+11. **Keep Compose Files DRY**
+    - Use YAML anchors and extensions to avoid duplication in large files.
+
+12. **Version Control**
+    - Exclude sensitive files (like `.env`) from version control using `.gitignore`.
+
+---
+
+See [docker-compose.yml](mdc:docker-compose.yml) for an example implementation.

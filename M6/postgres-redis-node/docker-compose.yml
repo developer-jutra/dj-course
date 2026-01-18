@@ -1,0 +1,133 @@
+# Define secrets first
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  pgadmin_password: 
+    file: ./secrets/pgadmin_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+services:
+  # Node.js Express Application Service
+  app:
+    build: ./app
+    container_name: node-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - NODE_ENV=production
+      - NODE_APP_PORT=3000
+      - SIMULATE_MEMORY_LEAK=true
+      - DB_USER=admin
+      - DB_PASSWORD_FILE=/run/secrets/postgres_password
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=productsdb
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+    networks:
+      - backend
+    secrets:
+      - postgres_password
+      - redis_password
+    restart: unless-stopped
+    mem_limit: "256m"
+
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: productsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+      - management
+    secrets:
+      - postgres_password
+    restart: unless-stopped
+
+  # PGAdmin Service
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: pgadmin
+    environment:
+      # References the .env variable
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+      # turn off server mode and master password required (for local development ease)
+      # PGADMIN_CONFIG_SERVER_MODE: False
+      # PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: False
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - management
+    secrets:
+      - pgadmin_password
+    restart: unless-stopped
+
+  # Redis Cache Service
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    entrypoint: ["/redis-entrypoint.sh"]
+    # following is wrong, as the password is not passed to the container
+    # command: ["redis-server", "--requirepass", "/run/secrets/redis_password"]
+    # following is correct for troubleshooting, but the password is hardcoded
+    # command: ["redis-server", "--requirepass", "redispass789"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis/redis-entrypoint.sh:/redis-entrypoint.sh:ro # :ro is read only
+    networks:
+      - backend
+    secrets:
+      - redis_password
+    restart: unless-stopped
+
+  # RedisInsight GUI for Redis
+  redisinsight:
+    image: redis/redisinsight:2.68
+    container_name: redisinsight
+    environment:
+      - RI_REDIS_HOST=redis
+      - RI_REDIS_PORT=6379
+      - RI_REDIS_ALIAS=My Redis
+      - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight-data:/data
+    networks:
+      - backend
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+  management:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  pgadmin-data:
+  redisinsight-data:

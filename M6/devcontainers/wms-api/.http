@@ -1,0 +1,90 @@
+@host = http://localhost:3001
+# @host = http://localhost:8080/wms/api/
+@party_id = 1
+@storage_record_id = 1
+@employee_id = 60
+@contractor_id = 1
+@warehouse_id = 1
+
+### Health check
+GET {{host}}/health/
+Accept: text/plain
+
+########################################################
+
+### Get all contractors
+GET {{host}}/contractors/
+Accept: application/json
+
+### Get contractor details
+GET {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+
+### Update contractor status
+PATCH {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "status": "INACTIVE"
+}
+
+########################################################
+
+@payment_id = 27
+
+### Delete a payment by ID
+DELETE {{host}}/payments/{{payment_id}}
+Accept: application/json
+
+### Get all payments
+GET {{host}}/payments
+Accept: application/json
+
+### Get all pending payments
+GET {{host}}/payments/?status=PENDING
+Accept: application/json
+
+### Get all pending payments
+GET {{host}}/payments/?status=PENDING
+Accept: application/json
+
+### Get all paid payments
+GET {{host}}/payments/?status=PAID
+Accept: application/json
+
+### Get all payments by party
+GET {{host}}/payments/?party_id={{party_id}}
+Accept: application/json
+
+### Get pending payments by party
+GET {{host}}/payments/?party_id={{party_id}}&status=pending
+Accept: application/json
+
+########################################################
+
+### Get all employees
+GET {{host}}/employees/
+Accept: application/json
+
+### Get employee details
+GET {{host}}/employees/{{employee_id}}
+Accept: application/json
+
+########################################################
+
+### Get all employees for a warehouse
+GET {{host}}/warehouse/{{warehouse_id}}
+Accept: application/json
+
+########################################################
+
+### List pending storage requests
+GET {{host}}/storage-requests/?status=PENDING
+Accept: application/json
+
+########################################################
+
+### Storage event history for a storage record
+GET {{host}}/storage/{{storage_record_id}}/events
+Accept: application/json

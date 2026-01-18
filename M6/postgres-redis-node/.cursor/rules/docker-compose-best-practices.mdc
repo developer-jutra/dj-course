@@ -1,0 +1,45 @@
+---
+description: 
+globs: **/docker-compose*.yml
+alwaysApply: false
+---
+# Docker Compose Best Practices
+
+Enforces best practices for Docker Compose files in this project, including pinning image versions, using environment variables, logical service organization, persistent volumes, secure networking, version control hygiene, documentation, security, resource management, and multi-environment support. This rule ensures maintainable, secure, and reliable Docker Compose configurations
+
+## 1. Pin Image Versions
+- Always specify explicit image tags (e.g., `postgres:17.4-alpine`) instead of `latest` to ensure reproducible builds.
+
+## 2. Use Environment Variables
+- Store sensitive data (passwords, secrets) in environment variables or external `.env` files, not directly in the compose file.
+- Reference variables using `${VAR_NAME}` syntax when possible.
+
+## 3. Organize Services Logically
+- Group related services together and use clear, descriptive service names.
+- Use the `depends_on` and `healthcheck` features to manage service startup order and readiness.
+
+## 4. Use Volumes for Persistent Data
+- Define named volumes for data persistence (e.g., `postgres-data`, `prometheus-data`).
+- Mount configuration files and initialization scripts as needed.
+
+## 5. Network Configuration
+- Use custom networks (e.g., `monitoring-net`) to isolate service communication.
+- Avoid exposing ports unnecessarily; only publish what is needed for external access.
+
+## 6. Version Control
+- Commit your `docker-compose.yml` and related config files to version control, but exclude secrets and generated data.
+
+## 7. Documentation
+- Comment your compose file to explain non-obvious settings or customizations.
+- Document how to build, start, and stop the stack in your project README.
+
+## 8. Security
+- Use official images or trusted sources.
+- Regularly update image tags to the latest stable versions.
+- Limit container privileges and avoid running as root when possible.
+
+## 9. Resource Management
+- Use resource limits (`mem_limit`, `cpus`) for production deployments to prevent resource exhaustion.
+
+## 10. Multi-Environment Support
+- Use override files (e.g., `docker-compose.override.yml`) or profiles for development, testing, and production differences.

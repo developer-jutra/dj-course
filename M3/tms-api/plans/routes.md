@@ -1,0 +1,1 @@
+create `routes/` directory where each entity collection would have its own route file, e.g. `routes/drivers.py`. Put a dedicated flask router there - and import it back to @app.py. Do similar thing for other routes in @app.py.

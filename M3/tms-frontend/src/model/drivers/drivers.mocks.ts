@@ -1,4 +1,6 @@
 import { Driver, DriverRoute, CalendarEvent } from './driver.types';
+import { getMockShipments } from '../shipments/shipments.mocks';
+import { UIShipment } from '../shipments/ui.types';
 
 const generateDriverRoutes = (driverId: string): DriverRoute[] => {
   const routes: DriverRoute[] = [];
@@ -92,7 +94,7 @@ const generateCalendarEvents = (routes: DriverRoute[]): CalendarEvent[] => {
   return events;
 };
 
-export const sampleDrivers: Driver[] = [
+export const mockDrivers: Driver[] = [
   {
     id: 'driver-001',
     name: 'Jan Kowalski',
@@ -504,7 +506,89 @@ export const sampleDrivers: Driver[] = [
 ];
 
 // Generate routes and calendar events for each driver
-sampleDrivers.forEach(driver => {
+mockDrivers.forEach(driver => {
   driver.routes = generateDriverRoutes(driver.id);
   driver.calendarEvents = generateCalendarEvents(driver.routes);
 });
+
+export const mockGetDrivers = (filters?: {
+  status?: Driver['status'];
+  contractType?: Driver['contractType'];
+  search?: string;
+}): Driver[] => {
+  let drivers = [...mockDrivers];
+      
+  if (filters) {
+    if (filters.status) {
+      drivers = drivers.filter(driver => driver.status === filters.status);
+    }
+    if (filters.contractType) {
+      drivers = drivers.filter(driver => driver.contractType === filters.contractType);
+    }
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      drivers = drivers.filter(driver => 
+        driver.name.toLowerCase().includes(searchLower) ||
+        driver.email.toLowerCase().includes(searchLower) ||
+        driver.phone.includes(filters.search!)
+      );
+    }
+  }
+  
+  return drivers;
+}
+
+export const mockGetDriverDetails = (id: string): Driver | null => {
+  const driver = mockDrivers.find(d => d.id === id) || null;
+  return driver;
+}
+
+export const mockGetDriverShipments = (id: Driver['id']): UIShipment[] => {
+  const driver = mockDrivers.find(d => d.id === id);
+  if (!driver) return [];
+  return getMockShipments({ driver: driver.name });
+}
+
+export const mockFetchDriverRoutes = (id: string): Driver['routes'] => {
+  const driver = mockDrivers.find(d => d.id === id);
+  if (!driver) {
+    throw new Error('Driver not found');
+  }
+  return driver.routes;
+};
+
+export const mockFetchDriverCalendar = (id: string): Driver['calendarEvents'] => {
+  const driver = mockDrivers.find(d => d.id === id);
+  if (!driver) {
+    throw new Error('Driver not found');
+  }
+  return driver.calendarEvents;
+};
+
+export const mockUpdateDriver = (id: string, updates: Partial<Driver>): Driver => {
+  const existingDriver = mockDrivers.find(d => d.id === id);
+  if (!existingDriver) {
+    throw new Error('Driver not found');
+  }
+  
+  const updatedDriver: Driver = {
+    ...existingDriver,
+    ...updates
+  };
+  
+  return updatedDriver;
+};
+
+export const mockUpdateDriverStatus = (id: string, status: Driver['status']): Driver => {
+  const existingDriver = mockDrivers.find(d => d.id === id);
+  if (!existingDriver) {
+    throw new Error('Driver not found');
+  }
+  
+  const updatedDriver: Driver = {
+    ...existingDriver,
+    status
+  };
+  
+  return updatedDriver;
+};

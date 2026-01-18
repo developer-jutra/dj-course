@@ -1,0 +1,23 @@
+### Get all products
+GET http://localhost:3000/products
+Content-Type: application/json
+
+###
+
+### Add a new product with a random name
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "name": "Test Product",
+  "price": 19.99
+}
+
+###
+
+### Delete a product by ID
+DELETE http://localhost:3000/products/1
+Content-Type: application/json
+
+DELETE http://localhost:3000/products/2
+Content-Type: application/json

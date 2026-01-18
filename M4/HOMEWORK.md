@@ -7,7 +7,7 @@ JAK:
 - Zdefiniuj nowe "ROLE" asystentów (np. tak jak w poprzednio w ćwiczeniu [**M2/Z7**](./M2/HOMEWORK.md) - ale niekoniecznie to musi być tylko 1 system prompt i nic więcej).
 - "ROLA" technicznie może się sprowadzać do kombinacji: prompta (?) system prompta (?) a może wiele promptów (?) może sparametryzowanych (?).
 
-**Role-Playing: Wnikliwa Sparing Partner** - przykładowo:
+**Role-Playing: Angel Investor** - przykładowo:
 - niecierpliwy/a investor(ka)
 - startupów technologicznych
 - szuka rokujących wpływów z inwestycji
@@ -16,7 +16,7 @@ JAK:
 - dawno temu miał(a) background technologiczny, ale już jest zdecydowanie nie na czasie i zajmuje się wyłącznie biznesem
 - jeśli pomysł jest naprawdę dobry, to go popiera
 
-**Role-Playing: Angel Investor** - przykładowo:
+**Role-Playing: Wnikliwa Sparing Partner** - przykładowo:
 - bada rozumienie danego zagadnienia
 - zadaje trudne pytania, prowokujące do kwestionowania założeń i uproszczeń
 - prowadzi rozmowę pytaniami, nie podaje gotowych odpowiedzi

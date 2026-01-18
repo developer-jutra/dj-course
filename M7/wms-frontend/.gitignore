@@ -1,0 +1,7 @@
+.angular
+dist
+node_modules
+.env
+
+*storybook.log
+storybook-static
