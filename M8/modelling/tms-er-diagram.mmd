@@ -1,0 +1,137 @@
+erDiagram
+    %% MODUŁ ZASOBÓW I DOSTĘPNOŚCI
+    RESOURCE ||--o{ RESOURCE_AVAILABILITY : "timeline"
+    RESOURCE ||--o{ TRANSPORT_RESOURCE : "assigned_to"
+    
+    %% MODUŁ KADROWY (HR)
+    HR_DRIVER ||--o{ DRIVER_DOCUMENT : "holds"
+    HR_DRIVER |o--o| RESOURCE : "represents_as_resource"
+    
+    %% MODUŁ FLOTY (FLEET)
+    FLEET_VEHICLE ||--o{ RESOURCE : "represents_as_resource"
+    VEHICLE_CATEGORY ||--o{ FLEET_VEHICLE : "defines"
+    
+    %% MODUŁ ZAMÓWIEŃ (SALES)
+    CONTRAHENT ||--o{ ADDRESS : "manages"
+    CONTRAHENT ||--o{ ORDER : "places"
+    ORDER_STATUS ||--o{ ORDER : "defines"
+    ORDER ||--|{ SHIPMENT : "consists_of"
+    
+    %% MODUŁ TRANSPORTU (OPERATIONS)
+    TRANSPORT ||--o{ TRANSPORT_RESOURCE : "uses"
+    TRANSPORT ||--o{ MANIFEST_ITEM : "executes"
+    SHIPMENT ||--o{ MANIFEST_ITEM : "included_in"
+
+    CONTRAHENT {
+        int id PK
+        string name
+        string tax_id
+        string internal_code
+        jsonb contact_details
+    }
+
+    ADDRESS {
+        int id PK
+        int contrahent_id FK
+        string label
+        jsonb full_address_data "city, street, post_code, country, contact_person, phone"
+    }
+
+    ORDER {
+        int id PK
+        int contrahent_id FK
+        int status_id FK
+        string customer_ref "Numer zamówienia klienta"
+        datetime created_at
+        datetime deadline "Termin realizacji całości"
+        decimal total_agreed_price "Kwota netto"
+        string currency
+        text internal_notes
+    }
+
+    ORDER_STATUS {
+        int id PK
+        string code "DRAFT, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED"
+        string display_name
+    }
+
+    SHIPMENT {
+        int id PK
+        int order_id FK
+        jsonb pickup_address_snapshot "Snapshot z ADDRESS"
+        jsonb delivery_address_snapshot "Snapshot z ADDRESS"
+        decimal weight
+        int pallets_count
+        string goods_description
+        jsonb requirements "np. temperatura, ADR"
+    }
+
+    TRANSPORT {
+        int id PK
+        int transport_status_id "1:DRAFT, 2:READY, 3:IN_TRANSIT, 4:COMPLETED"
+        tsrange scheduled_range
+        string route_notes
+        decimal estimated_km
+    }
+
+    TRANSPORT_RESOURCE {
+        int id PK
+        int transport_id FK
+        int resource_id FK
+        string role "PRIMARY_DRIVER, SUPPORT_DRIVER, VEHICLE, TRAILER"
+    }
+
+    RESOURCE {
+        int id PK
+        string resource_type "DRIVER / VEHICLE / WAREHOUSE"
+        jsonb metadata "Snapshot dla dyspozytora"
+        int external_id "FK do HR_DRIVER lub FLEET_VEHICLE"
+    }
+
+    RESOURCE_AVAILABILITY {
+        int id PK
+        int resource_id FK
+        tsrange busy_range "GiST Index"
+        string reason "TRANSPORT / MAINTENANCE / HOLIDAY"
+        int reference_transport_id "Opcjonalne powiązanie z TRANSPORT.id"
+    }
+
+    HR_DRIVER {
+        int id PK
+        string first_name
+        string last_name
+        string employee_id
+        jsonb contact_info
+    }
+
+    DRIVER_DOCUMENT {
+        int id PK
+        int driver_id FK
+        string doc_type
+        string doc_number
+        date expiry_date
+        jsonb metadata "np. kategorie prawa jazdy"
+    }
+
+    FLEET_VEHICLE {
+        int id PK
+        int category_id FK
+        string plates
+        string vin
+        jsonb technical_specs
+    }
+
+    VEHICLE_CATEGORY {
+        int id PK
+        string name
+        string code
+    }
+
+    MANIFEST_ITEM {
+        int id PK
+        int shipment_id FK
+        int transport_id FK
+        int sequence_order
+        string action_type "LOAD / UNLOAD"
+        datetime actual_time "Rzeczywisty czas operacji"
+    }

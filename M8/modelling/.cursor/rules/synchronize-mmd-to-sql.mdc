@@ -1,5 +1,7 @@
 ---
 alwaysApply: true
+name: synchronize-mmd-to-sql
+description: Whenever a `mmd` ER diagram file gets changed, update the SQL file accordingly.
 ---
 # SQL Data Generation Workflow Rules
 
@@ -18,6 +20,5 @@ Your task is to synchronize changes in ER Diagram file to the SQL script (SQL re
 ### 1. SQL Script contains: `DROP TABLE IF EXISTS ...`, `CREATE TABLE ...`, `CREATE INDEX ...` and `INSERT INTO ...`
 - each table should have several rows inserted
 - PostgreSQL
-- Indexes should be near their respective tables and not in a totally separate section.
 
 ### 2. Don't ask for confirmation, just generate the SQL file.
