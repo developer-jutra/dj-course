@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS order_timeline_events;
 DROP TABLE IF EXISTS transportation_orders;
+DROP TABLE IF EXISTS driver_availability;
+DROP TABLE IF EXISTS vehicle_availability;
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS drivers;
 DROP TABLE IF EXISTS vehicles;
@@ -20,7 +22,33 @@ CREATE TABLE drivers (
     email VARCHAR(100),
     phone VARCHAR(20),
     contract_type VARCHAR(20),
-    status VARCHAR(20)
+    status VARCHAR(20),
+    CHECK (contract_type IN ('CONTRACTOR', 'FULL_TIME')),
+    CHECK (status IN ('ACTIVE', 'ON_ROUTE', 'RESTING', 'OFF_DUTY', 'SICK_LEAVE'))
+);
+
+CREATE TABLE driver_availability (
+    id INT PRIMARY KEY,
+    driver_id INT NOT NULL,
+    start_datetime TIMESTAMP NOT NULL,
+    end_datetime TIMESTAMP NOT NULL,
+    availability_type VARCHAR(20) NOT NULL,
+    notes VARCHAR(255),
+    FOREIGN KEY (driver_id) REFERENCES drivers(id),
+    CHECK (availability_type IN ('AVAILABLE', 'ON_SHIFT', 'BREAK', 'OFF_DUTY', 'VACATION', 'SICK_LEAVE', 'TRAINING')),
+    CHECK (end_datetime > start_datetime)
+);
+
+CREATE TABLE vehicle_availability (
+    id INT PRIMARY KEY,
+    vehicle_id INT NOT NULL,
+    start_datetime TIMESTAMP NOT NULL,
+    end_datetime TIMESTAMP NOT NULL,
+    availability_type VARCHAR(20) NOT NULL,
+    notes VARCHAR(255),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
+    CHECK (availability_type IN ('AVAILABLE', 'IN_USE', 'MAINTENANCE', 'REPAIR', 'INSPECTION', 'OUT_OF_SERVICE')),
+    CHECK (end_datetime > start_datetime)
 );
 
 CREATE TABLE customers (
@@ -30,7 +58,8 @@ CREATE TABLE customers (
     email VARCHAR(100),
     phone VARCHAR(20),
     customer_type VARCHAR(20),
-    address VARCHAR(255)
+    address VARCHAR(255),
+    CHECK (customer_type IN ('INDIVIDUAL', 'BUSINESS', 'VIP'))
 );
 
 CREATE TABLE transportation_orders (
@@ -47,7 +76,9 @@ CREATE TABLE transportation_orders (
     shipping_zip_code VARCHAR(20),
     shipping_method VARCHAR(50),
     tracking_number VARCHAR(50),
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CHECK (status IN ('PENDING', 'PROCESSING', 'IN_TRANSIT', 'READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED')),
+    CHECK (amount >= 0)
 );
 
 CREATE TABLE order_timeline_events (
@@ -58,7 +89,8 @@ CREATE TABLE order_timeline_events (
     title VARCHAR(100),
     description TEXT,
     executed_by VARCHAR(100),
-    FOREIGN KEY (order_id) REFERENCES transportation_orders(id)
+    FOREIGN KEY (order_id) REFERENCES transportation_orders(id),
+    CHECK (event_type IN ('ORDER_CREATED', 'PAYMENT_CONFIRMED', 'ORDER_APPROVED', 'PREPARING_SHIPMENT', 'READY_FOR_PICKUP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'))
 );
 
 CREATE TABLE order_items (
@@ -76,3 +108,9 @@ CREATE INDEX idx_timeline_order ON order_timeline_events(order_id);
 CREATE INDEX idx_items_order ON order_items(order_id);
 CREATE INDEX idx_orders_customer ON transportation_orders(customer_id);
 CREATE INDEX idx_orders_status ON transportation_orders(status);
+CREATE INDEX idx_driver_availability_driver ON driver_availability(driver_id);
+CREATE INDEX idx_driver_availability_dates ON driver_availability(start_datetime, end_datetime);
+CREATE INDEX idx_driver_availability_type ON driver_availability(availability_type);
+CREATE INDEX idx_vehicle_availability_vehicle ON vehicle_availability(vehicle_id);
+CREATE INDEX idx_vehicle_availability_dates ON vehicle_availability(start_datetime, end_datetime);
+CREATE INDEX idx_vehicle_availability_type ON vehicle_availability(availability_type);

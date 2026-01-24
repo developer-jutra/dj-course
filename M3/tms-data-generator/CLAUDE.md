@@ -23,12 +23,14 @@ go build -o bin/tms-data-generator ./cmd/tms-data-generator  # Build binary
 
 ## Architecture
 
-### Domain Model (4 Core Entities)
+### Domain Model (6 Core Entities)
 
 - **Vehicles**: Fleet management (make/model/year/fuel capacity)
 - **Drivers**: Employee records with contract types and status
 - **Customers**: Three types (INDIVIDUAL/BUSINESS/VIP) with contact info
 - **Orders**: Delivery jobs linking customers to addresses with status tracking
+- **Driver Availability**: Time-based tracking of driver availability, shifts, breaks, vacation, etc.
+- **Vehicle Availability**: Time-based tracking of vehicle availability, usage, maintenance, repairs, etc.
 
 ### File Structure Pattern
 

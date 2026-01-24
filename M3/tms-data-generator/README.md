@@ -1,6 +1,23 @@
 # TMS Data Generator
 
-This tool generates a `tms-latest.sql` file with sample data.
+This tool generates a `tms-latest.sql` file with realistic sample data for a Transportation Management System (TMS).
+
+## Features
+
+- **Vehicles**: Fleet with make, model, year, and fuel capacity
+- **Drivers**: Employee records with contracts and status
+- **Customers**: Individual, business, and VIP customers
+- **Transportation Orders**: Delivery orders with items and timeline tracking
+- **Driver Availability**: Time-based tracking of driver shifts, breaks, vacation, sick leave, and training
+- **Vehicle Availability**: Time-based tracking of vehicle usage, maintenance, repairs, and inspections
+
+Generated data includes:
+- 90 days of availability data (60 days historical + 30 days future)
+- Realistic work patterns and schedules
+- Proper referential integrity between all tables
+- Example SQL queries for common availability lookups
+
+For detailed information about the availability feature, see [AVAILABILITY_FEATURE.md](./AVAILABILITY_FEATURE.md).
 
 ## Usage
 
