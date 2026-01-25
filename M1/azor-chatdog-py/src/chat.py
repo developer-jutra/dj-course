@@ -45,8 +45,11 @@ def main_loop():
             # Get token information
             total_tokens, remaining_tokens, max_tokens = session.get_token_info()
 
+            # Handle response - some clients return string, others return object with .text
+            response_text = response.text if hasattr(response, 'text') else response
+
             # Display response
-            console.print_assistant(f"\n{session.assistant_name}: {response.text}")
+            console.print_assistant(f"\n{session.assistant_name}: {response_text}")
             console.print_info(f"Tokens: {total_tokens} (Pozostało: {remaining_tokens} / {max_tokens})")
 
             # Save session
