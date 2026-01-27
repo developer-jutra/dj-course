@@ -101,4 +101,6 @@ WHERE details @> '{"cargo": {"type": "Electronics"}}'; -- ✅ valid / bitmap sca
 -- WHERE details @> '{"assignment": { "carrier_id": 101 }}'; -- ✅ valid / bitmap scan (leaf value included)
 -- WHERE details @> '{"assignment": { "driver_id": 52}}'; -- ✅ valid / bitmap scan (leaf value included)
 
-SET enable_seqscan = off;
+-- 🔥🔥🔥 IMPORTANT 🔥🔥🔥
+-- The `jsonb_ops` index (default GIN) indexes keys and values ​​at all nesting levels. The @> (contains) operator is natively supported and uses this index.
+-- The `->` (object/element fetch) and `->>` (text fetch) operators do not directly use the `jsonb_ops` GIN index because they are used for navigation, not for testing containment.

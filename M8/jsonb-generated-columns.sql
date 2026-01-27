@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS shipments CASCADE;
 CREATE TABLE carriers (
     id INT PRIMARY KEY,
     company_name TEXT,
-    fleet_size INT
+    fleet_size INT,
+    contract_period DATERANGE
 );
 
 CREATE TABLE shipments (
