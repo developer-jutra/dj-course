@@ -1,0 +1,65 @@
+groups:
+- name: technical-alerts
+  rules:
+  - alert: HighHttpErrorRate
+    expr: increase(http_requests_total{status=~"4..|5.."}[3m]) >= 10
+    for: 5s
+    labels:
+      severity: warning
+    annotations:
+      summary: "High rate of HTTP errors"
+      description: "There have been at least 10 HTTP 4xx or 5xx errors in the last 3 minutes."
+  - alert: HttpErrorsDrasticIncrease
+    expr: |
+      (
+        (sum(rate(http_requests_total{status=~"4..|5.."}[5m])) 
+        / 
+        sum(rate(http_requests_total{status=~"4..|5.."}[5m] offset 15m)))
+        > 3
+      )
+      and
+      (sum(increase(http_requests_total{status=~"4..|5.."}[5m])) > 10)
+    labels:
+      severity: critical
+      team: platform
+    annotations:
+      description: "HTTP errors increased 3x with >10 errors in last 5 minutes"
+      summary: "Critical API error surge detected"
+
+  - alert: GettingOutOfRAM
+    expr: |
+      nodejs_nodejs_heap_size_used_bytes > 1024 * 1024 * 28
+    # expr: |
+    #   (
+    #     nodejs_nodejs_heap_size_used_bytes 
+    #     / 
+    #     nodejs_nodejs_heap_size_total_bytes
+    #   ) * 100 > 90
+    # expr: |
+    #   100 - (
+    #     node_memory_MemAvailable_bytes{job="node"}
+    #     /
+    #     node_memory_MemTotal_bytes{job="node"}
+    #     * 100
+    #   ) > 95
+    for: 5s
+    labels:
+      severity: emergency
+      team: all
+    annotations:
+      # description: "System memory usage exceeds 95% capacity"
+      summary: "Critical memory exhaustion imminent"
+
+- name: business-alerts
+  rules:
+  - alert: OrderingGoesDown
+    expr: |
+      (sum by (product) (sum_over_time(orders_total{product="A"}[1d]))) 
+      < 
+      (sum by (product) (sum_over_time(orders_total{product="A"}[1d] offset 1d)) * 0.8)
+    labels:
+      severity: warning
+      team: product-a
+    annotations:
+      description: "Order submissions dropped >20% compared to previous day"
+      summary: "Significant order volume decrease detected"

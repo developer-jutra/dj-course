@@ -1,0 +1,15 @@
+[project]
+name = "sql-data-generator"
+version = "1.0.0"
+description = "Generates synthetic SQL data using Faker."
+authors = [
+    {name = "Developer Jutra - bo kto?"},
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "faker>=25.2.0",
+]
+
+[tool.uv]
+# Install: uv sync

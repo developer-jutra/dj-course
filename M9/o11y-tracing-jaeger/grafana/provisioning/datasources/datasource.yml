@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: Jaeger
+    type: jaeger
+    uid: EbPG8fYoz
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: true
+    jsonData:
+      nodeGraph:
+        enabled: true

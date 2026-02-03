@@ -1,0 +1,54 @@
+@host = http://localhost:3000
+@id = 10
+
+### Get all products
+
+GET {{host}}/products
+Content-Type: application/json
+
+###
+
+### Add a new product (remember SKU has to be unique)
+POST {{host}}/products
+Content-Type: application/json
+
+{
+  "name": "Test Product",
+  "price": 19.99,
+  "description": "Test Description",
+  "stock": 100,
+  "category_id": 1,
+  "sku": "TEST-12345678903",
+  "weight_g": 100,
+  "is_active": true
+}
+
+###
+
+### Delete a product by ID
+DELETE {{host}}/products/1
+Content-Type: application/json
+
+DELETE {{host}}/products/2
+Content-Type: application/json
+
+### Get all delivered orders in the last 30 days
+GET {{host}}/orders/delivered
+Content-Type: application/json
+
+### Get top products by category
+GET {{host}}/top/products-by-category/1
+Content-Type: application/json
+
+### Get top customers by total spent
+GET {{host}}/top/customers-by-total-spent
+Content-Type: application/json
+
+### Inject a memory leak
+GET {{host}}/inject-leak
+Content-Type: application/json
+
+### Inject an error
+GET {{host}}/inject-error
+Content-Type: application/json
+

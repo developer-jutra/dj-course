@@ -1,0 +1,13 @@
+execution:
+- concurrency: 5          # Number of parallel users
+  iterations: 100          # Total number of iterations per user
+  scenario: simple-get
+
+settings:
+  artifacts-dir: reports/%Y-%m-%d_%H-%M-%S.%f  # This will create a timestamped folder inside 'reports'
+
+scenarios:
+  simple-get:
+    requests:
+    - url: http://localhost:3000/products
+      method: GET

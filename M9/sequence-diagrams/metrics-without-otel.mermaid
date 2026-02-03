@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant A as Application (Instrumentation: Prometheus Client Lib)
+    participant P as Prometheus Server
+    participant G as Grafana (UI)
+
+    Note over A: Metrics generated internally (Prometheus format)
+    A->>A: Collects Metrics (RAM)
+
+    P->>A: HTTP GET /metrics (Pull)
+    A-->>P: Returns Metrics (OpenMetrics/Text)
+
+    Note over P: Storage (TSDB) and serving
+    G->>P: Data Query (PromQL)
+    P-->>G: Data for visualization

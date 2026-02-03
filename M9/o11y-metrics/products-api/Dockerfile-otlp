@@ -1,0 +1,13 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install --include=dev
+
+COPY . .
+
+EXPOSE 3000 9464
+
+CMD ["npm", "run", "dev-otlp"]

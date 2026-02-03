@@ -1,0 +1,120 @@
+services:
+  products-api:
+    build:
+      context: ./products-api
+      # 🔥🔥🔥 WAŻNE 🔥🔥🔥
+
+      # albo native prometheus:
+      # dockerfile: Dockerfile
+      # wówczas metryki są dostępne pod http://localhost:3000/metrics
+
+      # albo OTLP:
+      dockerfile: Dockerfile-otlp
+      # wówczas metryki są dostępne pod http://localhost:9464/metrics
+
+      # dla chętnych: można sparametryzować np. poprzez docker compose profiles
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: products-api
+      LOKI_HOST: http://loki:3100
+      # DATABASE_URL: postgresql://admin:secret@postgres:5432/products
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: products
+    ports:
+      - "3000:3000"
+    networks:
+      - o11y-network
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./products-api
+          target: /products-api
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./products-api/package.json
+
+  availability-api:
+    build:
+      context: ./availability-api
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_SERVICE_NAME=availability-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - LOKI_HOST=http://loki:3100
+    ports:
+      - "3001:3001"
+    depends_on:
+      - loki
+    networks:
+      - o11y-network
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: products
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - o11y-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d products"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  loki:
+    image: grafana/loki:3.5.0
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - o11y-network
+    restart: unless-stopped
+    healthcheck:
+      test: wget --quiet --tries=1 --output-document=- http://localhost:3100/ready | grep -q -w ready || exit 1
+      start_period: 20s
+      interval: 10s
+      timeout: 1s
+      retries: 12  # try for 2 minutes
+    
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./grafana/provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/provisioning/dashboards/:/etc/grafana/provisioning/dashboards/
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: secret
+    networks:
+      - o11y-network
+    depends_on:
+      - loki
+      - postgres
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./grafana
+          target: /etc/grafana
+
+volumes:
+  grafana-data:
+  loki-data:
+  postgres-data:
+
+networks:
+  o11y-network:
+    driver: bridge

@@ -1,0 +1,14 @@
+version: '3'
+
+tasks:
+  install:
+    cmds:
+      - uv sync
+  generate:
+    deps:
+      - install
+    cmds:
+      - uv run python src/generate_data.py
+  sync:
+    cmds:
+      - ./sync-sql-files.sh

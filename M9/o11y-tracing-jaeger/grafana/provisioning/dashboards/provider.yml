@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    updateIntervalSeconds: 10
+    # allowUiUpdates: false  # Prevent manual changes from overriding
+    allowUiUpdates: true # Allow manual changes
+    options:
+      path: /etc/grafana/provisioning/dashboards

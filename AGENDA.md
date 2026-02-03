@@ -5,6 +5,7 @@ Pełny Program Szkolenia
 # M1: LLMy i Agenty: Architektura i Działanie
 
 1. Agenty i LLMy: Architektura i Działanie
+2. Szczypta Machine Learning
    2.1. Szczypta Machine Learning: Sieci Neuronowe
    2.2. Szczypta Machine Learning: Algebra Liniowa
    2.3. Szczypta Machine Learning: Anatomia LLMów i Architektura Transformers
@@ -72,11 +73,11 @@ Pełny Program Szkolenia
 
 # M7: Frontend 
 
-1. Problematyka Frontendu
+1. Problematyka Frontendu (i Biblioteki Komponentów)
 2. Tworzenie UI z AI - Priorytety
 3. Frontendowy Tooling okiem Architekta
 4. Frontendowe Prompty i Reguły dla AI
-5. Modularyzacja i Projektowanie Stanu - oraz Heurystyki
+5. Modularyzacja i Projektowanie Stanu
 6. VSA na froncie
 7. Integracja z MCP
 8. Testowanie
@@ -84,22 +85,23 @@ Pełny Program Szkolenia
 # M8: Bazy Danych
 
 1. Problematyka Baz Danych
-2. Modelowanie bazy z LLM
-3. Ile restrykcji w bazie - a ile poza?
-4. Integracja z MCP
-5. Techniki optymalizacji
-6. Współbieżność, Spójność i Transakcje
-7. Bazy Dokumentowe
-8. JSONB: nie w pełni ustrukturyzowane dane
+2. Bazo-bebechy
+3. Modelowanie bazy z LLM
+4. Techniki optymalizacji
+5. Integracja z MCP
+6. Ile restrykcji w bazie - a ile poza?
+7. Współbieżność, Spójność i Transakcje
+8. Bazy Dokumentowe
+9. JSONB: nie w pełni ustrukturyzowane dane
 
 # M9: Monitoring & Observability
 
 1. Monitoring i obserwowalność
-2. Instrumentacja
-3. Open Telemetry
-4. Metryki
-5. Logi
-6. Tracing
+2. Infrastruktura
+3. Metryki
+4. Logi
+5. Tracing
+6. Open Telemetry i Instrumentacja
 7. Stress Testy: dawaj, wytrzyma
 
 # M10: Backend

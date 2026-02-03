@@ -1,0 +1,113 @@
+services:
+  # Node.js Express Application
+  products-api:
+    build:
+      context: ./products-api
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./products-api:/app
+    environment:
+      - NODE_APP_PORT=3000
+      - NODE_ENV=development
+      - OTEL_SERVICE_NAME=products-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - CONSOLE_TRACE_EXPORTER=true
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=strongpassword123
+      - POSTGRES_DB=productsdb
+      - POSTGRES_HOST=postgres
+      - AVAILABILITY_API_URL=http://availability-api:3001
+    depends_on:
+      - postgres
+      - tempo
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  availability-api:
+    build:
+      context: ./availability-api
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_SERVICE_NAME=availability-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+    ports:
+      - "3001:3001"
+    depends_on:
+      - tempo
+    networks:
+      - app-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=strongpassword123
+      - POSTGRES_DB=productsdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - app-network
+
+  # Tempo for trace storage
+  tempo:
+    image: grafana/tempo:2.7.0
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "9411:9411" # HTTP
+      - "14268:14268" # Jaeger HTTP Thrift
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - tempo
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  grafana-data:
+  prometheus_data:

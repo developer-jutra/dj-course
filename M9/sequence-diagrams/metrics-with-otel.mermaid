@@ -1,0 +1,34 @@
+sequenceDiagram
+    participant A as Application (Instrumentation: OTel SDK)
+    participant C as OTel Collector (Agent/Gateway)
+    participant B as Metrics Backend (e.g., Prometheus / Mimir / Thanos)
+    participant G as Grafana (UI)
+
+    Note over A: Metrics Generated (OTLP)
+
+    A->>C: Push OTLP Data
+    activate C
+    Note over C: OTLP Receiver -> Processor
+
+    par APPROACH 1: PULL (Scraping)
+        Note over C: Prometheus Exporter
+        C->>C: Exposes /metrics (OpenMetrics)
+
+        rect rgb(230, 255, 230)
+            Note over B: Prometheus Backend (Operates in PULL mode)
+            B->>C: HTTP GET /metrics (Scrape)
+            C-->>B: Returns Metrics (OpenMetrics)
+        end
+    and APPROACH 2: PUSH (Remote Write)
+        Note over C: Remote Write Exporter (Conversion to Prometheus Remote Write API)
+        
+        rect rgb(230, 255, 255)
+            Note over B: Mimir/Thanos Backend (Accepts PUSH)
+            C->>B: POST /api/v1/write (Remote Write)
+        end
+    end
+    deactivate C
+    
+    Note over B: Time Series Database Storage (TSDB)
+    G->>B: Data Query (PromQL)
+    B-->>G: Data for Visualization

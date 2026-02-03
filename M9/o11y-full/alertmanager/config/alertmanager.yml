@@ -1,0 +1,57 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alerts@company.com'
+  smtp_auth_username: 'alert-user'
+  smtp_auth_password: 'secure-password'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'cluster']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: default-receiver
+  routes:
+  - match:
+      team: platform
+    receiver: platform-team
+    continue: false
+    
+  - match:
+      team: product-a
+    receiver: product-a-team
+    
+  - match:
+      team: all
+    receiver: all-teams
+
+receivers:
+- name: 'all-teams'
+  email_configs:
+  - to: 'platform-alerts@company.com'
+  - to: 'product-a-alerts@company.com'
+  - to: 'product-b-alerts@company.com'
+
+- name: 'default-receiver'
+  email_configs:
+  - to: 'fallback@company.com'
+
+- name: 'platform-team'
+  email_configs:
+  - to: 'platform-alerts@company.com'
+
+- name: 'product-a-team'
+  email_configs:
+  - to: 'product-a-alerts@company.com'
+
+- name: 'product-b-team'
+  email_configs:
+  - to: 'product-b-alerts@company.com'
+
+inhibit_rules:
+- source_match:
+    severity: 'emergency'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname']

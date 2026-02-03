@@ -1,0 +1,182 @@
+services:
+  # Node.js application
+  products-api:
+    build: ./products-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - SERVICE_NAME=products-api
+      - LOKI_HOST=http://loki:3100
+      - DATABASE_URL=postgresql://admin:secret@postgres:5432/products
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - OTEL_SERVICE_NAME=products-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - o11y-network
+    restart: unless-stopped
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./products-api
+          target: /products-api
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./products-api/package.json
+
+  # Postgres database
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: products
+    volumes:
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - o11y-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  # Postgres exporter for Prometheus
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    depends_on:
+      - postgres
+    networks:
+      - o11y-network
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    restart: unless-stopped
+    networks:
+      - o11y-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager/config:/etc/alertmanager
+      - alertmanager_data:/data
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - o11y-network
+    depends_on:
+      - prometheus
+
+  # Loki for logs
+  loki:
+    image: grafana/loki:3.5.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - o11y-network
+
+  tempo:
+    image: grafana/tempo:2.7.0
+    user: "10001" # Explicitly set UID
+    # command: ["-config.file=/etc/tempo.yaml"]
+    # volumes:
+    #   - ./tempo/config/tempo.yaml:/etc/tempo.yaml
+    #   - tempo-data:/tmp/tempo
+    command: 
+      - -config.file=/etc/tempo.yaml
+      - -storage.trace.local.path=/tmp/tempo/blocks # Match container path
+    volumes:
+      - ./tempo/config/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data/blocks:/tmp/tempo/blocks
+      - ./tempo-data/wal:/tmp/tempo/wal
+    ports:
+      - "3200:3200"   # HTTP
+      # - "4317:4317"   # OTLP gRPC # 🔥🔥🔥
+      # - "4318:4318"   # OTLP HTTP
+      - "9411:9411"   # Zipkin
+    networks:
+      - o11y-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - o11y-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"  # gRPC
+      - "4318:4318"  # HTTP
+      - "8888:8888"  # collector metrics endpoint
+      - "8889:8889"  # collector internal metrics endpoint
+    depends_on:
+      - products-api
+      - postgres-exporter
+      - prometheus
+      - loki
+    networks:
+      - o11y-network
+
+networks:
+  o11y-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  loki-data:
+  tempo-data:
+  alertmanager_data:
+  grafana-data:

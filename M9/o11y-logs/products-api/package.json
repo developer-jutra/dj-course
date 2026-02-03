@@ -1,0 +1,35 @@
+{
+  "name": "o11y-logs",
+  "version": "1.0.0",
+  "author": "Developer Jutra",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "dev-otlp": "ts-node src/otlp-index.ts"
+  },
+  "dependencies": {
+    "@opentelemetry/api-logs": "^0.208.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.208.0",
+    "@opentelemetry/instrumentation": "^0.208.0",
+    "@opentelemetry/instrumentation-express": "^0.57.0",
+    "@opentelemetry/instrumentation-http": "^0.208.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-logs": "^0.208.0",
+    "@opentelemetry/sdk-metrics": "^2.2.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "pg": "^8.16.0",
+    "winston": "^3.17.0",
+    "winston-loki": "^6.1.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

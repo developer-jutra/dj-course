@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant A as Application (OTel SDK Instrumentation)
+    participant C as OTel Collector (Agent)
+    participant LOGS as Logs Backend (e.g. Loki)
+    participant TRACES as Traces Backend (e.g. Jaeger, Tempo)
+    participant UI as Grafana UI
+    
+    Note over A: Generating Logs/Traces
+    A->>C: Push Logs/Traces (OTLP)
+    
+    activate C
+    Note over C: Collector processes and routes data streams
+    
+    par Log Path        
+        rect rgb(230, 255, 230)
+            C->>LOGS: Push Logs (OTLP or native)
+            Note over LOGS: Storage and Indexing of Logs
+            UI->>LOGS: Query for Logs
+            LOGS-->>UI: Returns Logs
+        end
+    and Tracing Path
+        rect rgb(230, 255, 255)
+            C->>TRACES: Push Traces (OTLP or native)
+            Note over TRACES: Storage and Indexing of Traces
+            UI->>TRACES: Query for Traces
+            TRACES-->>UI: Returns Traces
+        end
+    end
+    
+    deactivate C

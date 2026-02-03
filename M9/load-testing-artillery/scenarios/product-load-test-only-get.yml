@@ -1,0 +1,15 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      maxVusers: 50
+  
+scenarios:
+  - name: "Browse products and view details"
+    flow:
+      - get:
+          url: "/products"
+      - think: 3
+      - get:
+          url: "/products/1"

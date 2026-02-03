@@ -1,0 +1,70 @@
+receivers:
+  # OTLP format (PUSH)
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Prometheus format (PULL)
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'products-api'
+          scrape_interval: 5s
+          static_configs:
+            - targets: ['products-api:3000'] 
+        
+        - job_name: 'postgres-exporter'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['postgres-exporter:9187'] 
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: [os]
+  
+exporters:
+  # METRICS: Endpoint from which Prometheus will scrape ALL application/infrastructure metrics
+  prometheus:
+    endpoint: 0.0.0.0:8888 
+
+  # LOGS: Export to Loki
+  otlphttp/loki:
+    endpoint: "http://loki:3100/otlp"
+    tls:
+      insecure: true
+
+  # TRACING: Export to Tempo
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+
+service:
+  # DIAGNOSTIC METRICS: Exposed on a separate port, which Prometheus scrapes DIRECTLY
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8889 
+      
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus] 
+      processors: [batch]
+      exporters: [prometheus] # expose port 8888
+      
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo] # push to tempo
+      
+    logs:
+      receivers: [otlp]
+      processors: [resourcedetection, batch]
+      exporters: [otlphttp/loki] # push to loki

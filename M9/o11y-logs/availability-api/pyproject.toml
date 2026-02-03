@@ -1,0 +1,13 @@
+[project]
+name = "availability-api"
+version = "1.0.0"
+dependencies = [
+    "flask",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp",
+    "opentelemetry-instrumentation-flask",
+    "python-logging-loki",
+    "grpcio",
+    "requests",
+]

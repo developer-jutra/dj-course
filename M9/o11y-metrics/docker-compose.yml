@@ -1,0 +1,127 @@
+services:
+  products-api:
+    build:
+      context: ./products-api
+      # 🔥🔥🔥 WAŻNE 🔥🔥🔥
+
+      # albo native prometheus:
+      dockerfile: Dockerfile
+      # wówczas metryki są dostępne pod http://localhost:3000/metrics
+
+      # albo OTLP:
+      # dockerfile: Dockerfile-otlp
+      # wówczas metryki są dostępne pod http://localhost:9464/metrics
+
+      # dla chętnych: można sparametryzować np. poprzez docker compose profiles
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: products-api
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: secret
+      DB_NAME: products
+    ports:
+      - "3000:3000"
+      - "9464:9464"
+    networks:
+      - o11y-network
+    mem_limit: 256m
+    depends_on:
+      postgres:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./app
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./app/package.json
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: products
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - o11y-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d products"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    environment:
+      DATA_SOURCE_NAME: "postgresql://admin:secret@postgres:5432/products?sslmode=disable"
+    networks:
+      - o11y-network
+    depends_on:
+      - postgres
+
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    networks:
+      - o11y-network
+    depends_on:
+      - products-api
+      - postgres-exporter
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager/config:/etc/alertmanager
+      - alertmanager_data:/data
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - o11y-network
+    depends_on:
+      - prometheus
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./grafana/provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/provisioning/dashboards/:/etc/grafana/provisioning/dashboards/
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: secret
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    networks:
+      - o11y-network
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  alertmanager_data:
+  grafana-data:
+
+networks:
+  o11y-network:
+    driver: bridge

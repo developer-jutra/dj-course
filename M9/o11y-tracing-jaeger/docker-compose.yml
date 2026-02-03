@@ -1,0 +1,94 @@
+services:
+  # Node.js Express Application
+  products-api:
+    build:
+      context: ./products-api
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./products-api:/app
+    environment:
+      - NODE_APP_PORT=3000
+      - NODE_ENV=development
+      - OTEL_SERVICE_NAME=products-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - CONSOLE_TRACE_EXPORTER=true
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=strongpassword123
+      - POSTGRES_DB=productsdb
+      - POSTGRES_HOST=postgres
+      - AVAILABILITY_API_URL=http://availability-api:3001
+    depends_on:
+      - postgres
+      - jaeger
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  availability-api:
+    build:
+      context: ./availability-api
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_SERVICE_NAME=availability-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    ports:
+      - "3001:3001"
+    depends_on:
+      - jaeger
+    networks:
+      - app-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=strongpassword123
+      - POSTGRES_DB=productsdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  # Jaeger for trace visualization
+  jaeger:
+    image: jaegertracing/all-in-one:1.67.0
+    ports:
+      - "16686:16686"  # Web UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+      - "14268:14268"  # Jaeger HTTP Thrift
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - jaeger
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  grafana-data:

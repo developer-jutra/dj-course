@@ -1,0 +1,12 @@
+{
+  "name": "load-testing",
+  "author": "Developer Jutra",
+  "private": true,
+  "scripts": {
+    "test:load": "artillery run scenarios/product-load-test.yml",
+    "test:load:report": "artillery run --output reports/product-load-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-load-test.yml"
+  },
+  "devDependencies": {
+    "artillery": "^2.0.22"
+  }
+}

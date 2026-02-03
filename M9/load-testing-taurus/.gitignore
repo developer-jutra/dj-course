@@ -1,0 +1,7 @@
+*.log
+
+# Virtual environment
+.venv/
+
+# Taurus report directories
+reports/

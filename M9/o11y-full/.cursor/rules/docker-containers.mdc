@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Whenever setting docker image tags, follow the rules:
+- avoid `latest`
+- prefer `alpine` distribution/images
