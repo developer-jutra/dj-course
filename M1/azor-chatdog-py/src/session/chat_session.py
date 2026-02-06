@@ -5,6 +5,8 @@ from files import session_files
 from files.wal import append_to_wal
 from llm.gemini_client import GeminiLLMClient
 from llm.llama_client import LlamaClient
+from llm.anthropic_client import AnthropicClient
+from llm.openai_client import OpenAIClient
 from assistant import Assistant
 from cli import console
 
@@ -14,10 +16,13 @@ from cli import console
 ENGINE_MAPPING = {
     'LLAMA_CPP': LlamaClient,
     'GEMINI': GeminiLLMClient,
+    'ANTHROPIC': AnthropicClient,
+    'OPENAI': OpenAIClient,
 }
 
 
 class ChatSession:
+
     """
     Manages everything related to a single chat session.
     Encapsulates session ID, conversation history, assistant, and LLM chat session.
@@ -53,10 +58,9 @@ class ChatSession:
         
         # Initialize LLM client if not already created
         if self._llm_client is None:
-            SelectedClientClass = ENGINE_MAPPING.get(engine, GeminiLLMClient)
-            console.print_info(SelectedClientClass.preparing_for_use_message())
-            self._llm_client = SelectedClientClass.from_environment()
-            console.print_info(self._llm_client.ready_for_use_message())
+            # Create client from environment based on engine
+            client_cls = ENGINE_MAPPING[engine]
+            self._llm_client = client_cls.from_environment()
         
         self._llm_chat_session = self._llm_client.create_chat_session(
             system_instruction=self.assistant.system_prompt,
@@ -123,12 +127,15 @@ class ChatSession:
         # Sync history after message
         self._history = self._llm_chat_session.get_history()
         
+        # Handle response - some clients return string, others return object with .text
+        response_text = response.text if hasattr(response, 'text') else response
+        
         # Log to WAL
         total_tokens = self.count_tokens()
         success, error = append_to_wal(
             session_id=self.session_id,
             prompt=text,
-            response_text=response.text,
+            response_text=response_text,
             total_tokens=total_tokens,
             model_name=self._llm_client.get_model_name()
         )
