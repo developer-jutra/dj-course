@@ -1,8 +1,58 @@
 import express, { Request, Response } from 'express';
 import logger from "./logger";
-import { pool } from "./database";
+import { pool, isDatabaseHealthy } from "./database";
 
 const router = express.Router();
+
+// Helper function to handle database errors consistently
+function handleDatabaseError(err: any, operation: string, res: Response) {
+  // Check if it's a connection error
+  const isConnectionError = err.code === 'ECONNREFUSED' || 
+                           err.code === 'ENOTFOUND' || 
+                           err.code === 'ETIMEDOUT' ||
+                           err.code === '57P01' || // postgres admin shutdown
+                           err.code === '57P02' || // postgres crash shutdown
+                           err.code === '57P03' || // postgres cannot connect
+                           err.message?.includes('connection') ||
+                           err.message?.includes('connect ECONNREFUSED');
+  
+  if (isConnectionError) {
+    logger.error(`Database connection error during ${operation}`, { 
+      error: err.message,
+      code: err.code,
+      operation
+    });
+    return res.status(503).json({ 
+      error: 'Service temporarily unavailable',
+      message: 'Unable to connect to database. Please try again later.'
+    });
+  }
+  
+  logger.error(`Failed to ${operation}`, { 
+    error: err.message,
+    code: err.code 
+  });
+  return res.status(500).json({ error: err.message });
+}
+
+// Middleware to check database health before processing requests
+function checkDatabaseHealth(req: Request, res: Response, next: express.NextFunction) {
+  if (!isDatabaseHealthy) {
+    logger.warn('Request rejected - database is currently unavailable', {
+      method: req.method,
+      url: req.originalUrl
+    });
+    return res.status(503).json({ 
+      error: 'Service temporarily unavailable',
+      message: 'Database connection is currently unavailable. Please try again later.',
+      retryAfter: 5
+    });
+  }
+  next();
+}
+
+// Apply database health check to all routes
+router.use(checkDatabaseHealth);
 
 router.get('/products', async (req: Request, res: Response) => {
   try {
@@ -12,8 +62,7 @@ router.get('/products', async (req: Request, res: Response) => {
     logger.debug('Products fetched successfully', { count: rows.length });
     res.json(rows);
   } catch (err: any) {
-    logger.error('Failed to fetch products', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'fetch products', res);
   }
 });
 
@@ -25,8 +74,7 @@ router.get('/products/:id', async (req: Request, res: Response) => {
     logger.debug('Record fetched successfully', { product: rows[0] });
     res.json(rows[0]);
   } catch (err: any) {
-    logger.error('Failed to fetch product', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'fetch product', res);
   }
 });
 
@@ -41,7 +89,7 @@ router.post('/products', async (req: Request, res: Response) => {
     const { name, price, description, stock, category_id, sku, weight_g, is_active } = req.body;
     const sql = `INSERT INTO products (name, price, description, stock, category_id, sku, weight_g, is_active) VALUES (${name}, ${price}, ${description}, ${stock}, ${category_id}, ${sku}, ${weight_g}, ${is_active})`;
     logger.error('Failed to create product', { error: err.message, sql });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'create product', res);
   }
 });
 
@@ -53,8 +101,7 @@ router.delete('/products/:id', async (req: Request, res: Response) => {
     logger.debug('Record deleted successfully', { id });
     res.status(204).send();
   } catch (err: any) {
-    logger.error('Failed to delete product', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'delete product', res);
   }
 });
 
@@ -70,8 +117,7 @@ ORDER BY p.price DESC LIMIT $2`,
     logger.debug('Products fetched successfully', { count: rows.length });
     res.json(rows);
   } catch (err: any) {
-    logger.error('Failed to fetch products by category', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'fetch products by category', res);
   }
 });
 
@@ -84,8 +130,7 @@ ORDER BY total_spent DESC LIMIT $1`, [limit]);
     logger.debug('Customers fetched successfully', { count: rows.length });
     res.json(rows);
   } catch (err: any) {
-    logger.error('Failed to fetch customers by total spent', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'fetch customers by total spent', res);
   }
 });
 
@@ -107,7 +152,6 @@ JOIN
     shipments s ON o.order_id = s.order_id
 WHERE
     o.status = 'Delivered'
-    AND o.order_date >= NOW() - INTERVAL '30 days'
     AND s.shipping_carrier = 'FedEx'
     AND o.order_id IN (
         SELECT oi.order_id
@@ -120,8 +164,7 @@ ORDER BY
     logger.debug('Orders fetched successfully', { count: rows.length });
     res.json(rows);
   } catch (err: any) {
-    logger.error('Failed to fetch delivered orders', { error: err.message });
-    res.status(500).json({ error: err.message });
+    handleDatabaseError(err, 'fetch delivered orders', res);
   }
 });
 

@@ -4,6 +4,7 @@
 
 -- Required for GiST to work with standard types like INT inside JSONB or standalone
 CREATE EXTENSION IF NOT EXISTS btree_gist;
+-- 🔥🔥🔥
 
 DROP TABLE IF EXISTS shipments;
 DROP TABLE IF EXISTS carriers;

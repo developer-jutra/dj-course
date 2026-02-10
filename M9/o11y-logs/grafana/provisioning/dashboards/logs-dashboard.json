@@ -244,8 +244,11 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by(status) (count_over_time({job=\"products-api\"} | json | status!=\"\" [5m]))",
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum by(status) (count_over_time({service=\"products-api\"} | json | status!=\"\" [5m]))\n# count_over_time({service=\"products-api\"} | json | status!=\"\" [5m])\n# {service=\"products-api\"} | json | status!=\"\"\n# {service=\"products-api\"} | json\n# {service=\"products-api\"}",
           "legendFormat": "{{status}}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
@@ -344,8 +347,8 @@
     "list": [
       {
         "current": {
-          "text": "error",
-          "value": "error"
+          "text": "All",
+          "value": "$__all"
         },
         "definition": "",
         "includeAll": true,
@@ -381,15 +384,15 @@
       },
       {
         "current": {
-          "text": "inject",
-          "value": "inject"
+          "text": "",
+          "value": ""
         },
         "name": "phrase",
         "options": [
           {
             "selected": true,
-            "text": "inject",
-            "value": "inject"
+            "text": "",
+            "value": ""
           }
         ],
         "query": "",
@@ -405,6 +408,6 @@
   "timezone": "browser",
   "title": "Logs Dashboard",
   "uid": "cem3ql9xusykge",
-  "version": 4,
+  "version": 2,
   "weekStart": "monday"
 }

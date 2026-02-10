@@ -1,0 +1,120 @@
+services:
+  # Postgres database
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: products
+    volumes:
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d products"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  # Postgres exporter for Prometheus
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://admin:secret@postgres:5432/products?sslmode=disable
+    depends_on:
+      - postgres
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager/config:/etc/alertmanager
+      - alertmanager_data:/data
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    depends_on:
+      - prometheus
+
+  # Loki for logs
+  loki:
+    image: grafana/loki:3.5.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:2.7.0
+    user: "10001"
+    command: 
+      - -config.file=/etc/tempo.yaml
+      - -storage.trace.local.path=/tmp/tempo/blocks
+    volumes:
+      - ./tempo/config/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data/blocks:/tmp/tempo/blocks
+      - ./tempo-data/wal:/tmp/tempo/wal
+    ports:
+      - "3200:3200"   # HTTP
+      - "9411:9411"   # Zipkin
+    # Note: OTLP ports 4317/4318 are not exposed to host
+    # Tempo receives traces from otel-collector internally
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "4000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"  # gRPC
+      - "4318:4318"  # HTTP
+      - "8890:8890"  # collector metrics endpoint
+      - "8889:8889"  # collector internal metrics endpoint
+    depends_on:
+      - postgres-exporter
+      - prometheus
+      - loki
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  loki-data:
+  tempo-data:
+  alertmanager_data:
+  grafana-data:

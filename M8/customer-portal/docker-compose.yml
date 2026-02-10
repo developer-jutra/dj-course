@@ -1,0 +1,46 @@
+services:
+  cp-mongodb:
+    image: mongo:7.0.16
+    container_name: cp-mongodb-container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      # Ta zmienna sprawi, że skrypt wykona się w kontekście konkretnej bazy
+      MONGO_INITDB_DATABASE: customer_portal
+    ports:
+      - "27017:27017"
+    volumes:
+      - cp-mongodb_data:/data/db
+      # Mapowanie skryptu inicjalizacyjnego
+      - ./mongodb/cp/init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+
+  cp:
+    container_name: cp-container
+    build:
+      context: ./cp-frontend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "4003:3000"
+    volumes:
+      - ./cp-frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      # Use internal Docker network hostname to connect to Mongo
+      - MONGODB_URI=mongodb://root:example@cp-mongodb:27017/customer_portal?authSource=admin
+    networks:
+      - deliveroo-network
+    depends_on:
+      - cp-mongodb
+    restart: unless-stopped
+
+networks:
+  deliveroo-network:
+    driver: bridge
+
+volumes:
+  cp-mongodb_data:

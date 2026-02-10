@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Rules
+
+* Whenever loading components and other files, make sure that you use the `~` instead of the `@` char to get the root directory. Example: `import DataTable from '~/components/ui-library/datatable/DataTable.vue'`
+* Avoid barrel files, such as `index.ts`.
+* Each API file includes a set of **functions**, not necessarily an object that composes multiple methods. This object wrapper is unnecessary and brings no benefits. So if you can see an API that is an object, destructure it to functions, please.
+
+## Filtering
+
+* Filter components should not have any button or any widget to apply the filter. Basically, changing every widget should automatically, immediately apply the widgets.
+
+## State Management
+
+* Use Pinia multi-stores
+* Favor dependency Injection over passing multiple props manually
+```ts
+// In parent
+import { provide } from 'vue'
+import { useMyStore } from '@/stores/myStore'
+const myStore = useMyStore()
+provide('myStore', myStore)
+
+// In child
+import { inject } from 'vue'
+const myStore = inject('myStore')
+```
+
+## Mocks
+
+* An API function can never include mocks on its own. The only thing it can do is to import mocks from a mock file.
+* Whenever creating or updating mock files, make sure that mocks are annotated with their model types. Just to make sure that the mocks are in sync with the contract.
+

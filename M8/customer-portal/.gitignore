@@ -1,0 +1,14 @@
+# Environment variables
+.env
+.env.local
+
+# MongoDB data (stored in Docker volumes)
+mongodb/data/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

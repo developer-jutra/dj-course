@@ -9,7 +9,9 @@ services:
       - SERVICE_NAME=products-api
       - LOKI_HOST=http://loki:3100
       - DATABASE_URL=postgresql://admin:secret@postgres:5432/products
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otel-collector:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
       - OTEL_SERVICE_NAME=products-api
     depends_on:
       postgres:
@@ -113,24 +115,21 @@ services:
   tempo:
     image: grafana/tempo:2.7.0
     user: "10001" # Explicitly set UID
-    # command: ["-config.file=/etc/tempo.yaml"]
-    # volumes:
-    #   - ./tempo/config/tempo.yaml:/etc/tempo.yaml
-    #   - tempo-data:/tmp/tempo
     command: 
       - -config.file=/etc/tempo.yaml
-      - -storage.trace.local.path=/tmp/tempo/blocks # Match container path
     volumes:
       - ./tempo/config/tempo.yaml:/etc/tempo.yaml
       - ./tempo-data/blocks:/tmp/tempo/blocks
       - ./tempo-data/wal:/tmp/tempo/wal
+      - ./tempo-data/generator:/tmp/tempo/generator
     ports:
       - "3200:3200"   # HTTP
-      # - "4317:4317"   # OTLP gRPC # 🔥🔥🔥
-      # - "4318:4318"   # OTLP HTTP
+      # - "4317:4317"   # OTLP gRPC (handled by otel-collector)
+      # - "4318:4318"   # OTLP HTTP (handled by otel-collector)
       - "9411:9411"   # Zipkin
     networks:
       - o11y-network
+    restart: unless-stopped
 
   # Grafana for visualization
   grafana:
@@ -159,10 +158,9 @@ services:
     ports:
       - "4317:4317"  # gRPC
       - "4318:4318"  # HTTP
-      - "8888:8888"  # collector metrics endpoint
+      - "8890:8890"  # collector metrics endpoint
       - "8889:8889"  # collector internal metrics endpoint
     depends_on:
-      - products-api
       - postgres-exporter
       - prometheus
       - loki

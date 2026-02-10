@@ -11,18 +11,9 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # - job_name: 'products-api'
-  #   scrape_interval: 5s
-  #   static_configs:
-  #     - targets: ['products-api:3000']
-  #   metric_relabel_configs:
-  #     - source_labels: [__name__]
-  #       regex: '(.*)'
-  #       target_label: '__name__'
-  #       replacement: '${1}'
-  #       action: replace
-  #     - regex: 'exported_.*'
-  #       action: labeldrop
+  # NOTE: products-api doesn't expose /metrics endpoint
+  # It sends metrics via OTLP to otel-collector
+  # which exposes them on port 8890 (scraped by otel-metrics-agent job below)
 
   # - job_name: 'postgres-exporter'
   #   static_configs:
@@ -33,7 +24,7 @@ scrape_configs:
     # scrape all metrics from otel-collector
     scrape_interval: 5s
     static_configs:
-      - targets: ['otel-collector:8888']
+      - targets: ['otel-collector:8890']
       
   - job_name: 'otel-collector-internal'
     # Diagnostic metrics (collector state, errors, processing times)

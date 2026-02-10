@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Vertical Slices Architecture (VSA)
+
+The application must follow the **vertical slices architecture** pattern. Each functional module should have its own directory inside the `features` directory (e.g., `features/transportation-requests-listing`).
+
+## Vertical slice
+
+- Organizes code by feature or use case, not by technical layer.
+- Groups all logic for a feature (UI, business, data access) together.
+- Aims for high cohesion within each slice.
+- Minimizes coupling between different slices.
+- Encourages independent development, testing, and deployment of features.
+- Simplifies understanding and navigation by focusing on business functionality.
+- Avoids large, monolithic layers shared by unrelated features.
+- Prevents code scattering and tangling across multiple layers.
+- Reduces risk of unintended side effects when changing a feature.
+- Discourages shared abstractions and infrastructure unless truly needed.
+
+## Tech details
+
+Most code should live inside its respective module in `features`, even if this leads to some redundancy. Only highly reusable code (used by many modules) should be placed outside `features` (e.g., in `components/`, `composables/`, or `stores/`).
+
+Each feature slice has its own directory, all feature code keeps its code locally. This includes (but is not limited to):
+- Components
+  - main page file for the whole page, e.g. [TransportationRequestsListing.vue](mdc:features/transportation-requests-listing/TransportationRequestsListing.vue)
+  - other components are extracted away from the main page file, usually according to how the component is structured/designed (e.g. separate component for a specific datatable, separate for filtering, separate for stats etc - as long as they exist)
+- Composables
+- Stores
+  - apart from existing global stores (e.g. [auth.ts](mdc:stores/auth.ts)) don't create new global stores
+- Models:
+  - types and interfaces
+  - files should be called `*.model.ts`
+  - reference implementation: [transportation-request.model.ts](mdc:features/transportation-requests-listing/transportation-request.model.ts)
+- Mocks
+  - they rely on model files from its own slice.
+  - reference implementation: [transportation-request.mocks.ts](mdc:features/transportation-requests-listing/transportation-request.mocks.ts)
+- API:
+  - data loading should be put in an `*-api.ts` file, which includes not only the HTTP async function that executes the request, but also uses the `@tanstack/vue-query` library
+  - if using `@tanstack/vue-query`, always attach the documentation to a `@vue-query` to your prompts/context)
+  - reference implementation: [transportation-requests-api.ts](mdc:features/transportation-requests-listing/transportation-requests-api.ts)
+- Utilities specific to the feature
+
+This structure ensures that each module is self-contained and easy to reason about, test, and maintain.
+
+## Pages/Routing integration
+
+The files within the `/pages` directory should be as small as possible and would basically root to the main pages components inside feature slices.
+
+In order to render properly, they should also define the metadata, similar to the following:
+```ts
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'auth'
+})
+```
+
+## Refactoring to Vertical Slices
+
+- After copying or moving items into verticals, lights, architecture such as API, interfaces, mocks, queries etc. Please verify whether the original function, subject, etc. are used anywhere within the project. If not, please remove them, because we don't want leftovers after their refactorings.
+
+
+
