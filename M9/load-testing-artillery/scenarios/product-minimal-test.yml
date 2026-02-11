@@ -2,8 +2,9 @@ config:
   target: "http://localhost:3000"
   phases:
     - duration: 60
-      arrivalRate: 10
-      maxVusers: 50
+      arrivalRate: 5
+      rampTo: 20
+      maxVusers: 100
   
 scenarios:
   - name: "Browse products and view details"

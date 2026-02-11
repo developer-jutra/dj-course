@@ -6,14 +6,13 @@ services:
 
       # albo native prometheus:
       dockerfile: Dockerfile
-      # wówczas metryki są dostępne pod http://localhost:3000/metrics
 
       # albo OTLP:
       # dockerfile: Dockerfile-otlp
-      # wówczas metryki są dostępne pod http://localhost:9464/metrics
 
       # dla chętnych: można sparametryzować np. poprzez docker compose profiles
     environment:
+      PORT: 3000
       NODE_ENV: development
       SERVICE_NAME: products-api
       LOKI_HOST: http://loki:3100

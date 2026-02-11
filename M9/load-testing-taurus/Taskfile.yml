@@ -1,0 +1,101 @@
+version: '3'
+
+vars:
+  VENV_DIR: .venv
+  PYTHON: python3
+  PIP: "{{.VENV_DIR}}/bin/pip"
+  BZT: "{{.VENV_DIR}}/bin/bzt"
+
+tasks:
+  default:
+    desc: Display available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  setup:
+    desc: Create venv (if needed) and install Python dependencies
+    cmds:
+      - |
+        if [ -n "$$VIRTUAL_ENV" ] && [ -d "{{.VENV_DIR}}" ]; then
+          echo "venv already active"
+          {{.PIP}} install -r requirements.txt
+        elif [ -d "{{.VENV_DIR}}" ]; then
+          echo "venv exists, activating..."
+          . {{.VENV_DIR}}/bin/activate && pip install -r requirements.txt
+        else
+          echo "Creating venv..."
+          {{.PYTHON}} -m venv {{.VENV_DIR}}
+          . {{.VENV_DIR}}/bin/activate && pip install -r requirements.txt
+        fi
+    sources:
+      - requirements.txt
+    generates:
+      - "{{.VENV_DIR}}/bin/bzt"
+
+  activate:
+    desc: Activate virtual environment (starts a new shell with venv activated)
+    preconditions:
+      - test -d {{.VENV_DIR}} || (echo "Virtual environment not found. Run 'task setup' first." && exit 1)
+    cmds:
+      - |
+        echo "Activating virtual environment..."
+        echo "To deactivate, type 'exit' or press Ctrl+D"
+        echo "---"
+        source {{.VENV_DIR}}/bin/activate && exec $SHELL
+
+  test-minimal:
+    desc: Run minimal load test with only GET requests
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} scenarios/product-minimal-test.yml"
+
+  test-load:
+    desc: Run full product lifecycle test (GET, POST, DELETE)
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} scenarios/product-load-test.yml"
+
+  test-errors:
+    desc: Run error injection scenarios (404s, exceptions)
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} scenarios/product-error-test.yml"
+
+  test-slow:
+    desc: Run complex 10-minute test with traffic spikes
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} scenarios/product-slow-test.yml"
+
+  test-massive:
+    desc: Run massive load test with very high throughput (500 users/sec)
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} scenarios/product-massive-test.yml"
+
+  test-custom:
+    desc: "Run load tests with a custom YAML file (usage: task test-custom FILE=scenarios/your_test.yml)"
+    deps: [setup]
+    cmds:
+      - "{{.BZT}} {{.FILE}}"
+    vars:
+      FILE: '{{.FILE | default "scenarios/test_products.yml"}}'
+
+  clean:
+    desc: Remove virtual environment and generated reports
+    cmds:
+      - rm -rf {{.VENV_DIR}}
+      - rm -rf reports/
+    prompt: This will remove the virtual environment and all test artifacts. Continue?
+
+  clean-reports:
+    desc: Remove generated test reports only
+    cmds:
+      - rm -rf reports/
+
+  reinstall:
+    desc: Clean and reinstall everything
+    cmds:
+      - task: clean
+      - task: setup

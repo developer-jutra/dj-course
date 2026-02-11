@@ -8,6 +8,6 @@ RUN npm install --include=dev
 
 COPY . .
 
-EXPOSE 3000 9464
+EXPOSE 3000
 
 CMD ["npm", "run", "dev-otlp"]

@@ -10,8 +10,10 @@ services:
     volumes:
       - ./products-api:/app
     environment:
-      - NODE_APP_PORT=3000
+      - PORT=3000
       - NODE_ENV=development
+      - POSTGRES_PORT=5432
+      - LOG_LEVEL=info
       - OTEL_SERVICE_NAME=products-api
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
       - CONSOLE_TRACE_EXPORTER=true

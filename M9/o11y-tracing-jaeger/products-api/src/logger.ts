@@ -12,7 +12,7 @@ const logFormat = printf(({ level, message, timestamp, ...metadata }) => {
 
 // Create the logger
 const logger: Logger = createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL!,
   format: combine(
     timestamp(),
     logFormat

@@ -1172,7 +1172,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "expr": "pg_stat_activity_max_tx_duration{datname='products'}",
-          "legendFormat": "Max Duration",
+          "legendFormat": "{{state}} - {{usename}}",
           "refId": "A"
         }
       ],

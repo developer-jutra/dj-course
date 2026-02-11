@@ -35,7 +35,7 @@ export const initTelemetry = () => {
     [ATTR_SERVICE_VERSION]: pkg.version,
     [ATTR_TELEMETRY_SDK_LANGUAGE]: TELEMETRY_SDK_LANGUAGE_VALUE_NODEJS,
     [ATTR_TELEMETRY_SDK_NAME]: 'opentelemetry',
-    ["deployment.environment.name"]: process.env.NODE_ENV || "development",
+    ["deployment.environment.name"]: process.env.NODE_ENV!,
     ["host.name"]: os.hostname(),
   });
 
@@ -49,7 +49,7 @@ export const initTelemetry = () => {
     processors: [
       new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
       new BatchLogRecordProcessor(new OTLPLogExporter({
-        url: process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT || "http://localhost:4318/v1/logs",
+        url: process.env.LOKI_HOST!,
       }))
     ]
   });

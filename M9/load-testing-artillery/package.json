@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "test:load": "artillery run scenarios/product-load-test.yml",
-    "test:load:report": "artillery run --output reports/product-load-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-load-test.yml"
+    "test:load:report": "artillery run --output reports/product-load-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-load-test.yml",
+    "test:error:report": "artillery run --output reports/product-error-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-error-test.yml",
+    "test:slow:report": "artillery run --output reports/product-slow-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-slow-test.yml",
+    "test:minimal:report": "artillery run --output reports/product-minimal-test-report-$(date +'%Y%m%d-%H%M%S').json scenarios/product-minimal-test.yml"
   },
   "devDependencies": {
     "artillery": "^2.0.22"

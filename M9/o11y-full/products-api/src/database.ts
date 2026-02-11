@@ -2,9 +2,25 @@
 import { Pool } from 'pg';
 import { trace, context, SpanStatusCode } from '@opentelemetry/api';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Parse DATABASE_URL to extract connection parameters
+// This is required for proper OpenTelemetry instrumentation to set db_client_connection_pool_name
+const parseConnectionString = (url: string) => {
+  const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+  if (!match) {
+    throw new Error('Invalid DATABASE_URL format');
+  }
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4], 10),
+    database: match[5],
+  };
+};
+
+const dbConfig = parseConnectionString(process.env.DATABASE_URL!);
+
+const pool = new Pool(dbConfig);
 
 // Initialize a tracer for database operations
 const tracer = trace.getTracer('database');

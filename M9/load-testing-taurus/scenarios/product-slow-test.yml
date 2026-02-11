@@ -1,0 +1,123 @@
+execution:
+# Phase 1: Cichy start – rozgrzewka (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 2         # Start: 2 new users/sec (Artillery arrivalRate: 2)
+  ramp-up: 50s          # Ramp to 4 users/sec over 50s (Artillery rampTo: 4)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 2: Pierwsza zwyżka – stopniowy wzrost (60s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 4         # Start: 4 new users/sec (Artillery arrivalRate: 4)
+  ramp-up: 60s          # Ramp to 12 users/sec over 60s (Artillery rampTo: 12)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 3: Pierwszy peak (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 12        # Steady: 12 new users/sec (Artillery arrivalRate: 12)
+  ramp-up: 0s
+  hold-for: 50s
+  scenario: slow-traffic-pattern
+
+# Phase 4: Spadek – odpoczynek (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 12        # Start: 12 new users/sec (Artillery arrivalRate: 12)
+  ramp-up: 50s          # Ramp to 6 users/sec over 50s (Artillery rampTo: 6)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 5: Dolina – niski ruch (40s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 6         # Steady: 6 new users/sec (Artillery arrivalRate: 6)
+  ramp-up: 0s
+  hold-for: 40s
+  scenario: slow-traffic-pattern
+
+# Phase 6: Druga zwyżka – silniejszy wzrost (60s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 6         # Start: 6 new users/sec (Artillery arrivalRate: 6)
+  ramp-up: 60s          # Ramp to 22 users/sec over 60s (Artillery rampTo: 22)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 7: Drugi peak – max obciążenie (60s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 22        # Steady: 22 new users/sec (Artillery arrivalRate: 22)
+  ramp-up: 0s
+  hold-for: 60s
+  scenario: slow-traffic-pattern
+
+# Phase 8: Ostry spadek (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 22        # Start: 22 new users/sec (Artillery arrivalRate: 22)
+  ramp-up: 50s          # Ramp to 6 users/sec over 50s (Artillery rampTo: 6)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 9: Trzecia zwyżka – powrót (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 6         # Start: 6 new users/sec (Artillery arrivalRate: 6)
+  ramp-up: 50s          # Ramp to 16 users/sec over 50s (Artillery rampTo: 16)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+# Phase 10: Trzeci spike (50s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 16        # Steady: 16 new users/sec (Artillery arrivalRate: 16)
+  ramp-up: 0s
+  hold-for: 50s
+  scenario: slow-traffic-pattern
+
+# Phase 11: Finalny ramp down – wygaszanie (90s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 16        # Start: 16 new users/sec (Artillery arrivalRate: 16)
+  ramp-up: 90s          # Ramp to 0 users/sec over 90s (Artillery rampTo: 0)
+  hold-for: 0s
+  scenario: slow-traffic-pattern
+
+settings:
+  artifacts-dir: reports/%Y-%m-%d_%H-%M-%S.%f
+
+scenarios:
+  slow-traffic-pattern:
+    default-address: http://localhost:3000
+    variables:
+      productId:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+    requests:
+    # Browse products collection scenario
+    - url: /products
+      method: GET
+      label: Get all products
+      think-time: 2s
+    - url: /products/${productId}
+      method: GET
+      label: Get product by ID
+      think-time: 1s
+    
+    # Create and manage product lifecycle scenario
+    - url: /products
+      method: POST
+      label: Create product
+      headers:
+        Content-Type: application/json
+      body:
+        name: "Load Test Product"
+        price: 49.99
+      extract-jsonpath:
+        createdProductId:
+          jsonpath: $.id
+          default: 1
+      think-time: 1s
+    - url: /products/${createdProductId}
+      method: GET
+      label: Get created product
+      think-time: 1s
+    - url: /products/${createdProductId}
+      method: DELETE
+      label: Delete product

@@ -16,7 +16,7 @@ export const pool = new Pool({
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
-  port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
+  port: parseInt(process.env.POSTGRES_PORT!, 10),
   
   // Connection pool settings for resilience
   max: 20, // maximum number of clients in the pool

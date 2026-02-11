@@ -1,0 +1,67 @@
+execution:
+# Phase 1: Ramp up to peak (15s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 30        # Start: 30 new users/sec (Artillery arrivalRate: 30)
+  ramp-up: 15s          # Ramp to 200 users/sec over 15s (Artillery rampTo: 200)
+  hold-for: 0s
+  scenario: full-product-lifecycle
+
+# Phase 2: Sustain peak load (30s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 200       # Steady: 200 new users/sec (Artillery arrivalRate: 200)
+  ramp-up: 0s
+  hold-for: 30s
+  scenario: full-product-lifecycle
+
+# Phase 3: Ramp down (15s)
+- concurrency: 5000     # Max concurrent users (Artillery maxVusers: 5000)
+  throughput: 200       # Start: 200 new users/sec, ramp to 10 (Artillery rampTo: 10)
+  ramp-up: 15s
+  hold-for: 0s
+  scenario: full-product-lifecycle
+  
+settings:
+  artifacts-dir: reports/%Y-%m-%d_%H-%M-%S.%f
+
+scenarios:
+  full-product-lifecycle:
+    default-address: http://localhost:3000
+    variables:
+      productId:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 1000
+    requests:
+    # Browse products collection scenario
+    - url: /products
+      method: GET
+      label: Get all products
+      think-time: 2s
+    - url: /products/${productId}
+      method: GET
+      label: Get product by ID
+      think-time: 1s
+    
+    # Create and manage product lifecycle scenario
+    - url: /products
+      method: POST
+      label: Create product
+      headers:
+        Content-Type: application/json
+      body:
+        name: "Load Test Product"
+        price: 49.99
+      extract-jsonpath:
+        createdProductId:
+          jsonpath: $.id
+          default: 1
+      think-time: 1s
+    - url: /products/${createdProductId}
+      method: GET
+      label: Get created product
+      think-time: 1s
+    - url: /products/${createdProductId}
+      method: DELETE
+      label: Delete product

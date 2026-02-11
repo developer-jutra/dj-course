@@ -14,7 +14,7 @@ sequenceDiagram
         Note over C: Prometheus Exporter
         C->>C: Exposes /metrics (OpenMetrics)
 
-        rect rgb(230, 255, 230)
+        rect rgb(22, 64, 22)
             Note over B: Prometheus Backend (Operates in PULL mode)
             B->>C: HTTP GET /metrics (Scrape)
             C-->>B: Returns Metrics (OpenMetrics)
@@ -22,7 +22,7 @@ sequenceDiagram
     and APPROACH 2: PUSH (Remote Write)
         Note over C: Remote Write Exporter (Conversion to Prometheus Remote Write API)
         
-        rect rgb(230, 255, 255)
+        rect rgb(22, 64, 64)
             Note over B: Mimir/Thanos Backend (Accepts PUSH)
             C->>B: POST /api/v1/write (Remote Write)
         end

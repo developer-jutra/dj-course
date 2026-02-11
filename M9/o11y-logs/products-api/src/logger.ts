@@ -6,7 +6,7 @@ import os from 'os';
 const HOSTNAME = os.hostname();
 const NODE_ENV = process.env.NODE_ENV;
 const SERVICE_NAME = process.env.SERVICE_NAME;
-const LOKI_HOST = process.env.LOKI_HOST || 'http://localhost:3100';
+const LOKI_HOST = process.env.LOKI_HOST!;
 
 const logger = winston.createLogger({
   level: NODE_ENV === 'production' ? 'info' : 'debug',

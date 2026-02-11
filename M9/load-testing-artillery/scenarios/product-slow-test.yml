@@ -1,0 +1,100 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # 10 minut skomplikowanego ruchu z różnymi spike'ami (~600s)
+    - name: "Cichy start – rozgrzewka"
+      duration: 50
+      arrivalRate: 2
+      rampTo: 4
+      maxVusers: 5000
+
+    - name: "Pierwsza zwyżka – stopniowy wzrost"
+      duration: 60
+      arrivalRate: 4
+      rampTo: 12
+      maxVusers: 5000
+
+    - name: "Pierwszy peak"
+      duration: 50
+      arrivalRate: 12
+      maxVusers: 5000
+
+    - name: "Spadek – odpoczynek"
+      duration: 50
+      arrivalRate: 12
+      rampTo: 6
+      maxVusers: 5000
+
+    - name: "Dolina – niski ruch"
+      duration: 40
+      arrivalRate: 6
+      maxVusers: 5000
+
+    - name: "Druga zwyżka – silniejszy wzrost"
+      duration: 60
+      arrivalRate: 6
+      rampTo: 22
+      maxVusers: 5000
+
+    - name: "Drugi peak – max obciążenie"
+      duration: 60
+      arrivalRate: 22
+      maxVusers: 5000
+
+    - name: "Ostry spadek"
+      duration: 50
+      arrivalRate: 22
+      rampTo: 6
+      maxVusers: 5000
+
+    - name: "Trzecia zwyżka – powrót"
+      duration: 50
+      arrivalRate: 6
+      rampTo: 16
+      maxVusers: 5000
+
+    - name: "Trzeci spike"
+      duration: 50
+      arrivalRate: 16
+      maxVusers: 5000
+
+    - name: "Finalny ramp down – wygaszanie"
+      duration: 90
+      arrivalRate: 16
+      rampTo: 0
+      maxVusers: 5000
+
+  variables:
+    productId:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+
+scenarios:
+  - name: "Browse products collection"
+    flow:
+      - get:
+          url: "/products"
+      - think: 2
+      - get:
+          url: "/products/{{ productId }}"
+      - think: 1
+
+  - name: "Create and manage product lifecycle"
+    flow:
+      - post:
+          url: "/products"
+          json:
+            name: "Load Test Product"
+            price: 49.99
+          capture:
+            - json: "$.id"
+              as: createdProductId
+      - think: 1
+      - get:
+          url: "/products/{{ createdProductId }}"
+      - think: 1
+      - delete:
+          url: "/products/{{ createdProductId }}"

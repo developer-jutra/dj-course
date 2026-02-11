@@ -12,17 +12,46 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
+    uid: "P8E80F9AEF21F6940"
     editable: false
     jsonData:
+      maxLines: 1000
       derivedFields:
-        - name: trace_id
-          matcherRegex: '"traceID":"(\w+)"'
-          url: 'http://jaeger:16686/trace/$${__value.raw}'
+        - datasourceUid: tempo
+          matcherRegex: 'traceID=(\\w+)'
+          # name: TraceID
+          name: trace_id
+          url: '$${__value.raw}'
+          urlDisplayLabel: 'View in Tempo'
 
   - name: Tempo
     type: tempo
     access: proxy
     url: http://tempo:3200
+    uid: tempo
+    editable: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        tags: 
+          - key: 'service.name'
+            value: 'service_name'
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{service_name="$${__span.tags["service.name"]}"} |= "$${__span.traceId}"'
+      tracesToMetrics:
+        datasourceUid: 'prometheus'
+      serviceMap:
+        datasourceUid: 'prometheus'
+      nodeGraph:
+        enabled: true
+      search:
+        hide: false
+      lokiSearch:
+        datasourceUid: 'loki'
 
   - name: PostgreSQL
     type: postgres

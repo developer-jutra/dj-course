@@ -6,21 +6,27 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
-    "dev": "tsx watch index.ts"
+    "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.8.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.49.1",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.49.1",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.49.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.55.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.69.0",
+    "@opentelemetry/exporter-logs-otlp-grpc": "^0.211.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.211.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.211.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.211.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.211.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.211.0",
     "@opentelemetry/host-metrics": "^0.38.2",
-    "@opentelemetry/sdk-metrics": "1.22.0",
-    "@opentelemetry/sdk-node": "^0.49.1",
+    "@opentelemetry/resources": "^2.5.0",
+    "@opentelemetry/sdk-logs": "^0.211.0",
+    "@opentelemetry/sdk-metrics": "^2.5.0",
+    "@opentelemetry/sdk-node": "^0.211.0",
+    "@opentelemetry/semantic-conventions": "^1.29.0",
     "dotenv": "^17.2.4",
     "express": "^4.18.2",
-    "pg": "^8.11.1",
-    "winston": "^3.10.0",
-    "winston-loki": "^6.0.7"
+    "pg": "^8.11.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
@@ -30,8 +36,5 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.7.1",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "@opentelemetry/sdk-metrics": "1.22.0"
   }
 }

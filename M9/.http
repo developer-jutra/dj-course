@@ -2,8 +2,13 @@
 @id = 10
 
 ### Get all products
-
 GET {{host}}/products
+Content-Type: application/json
+
+###
+
+### Get product by ID
+GET {{host}}/products/{{id}}
 Content-Type: application/json
 
 ###
@@ -18,7 +23,7 @@ Content-Type: application/json
   "description": "Test Description",
   "stock": 100,
   "category_id": 1,
-  "sku": "TEST-12345678903",
+  "sku": "TEST-12345678904",
   "weight_g": 100,
   "is_active": true
 }
@@ -26,29 +31,62 @@ Content-Type: application/json
 ###
 
 ### Delete a product by ID
-DELETE {{host}}/products/1
+DELETE {{host}}/products/{{id}}
 Content-Type: application/json
 
-DELETE {{host}}/products/2
+###
+
+### Top products by category (optional: ?limit=50)
+GET {{host}}/top/products-by-category/10
 Content-Type: application/json
 
-### Get all delivered orders in the last 30 days
+###
+
+### Top customers by total spent (optional: ?limit=50)
+GET {{host}}/top/customers-by-total-spent
+Content-Type: application/json
+
+###
+
+### Delivered orders (last 30 days, FedEx, products above avg price)
 GET {{host}}/orders/delivered
 Content-Type: application/json
 
-### Get top products by category
-GET {{host}}/top/products-by-category/1
+###
+
+### Health check
+GET {{host}}/health
 Content-Type: application/json
 
-### Get top customers by total spent
-GET {{host}}/top/customers-by-total-spent
+###
+
+### Sample error endpoint (manual span with error recording)
+GET {{host}}/error
 Content-Type: application/json
+
+###
 
 ### Inject a memory leak
 GET {{host}}/inject-leak
 Content-Type: application/json
 
-### Inject an error
+###
+
+### Inject a random error (400, 401, 403, 404, 500, 503)
 GET {{host}}/inject-error
 Content-Type: application/json
+
+###
+
+### Client metrics (Web Vitals: LCP, INP, CLS)
+POST {{host}}/client_metrics
+Content-Type: application/json
+
+{
+  "name": "LCP",
+  "value": 2500,
+  "page_path": "/products",
+  "device_type": "desktop",
+  "connection_type": "4g"
+}
 

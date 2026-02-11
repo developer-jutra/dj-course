@@ -30,6 +30,7 @@ import type { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
 import { pool } from "./database";
 import logger from "./logger";
+import { isBlacklistedPath } from "./url-blacklist";
 
 const express: typeof import("express") = require("express");
 const router = require("./router").default;
@@ -37,11 +38,12 @@ const routerMisc = require("./router-misc").default;
 // why not just `import express from "express"`?
 // 🔥imports are hoisted to the top of the file... and require is not.
 
-const PORT = process.env.PORT || 3000;
 const app = express();
+const port = process.env.PORT;
 
 // Middleware to log all requests
 app.use((req: Request, res: Response, next: NextFunction) => {
+  if (isBlacklistedPath(req.path)) return next();
   const start = Date.now();
   res.on("finish", () => {
     const duration = Date.now() - start;
@@ -122,8 +124,9 @@ app.get('/metrics', async (req: Request, res: Response) => {
   res.send(body);
 });
 
-app.listen(PORT, () => {
-  logger.info(`OTLP-Instrumented Products API running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  const formattedTime = new Date().toISOString();
+  logger.info(`OTLP-Instrumented Products API running on http://localhost:${port} at ${formattedTime}`);
 });
 
 // Graceful shutdown

@@ -5,8 +5,10 @@ import { assertEnvVars } from './env';
 import router from './router';
 import routerMisc from './router-misc';
 import { pool, isDatabaseHealthy, initializeDatabase } from './database';
+import * as http from "http";
 
 assertEnvVars(
+  'PORT',
   'NODE_ENV',
   'SERVICE_NAME',
   'LOKI_HOST',
@@ -104,10 +106,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(router);
 app.use(routerMisc);
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // Start server only after database is initialized
-let server: any;
+let server: http.Server;
 
 async function startServer() {
   try {
@@ -115,9 +117,9 @@ async function startServer() {
     await initializeDatabase();
     
     // Start the server
-    server = app.listen(PORT, () => {
-      console.log(`Winston/Loki-Based Products API running on http://localhost:${PORT}`);
-      logger.info('Server started successfully', { port: PORT });
+    server = app.listen(port, () => {
+      const formattedTime = new Date().toISOString();
+      logger.info(`Winston/Loki-Based Products API running on http://localhost:${port} at ${formattedTime}`);
     });
   } catch (err: any) {
     logger.error('Failed to start server', { error: err.message });

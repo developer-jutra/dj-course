@@ -8,9 +8,9 @@ from decimal import Decimal
 CONFIG = {
     "num_categories": 20,
     "num_products": 10000,
-    "num_orders": 1500,
+    "num_orders": 3000,
     "max_items_per_order": 5,
-    "num_shipments": 1500, # Not every order is shipped immediately
+    "num_shipments": 3000,  # Not every order is shipped immediately
     "max_quantity_per_item": 5,
 }
 
@@ -23,6 +23,11 @@ STATIC_CATEGORIES = [
     ("Sporting Goods", "Equipment and clothing for sports and outdoor activities."),
     ("Toys and Games", "Items for play, amusement, and entertainment."),
     ("Groceries", "Food and other edible consumables."),
+    ("Health & Beauty", "Personal care products, cosmetics, and wellness items."),
+    ("Automotive", "Vehicle parts, accessories, and car care products."),
+    ("Pet Supplies", "Food, toys, and accessories for pets."),
+    ("Garden & Outdoor", "Plants, tools, and equipment for gardening and outdoor living."),
+    ("Office Supplies", "Stationery, equipment, and materials for work and study."),
 ]
 
 # Initialization

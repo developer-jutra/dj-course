@@ -333,7 +333,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route))",
+          "expr": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[$__range])) by (le, route))",
           "legendFormat": "p50 {{route}}",
           "refId": "A"
         },
@@ -342,7 +342,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route))",
+          "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[$__range])) by (le, route))",
           "legendFormat": "p90 {{route}}",
           "refId": "B"
         },
@@ -351,7 +351,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route))",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[$__range])) by (le, route))",
           "legendFormat": "p95 {{route}}",
           "refId": "C"
         },
@@ -360,7 +360,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route))",
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[$__range])) by (le, route))",
           "legendFormat": "p99 {{route}}",
           "refId": "D"
         }
@@ -655,9 +655,9 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "# STEP BY STEP TUTORIAL\n# http_request_duration_seconds_count\n# http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}\n# sum(rate(http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}[$__range]))\n\nsum(rate(http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}[$__range]))\n/\nsum(rate(http_request_duration_seconds_count{route=~\"$route\", method=~\"$method\"}[$__range]))\n*\n100",
+          "expr": "# STEP BY STEP TUTORIAL\n# http_request_duration_seconds_count\n# http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}\n# sum(increase(http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}[$__range]))\n\nsum(increase(http_request_duration_seconds_count{status_code=~'[45]..', route=~\"$route\", method=~\"$method\"}[$__range]))\n/\nsum(increase(http_request_duration_seconds_count{route=~\"$route\", method=~\"$method\"}[$__range]))\n*\n100",
           "format": "time_series",
-          "legendFormat": "",
+          "legendFormat": "Error Rate",
           "range": true,
           "refId": "A"
         }
@@ -752,7 +752,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])) by (route)",
+          "expr": "sum(increase(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])) by (route)",
           "legendFormat": "{{route}}",
           "range": true,
           "refId": "A"
@@ -847,7 +847,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[5m])) by (status_code)",
+          "expr": "sum(increase(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])) by (status_code)",
           "legendFormat": "{{status_code}}",
           "refId": "A"
         }
@@ -942,7 +942,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "# http_request_duration_seconds_count\n# http_request_duration_seconds_count{status_code=~\"[45]..\"}\n# http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}\n# rate(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])\n\nsum(rate(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])) by (route, status_code)",
+          "expr": "# http_request_duration_seconds_count\n# http_request_duration_seconds_count{status_code=~\"[45]..\"}\n# http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}\n# increase(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])\n\nsum(increase(http_request_duration_seconds_count{status_code=~\"[45]..\", route=~\"$route\", method=~\"$method\"}[$__range])) by (route, status_code)",
           "legendFormat": "{{route}} {{status_code}}",
           "range": true,
           "refId": "A"
@@ -1117,7 +1117,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "expr": "pg_stat_activity_max_tx_duration{datname='products'}",
-          "legendFormat": "Max Duration",
+          "legendFormat": "{{state}} - {{usename}}",
           "refId": "A"
         }
       ],
@@ -1131,6 +1131,7 @@
   "templating": {
     "list": [
       {
+        "allValue": ".*",
         "datasource": {
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
@@ -1142,6 +1143,7 @@
         "type": "query"
       },
       {
+        "allValue": ".*",
         "datasource": {
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"

@@ -1,0 +1,64 @@
+execution:
+# Phase 1: Light error traffic ramp-up (10s)
+- concurrency: 50       # Max concurrent users (Artillery maxVusers: 50)
+  throughput: 1         # Start: 1 new user/sec (Artillery arrivalRate: 1)
+  ramp-up: 10s          # Ramp to 3 users/sec over 10s
+  hold-for: 0s
+  scenario: error-scenarios
+
+# Phase 2: Light error traffic sustain (30s)
+- concurrency: 50       # Max concurrent users (Artillery maxVusers: 50)
+  throughput: 2         # Steady: 2 new users/sec (Artillery arrivalRate: 2)
+  ramp-up: 0s
+  hold-for: 30s
+  scenario: error-scenarios
+
+# Phase 3: Cool down (10s)
+- concurrency: 50       # Max concurrent users (Artillery maxVusers: 50)
+  throughput: 1         # Start: 1 new user/sec, ramp down to 0
+  ramp-up: 0s
+  hold-for: 10s
+  scenario: error-scenarios
+
+settings:
+  artifacts-dir: reports/%Y-%m-%d_%H-%M-%S.%f
+
+scenarios:
+  error-scenarios:
+    default-address: http://localhost:3000
+    requests:
+    # 404 - Non-existent product IDs (negative and very high)
+    - url: /products/-1
+      method: GET
+      label: 404 - Negative product ID
+      think-time: 1s
+    - url: /products/999999999
+      method: GET
+      label: 404 - Very high product ID
+      think-time: 1s
+    
+    # 404 - Non-existent URLs (not in routing)
+    - url: /non-existent-url
+      method: GET
+      label: 404 - Non-existent URL
+      think-time: 1s
+    - url: /api/ghost-endpoint
+      method: GET
+      label: 404 - Ghost endpoint
+      think-time: 1s
+    - url: /products/xyz/invalid-path
+      method: GET
+      label: 404 - Invalid path
+      think-time: 1s
+    
+    # Inject error - endpoint throwing exception
+    - url: /error
+      method: GET
+      label: Inject error - exception
+      think-time: 2s
+    
+    # Inject error - random error codes (400, 401, 403, 404, 500, 503)
+    - url: /inject-error
+      method: GET
+      label: Inject error - random codes
+      think-time: 2s

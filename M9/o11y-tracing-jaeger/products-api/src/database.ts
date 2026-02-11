@@ -3,11 +3,11 @@ import { trace, context, SpanStatusCode, Span } from '@opentelemetry/api';
 
 // Create a pool connection to PostgreSQL
 const pool = new Pool({
-  user: process.env.POSTGRES_USER || 'postgres',
-  host: process.env.POSTGRES_HOST || 'postgres',
-  database: process.env.POSTGRES_DB || 'productdb',
-  password: process.env.POSTGRES_PASSWORD || 'postgres',
-  port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5432,
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD,
+  port: parseInt(process.env.POSTGRES_PORT!, 10),
 });
 
 export interface Product {

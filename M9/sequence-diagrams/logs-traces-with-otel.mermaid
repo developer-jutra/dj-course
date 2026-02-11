@@ -12,14 +12,14 @@ sequenceDiagram
     Note over C: Collector processes and routes data streams
     
     par Log Path        
-        rect rgb(230, 255, 230)
+        rect rgb(22, 64, 22)
             C->>LOGS: Push Logs (OTLP or native)
             Note over LOGS: Storage and Indexing of Logs
             UI->>LOGS: Query for Logs
             LOGS-->>UI: Returns Logs
         end
     and Tracing Path
-        rect rgb(230, 255, 255)
+        rect rgb(22, 64, 64)
             C->>TRACES: Push Traces (OTLP or native)
             Note over TRACES: Storage and Indexing of Traces
             UI->>TRACES: Query for Traces

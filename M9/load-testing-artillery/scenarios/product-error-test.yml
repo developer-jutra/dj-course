@@ -1,0 +1,58 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "Light error traffic ramp-up"
+      duration: 10 # Duration of the given phase in seconds.
+      arrivalRate: 1 # Number of new users (Virtual Users) starting each second.
+      rampTo: 3 # Target number of new users per second at the end of the phase (linear ramp-up/decline).
+      maxVusers: 50 # Hard limit for concurrently active virtual users.
+
+    - name: "Light error traffic sustain"
+      duration: 30
+      arrivalRate: 2
+      maxVusers: 50
+
+    - name: "Cool down"
+      duration: 10
+      arrivalRate: 1
+      rampTo: 0
+      maxVusers: 50
+
+scenarios:
+  # 404 / not-found style scenariusze
+  - name: "404 - Nieistniejące ID produktu (ujemne i bardzo wysokie)"
+    weight: 3
+    flow:
+      - get:
+          url: "/products/-1"
+      - think: 1
+      - get:
+          url: "/products/999999999"
+
+  - name: "404 - Nieistniejący URL (brak w routingu)"
+    weight: 3
+    flow:
+      - get:
+          url: "/non-existent-url"
+      - think: 1
+      - get:
+          url: "/api/ghost-endpoint"
+      - think: 1
+      - get:
+          url: "/products/xyz/invalid-path"
+
+  # Scenariusze wstrzykiwania błędów - generują wpisy errorowe w Grafanie
+  - name: "Inject error - endpoint rzucający wyjątek"
+    weight: 2
+    flow:
+      - get:
+          url: "/error"
+      - think: 2
+
+  - name: "Inject error - losowe kody błędów (400, 401, 403, 404, 500, 503)"
+    weight: 2
+    flow:
+      - get:
+          url: "/inject-error"
+      - think: 2
+

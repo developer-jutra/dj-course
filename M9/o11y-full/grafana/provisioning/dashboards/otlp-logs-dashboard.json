@@ -105,7 +105,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "count_over_time({service_name=~\".+\"}[15m])",
+          "expr": "sum by(service_name) (count_over_time({service_name=~\".+\"}[1m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -126,7 +126,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 12
       },
       "id": 6,
       "options": {
@@ -145,7 +145,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{host=~\".+\"} | json | method=~\".+\" and url!=\"/favicon.ico\"",
+          "expr": "{service_name=\"products-api\"} |~ \"HTTP Request|Retrieved|Fetching\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -166,7 +166,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 24
       },
       "id": 1,
       "options": {
@@ -187,7 +187,7 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "{host=~\".+\"}",
+          "expr": "{service_name=~\".+\"}",
           "refId": "0"
         }
       ],
@@ -207,7 +207,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 32
       },
       "id": 2,
       "options": {
@@ -228,7 +228,7 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "{job=\"products-api\"} | json",
+          "expr": "{service_name=\"products-api\"} |~ \"HTTP Request|Retrieved|Fetching\"",
           "refId": "A"
         }
       ],
@@ -248,7 +248,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 40
       },
       "id": 3,
       "options": {
@@ -269,7 +269,7 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "{host=~\".+\"} |~ \"(?i)ErRoR\"",
+          "expr": "{service_name=\"products-api\"} |~ \"(?i)(error|failed|exception)\"",
           "refId": "A"
         }
       ],
@@ -337,9 +337,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 36
+        "w": 24,
+        "x": 0,
+        "y": 48
       },
       "id": 5,
       "options": {
@@ -362,12 +362,12 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by(status) (count_over_time({job=\"products-api\"} | json | status!=\"\" [5m]))",
-          "legendFormat": "{{status}}",
+          "expr": "sum(count_over_time({service_name=\"products-api\"} |~ \"HTTP Request\" [5m]))",
+          "legendFormat": "HTTP Requests",
           "refId": "A"
         }
       ],
-      "title": "HTTP Status Codes",
+      "title": "HTTP Request Rate",
       "type": "timeseries"
     }
   ],
@@ -384,7 +384,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Logs Dashboard",
+  "title": "(OTLP) Logs Dashboard",
   "uid": "cem3ql9xusykge",
   "version": 4,
   "weekStart": "monday"

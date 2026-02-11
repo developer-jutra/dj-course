@@ -1,0 +1,22 @@
+execution:
+# Single phase: 60s with ramp from 5 to 20 users/sec
+- concurrency: 100      # Max concurrent users (Artillery maxVusers: 100)
+  throughput: 5         # Start: 5 new users/sec (Artillery arrivalRate: 5)
+  ramp-up: 60s          # Ramp to 20 users/sec over 60s (Artillery rampTo: 20)
+  hold-for: 0s
+  scenario: browse-products
+
+settings:
+  artifacts-dir: reports/%Y-%m-%d_%H-%M-%S.%f
+
+scenarios:
+  browse-products:
+    default-address: http://localhost:3000
+    requests:
+    - url: /products
+      method: GET
+      label: Get all products
+      think-time: 3s
+    - url: /products/1
+      method: GET
+      label: Get product details

@@ -3,7 +3,7 @@
   "author": "Developer Jutra",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e .env.local -- ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "dotenv -e .env.local -- ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },

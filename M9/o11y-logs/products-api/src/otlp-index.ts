@@ -12,6 +12,7 @@ dotenv.config();
 // Assert env vars (assuming env.js does not import express)
 const { assertEnvVars } = require("./env");
 assertEnvVars(
+  'PORT',
   'NODE_ENV',
   'SERVICE_NAME',
   'LOKI_HOST',
@@ -32,6 +33,7 @@ import bodyParser from "body-parser";
 import { pool, isDatabaseHealthy, initializeDatabase } from "./database";
 // const logger = loggerProvider.getLogger();
 import logger from "./logger";
+import * as http from "http";
 
 const express: typeof import("express") = require("express");
 const router = require("./router").default;
@@ -39,8 +41,8 @@ const routerMisc = require("./router-misc").default;
 // why not just `import express from "express"`?
 // 🔥imports are hoisted to the top of the file... and require is not.
 
-const PORT = process.env.PORT || 3000;
 const app = express();
+const port = process.env.PORT;
 
 // Middleware to log all requests
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -123,16 +125,8 @@ app.use(express.static("public"));
 app.use(router);
 app.use(routerMisc);
 
-// Re-export metrics from the OTLP exporter (to make prometheus config simpler, e.g. no need to scrape EITHER 3000 OR 9464)
-app.get('/metrics', async (req: Request, res: Response) => {
-  // forward request to 9464, forward response's content-type and body
-  const response = await fetch('http://localhost:9464/metrics');
-  const body = await response.text();
-  res.setHeader('Content-Type', response.headers.get('content-type') as string);
-  res.send(body);
-});
 
-let server: any;
+let server: http.Server;
 
 async function startServer() {
   try {
@@ -140,8 +134,9 @@ async function startServer() {
     await initializeDatabase();
     
     // Start the server
-    server = app.listen(PORT, () => {
-      logger.info(`OTLP-Instrumented Products API running on http://localhost:${PORT}`);
+    server = app.listen(port, () => {
+      const formattedTime = new Date().toISOString();
+      logger.info(`OTLP-Instrumented Products API running on http://localhost:${port} at ${formattedTime}`);
     });
   } catch (err: any) {
     logger.error('Failed to start server', { error: err.message });

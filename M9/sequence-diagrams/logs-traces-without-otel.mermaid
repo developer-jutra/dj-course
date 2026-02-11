@@ -7,14 +7,14 @@ sequenceDiagram
     Note over LOGS,TRACES: Data Storage and Indexing
 
     par Log Path
-        rect rgb(230, 255, 230)
+        rect rgb(22, 64, 22)
             Note over A: Generating Logs (e.g. npm/winston-loki)
             A->>LOGS: Push Logs (HTTP API / Agent Protocols)
             UI->>LOGS: Query Logs (Loki API / LogQL)
             LOGS-->>UI: Returns Logs
         end
     and Tracing Path
-        rect rgb(230, 255, 255)
+        rect rgb(22, 64, 64)
             Note over A: Generating Traces (e.g. Jaeger Client)
             A->>TRACES: Push Traces (e.g. Jaeger Thrift/gRPC/HTTP)
             UI->>TRACES: Query Traces (Jaeger/Tempo API)

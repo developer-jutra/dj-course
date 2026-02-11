@@ -22,8 +22,16 @@ router.get('/products/:id', async (req: Request, res: Response) => {
     logger.debug('Fetching product from database', { id: req.params.id });
     const { id } = req.params;
     const { rows } = await pool.query('SELECT * FROM products WHERE product_id = $1', [id]);
-    logger.debug('Record fetched successfully', { product: rows[0] });
-    res.json(rows[0]);
+    const product = rows[0];
+
+    if (!product) {
+      logger.debug('Product not found', { id });
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    logger.debug('Record fetched successfully', { product });
+    res.json(product);
   } catch (err: any) {
     logger.error('Failed to fetch product', { error: err.message });
     res.status(500).json({ error: err.message });
@@ -33,14 +41,21 @@ router.get('/products/:id', async (req: Request, res: Response) => {
 router.post('/products', async (req: Request, res: Response) => {
   try {
     logger.debug('Creating product', { body: req.body });
-    const { name, price, description, stock, category_id, sku, weight_g, is_active } = req.body;
+    const {
+      name,
+      price,
+      description = null,
+      stock = 0,
+      category_id = null,
+      sku = null,
+      weight_g = null,
+      is_active = true
+    } = req.body;
     await pool.query('INSERT INTO products (name, price, description, stock, category_id, sku, weight_g, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [name, price, description, stock, category_id, sku, weight_g, is_active]);
     logger.debug('Record created successfully', { name, price });
     res.status(201).json({ message: 'Product created successfully' });
   } catch (err: any) {
-    const { name, price, description, stock, category_id, sku, weight_g, is_active } = req.body;
-    const sql = `INSERT INTO products (name, price, description, stock, category_id, sku, weight_g, is_active) VALUES (${name}, ${price}, ${description}, ${stock}, ${category_id}, ${sku}, ${weight_g}, ${is_active})`;
-    logger.error('Failed to create product', { error: err.message, sql });
+    logger.error('Failed to create product', { error: err.message, body: req.body });
     res.status(500).json({ error: err.message });
   }
 });

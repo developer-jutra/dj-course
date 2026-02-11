@@ -2,33 +2,53 @@ config:
   target: "http://localhost:3000"
   phases:
     - name: "Ramp up to peak"
-      duration: 15
-      arrivalRate: 50
-      rampTo: 10
-      maxVusers: 5000
+      duration: 15 # Duration of the given phase in seconds.
+      arrivalRate: 30 # Number of new users (Virtual Users) starting each second.
+      rampTo: 200 # Target number of new users per second at the end of the phase (linear ramp-up/ramp-down).
+      maxVusers: 5000 # Hard limit for concurrently active virtual users.
 
     - name: "Sustain peak load"
       duration: 30
-      arrivalRate: 20
+      arrivalRate: 200
       maxVusers: 5000
 
     - name: "Ramp down"
       duration: 15
-      arrivalRate: 10
-      rampTo: 0
+      arrivalRate: 200
+      rampTo: 10
       maxVusers: 5000
 
+  variables:
+    productId:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 1000
+
 scenarios:
-  - name: "Product browsing + creation flow"
+  - name: "Browse products collection"
     flow:
       - get:
           url: "/products"
-      - think: 3
+      - think: 2
       - get:
-          url: "/products/1"
+          url: "/products/{{ productId }}"
+      - think: 1
+
+  - name: "Create and manage product lifecycle"
+    flow:
       - post:
           url: "/products"
           json:
             name: "Load Test Product"
             price: 49.99
-      - think: 2
+          capture:
+            - json: "$.id"
+              as: createdProductId
+      - think: 1
+      - get:
+          url: "/products/{{ createdProductId }}"
+      - think: 1
+      - delete:
+          url: "/products/{{ createdProductId }}"

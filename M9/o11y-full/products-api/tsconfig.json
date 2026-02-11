@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "nodenext",
-    "rootDir": "./",
+    "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "strict": true,

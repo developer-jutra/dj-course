@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize tracing first
-import { initializeTracing } from './tracing';
-initializeTracing();
+import { initTelemetry } from './instrumentation';
+initTelemetry();
 
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
@@ -13,22 +13,24 @@ import axios from 'axios';
 import logger from './logger';
 import { assertEnvVars } from './env';
 
-const app = express();
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
-const availabilityApiUrl = `${process.env.AVAILABILITY_API_URL}/availability`;
-
 assertEnvVars(
-  'NODE_APP_PORT',
+  'PORT',
   'NODE_ENV',
   'POSTGRES_USER',
   'POSTGRES_PASSWORD',
   'POSTGRES_DB',
   'POSTGRES_HOST',
+  'POSTGRES_PORT',
+  'LOG_LEVEL',
   'OTEL_SERVICE_NAME',
   'OTEL_EXPORTER_OTLP_ENDPOINT',
   'CONSOLE_TRACE_EXPORTER',
   'AVAILABILITY_API_URL'
 );
+
+const app = express();
+const port = process.env.PORT;
+const availabilityApiUrl = `${process.env.AVAILABILITY_API_URL}/availability`;
 
 // Body parser middleware
 app.use(bodyParser.json());
@@ -134,7 +136,7 @@ const myFunction = (): void => {
 
 // Add a manual span example
 app.get('/manual-trace', (req: Request, res: Response) => {
-  const tracer = trace.getTracer('products-api');
+  const tracer = trace.getTracer('products-service');
   
   tracer.startActiveSpan('manual.operation', (span) => {
     try {
@@ -154,7 +156,8 @@ app.get('/manual-trace', (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  logger.info(`Server running on http://localhost:${port}`);
+  const formattedTime = new Date().toISOString();
+  logger.info(`Server running on http://localhost:${port} at ${formattedTime}`);
 });
 
 // Handle uncaught exceptions

@@ -14,21 +14,66 @@ receivers:
         - job_name: 'postgres-exporter'
           scrape_interval: 10s
           static_configs:
-            - targets: ['postgres-exporter:9187'] 
+            - targets: ['postgres-exporter:9187']
+        - job_name: 'node-exporter'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['node-exporter:9100'] 
 
 processors:
   batch:
     timeout: 1s
     send_batch_size: 1024
-  resourcedetection:
-    detectors: [env, system]
-    system:
-      hostname_sources: [os]
+  
+  # Transform resource attributes for metrics pipeline
+  resource/metrics:
+    attributes:
+      - key: service_name
+        from_attribute: service.name
+        action: upsert
+      - key: deployment_environment
+        from_attribute: deployment.environment
+        action: upsert
+      - key: service_version
+        from_attribute: service.version
+        action: upsert
+  
+  # Transform resource attributes for logs pipeline
+  resource/logs:
+    attributes:
+      - key: service_name
+        from_attribute: service.name
+        action: upsert
+      - key: deployment_environment
+        from_attribute: deployment.environment
+        action: upsert
+      - key: service_version
+        from_attribute: service.version
+        action: upsert
+  
+  # Promote important log attributes to resource attributes (which become Loki labels)
+  attributes/logs:
+    actions:
+      - key: http_method
+        action: upsert
+        from_attribute: http.request.method
+      - key: http_status_code
+        action: upsert
+        from_attribute: http.response.status_code
+      - key: severity_text
+        action: upsert
+        from_attribute: severity_text
+      - key: http_route
+        action: upsert
+        from_attribute: http.route
   
 exporters:
   # METRICS: Endpoint from which Prometheus will scrape ALL application/infrastructure metrics
   prometheus:
-    endpoint: 0.0.0.0:8890 
+    endpoint: 0.0.0.0:8890
+    # Note: resource_to_telemetry_conversion is enabled by default
+    # This converts service.name -> job label, but since Prometheus adds its own job label,
+    # the result is exported_job="products-api" (which we use in queries) 
 
   # LOGS: Export to Loki
   otlphttp/loki:
@@ -51,15 +96,16 @@ service:
   pipelines:
     metrics:
       receivers: [otlp, prometheus] 
-      processors: [batch]
-      exporters: [prometheus] # expose port 8888
-      
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/tempo] # push to tempo
+      processors: [resource/metrics, batch]
+      exporters: [prometheus]
       
     logs:
       receivers: [otlp]
-      processors: [resourcedetection, batch]
-      exporters: [otlphttp/loki] # push to loki
+      processors: [attributes/logs, resource/logs, batch]
+      exporters: [otlphttp/loki]
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+      

@@ -9,10 +9,12 @@ import router from './router';
 import routerMisc from './router-misc';
 import dotenv from 'dotenv';
 import os from 'node:os';
+import { isBlacklistedPath } from './url-blacklist';
 
 dotenv.config();
 
 assertEnvVars(
+  'PORT',
   'NODE_ENV',
   'SERVICE_NAME',
   'DB_HOST',
@@ -23,8 +25,8 @@ assertEnvVars(
 );
 
 const pkg = getPkg();
+const port = process.env.PORT;
 
-const PORT = process.env.PORT || 3000;
 promClient.register.setDefaultLabels({
   app: pkg.name,
   version: pkg.version,
@@ -74,9 +76,10 @@ const metricsMiddleware = promBundle({
   includeMethod: true,
   includePath: true,
   normalizePath: [
-    ['^/products/\d+', '/products/#id'], // Handle numeric IDs
+    ['^/products/\\d+', '/products/#id'], // Handle numeric IDs
     // ['^/user/[a-z0-9-]+', '/user/#id']    // Sample UUID pattern
   ],
+  bypass: (req) => isBlacklistedPath(req.path),
   customLabels: { 
     route: '', // 🔥 Custom label for route, otherwise error thrown (histogram has to specify labels upfront)
     app: pkg.name,
@@ -109,6 +112,7 @@ app.use(metricsMiddleware);
 
 // Middleware to log all requests
 app.use((req: Request, res: Response, next: NextFunction) => {
+  if (isBlacklistedPath(req.path)) return next();
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
@@ -139,6 +143,7 @@ app.use(bodyParser.json())
 // HTTP request counter middleware gets executed after all routes
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.on('finish', () => {
+    if (isBlacklistedPath(req.path)) return;
     HTTPRequestTotalCounter.inc({
       method: req.method,
       path: req.path,
@@ -209,8 +214,9 @@ app.use(express.static('public'));
 app.use(router);
 app.use(routerMisc);
 
-app.listen(PORT, () => {
-  logger.info(`Prometheus-Instrumented Products API running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  const formattedTime = new Date().toISOString();
+  logger.info(`Prometheus-Instrumented Products API running on http://localhost:${port} at ${formattedTime}`);
 });
 
 // Graceful shutdown

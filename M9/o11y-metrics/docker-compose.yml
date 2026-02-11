@@ -5,15 +5,16 @@ services:
       # 🔥🔥🔥 WAŻNE 🔥🔥🔥
 
       # albo native prometheus:
-      dockerfile: Dockerfile
+      # dockerfile: Dockerfile
       # wówczas metryki są dostępne pod http://localhost:3000/metrics
 
       # albo OTLP:
-      # dockerfile: Dockerfile-otlp
+      dockerfile: Dockerfile-otlp
       # wówczas metryki są dostępne pod http://localhost:9464/metrics
 
       # dla chętnych: można sparametryzować np. poprzez docker compose profiles
     environment:
+      PORT: 3000
       NODE_ENV: development
       SERVICE_NAME: products-api
       DB_HOST: postgres
