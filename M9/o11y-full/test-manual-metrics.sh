@@ -92,7 +92,7 @@ echo ""
 
 # Query Prometheus for various metrics
 echo "1️⃣  HTTP Request Count:"
-HTTP_COUNT=$(curl -s 'http://localhost:9090/api/v1/query?query=sum(http_requests_total{exported_job="products-api"})' | \
+HTTP_COUNT=$(curl -s -G 'http://localhost:9090/api/v1/query' --data-urlencode 'query=sum(http_requests_total{exported_job="products-api"})' | \
   jq -r '.data.result[0].value[1] // "0"')
 if [ "$HTTP_COUNT" = "0" ]; then
   echo -e "   ${RED}⚠️  No HTTP requests found!${NC}"
@@ -102,7 +102,7 @@ fi
 echo ""
 
 echo "2️⃣  HTTP Request Duration (p95):"
-HTTP_DURATION=$(curl -s 'http://localhost:9090/api/v1/query?query=histogram_quantile(0.95,sum(rate(http_server_duration_milliseconds_bucket{exported_job="products-api"}[1m]))by(le))' | \
+HTTP_DURATION=$(curl -s -G 'http://localhost:9090/api/v1/query' --data-urlencode 'query=histogram_quantile(0.95,sum(rate(http_server_duration_milliseconds_bucket{exported_job="products-api"}[1m]))by(le))' | \
   jq -r '.data.result[0].value[1] // "N/A"')
 if [ "$HTTP_DURATION" = "N/A" ]; then
   echo -e "   ${RED}⚠️  No duration data found!${NC}"
@@ -112,7 +112,7 @@ fi
 echo ""
 
 echo "3️⃣  Database Connections:"
-DB_CONNECTIONS=$(curl -s 'http://localhost:9090/api/v1/query?query=sum(db_client_connection_count{exported_job="products-api"})' | \
+DB_CONNECTIONS=$(curl -s -G 'http://localhost:9090/api/v1/query' --data-urlencode 'query=sum(db_client_connection_count{exported_job="products-api"})' | \
   jq -r '.data.result[0].value[1] // "0"')
 if [ "$DB_CONNECTIONS" = "0" ]; then
   echo -e "   ${RED}⚠️  No DB connection metrics found!${NC}"
@@ -122,7 +122,7 @@ fi
 echo ""
 
 echo "4️⃣  Client-side Metrics (LCP):"
-CLIENT_LCP_COUNT=$(curl -s 'http://localhost:9090/api/v1/query?query=sum(web_vitals_lcp_milliseconds_count{exported_job="products-api"})' | \
+CLIENT_LCP_COUNT=$(curl -s -G 'http://localhost:9090/api/v1/query' --data-urlencode 'query=sum(web_vitals_lcp_milliseconds_count{exported_job="products-api"})' | \
   jq -r '.data.result[0].value[1] // "0"')
 if [ "$CLIENT_LCP_COUNT" = "0" ]; then
   echo -e "   ${YELLOW}⚠️  No LCP measurements (expected if no client metrics sent)${NC}"
@@ -132,7 +132,7 @@ fi
 echo ""
 
 echo "5️⃣  Health Status:"
-HEALTH_STATUS=$(curl -s 'http://localhost:9090/api/v1/query?query=health_status_ratio{exported_job="products-api"}' | \
+HEALTH_STATUS=$(curl -s -G 'http://localhost:9090/api/v1/query' --data-urlencode 'query=health_status_ratio{exported_job="products-api"}' | \
   jq -r '.data.result[0].value[1] // "0"')
 if [ "$HEALTH_STATUS" = "1" ]; then
   echo -e "   ${GREEN}✓ Service is healthy (1)${NC}"
@@ -146,7 +146,7 @@ echo ""
 echo "6️⃣  Available Metrics for products-api:"
 METRICS_LIST=$(curl -s 'http://localhost:9090/api/v1/label/__name__/values' | \
   jq -r '.data[] | select(. | test("^(http_|db_|web_vitals|health_)") and (. | test("prometheus") | not))')
-METRICS_COUNT=$(echo "$METRICS_LIST" | wc -l | xargs)
+METRICS_COUNT=$(echo "$METRICS_LIST" | grep -c '^' || echo "0")
 echo -e "   ${GREEN}✓ Found $METRICS_COUNT relevant metrics:${NC}"
 echo "$METRICS_LIST" | head -10 | sed 's/^/      - /'
 if [ "$METRICS_COUNT" -gt 10 ]; then

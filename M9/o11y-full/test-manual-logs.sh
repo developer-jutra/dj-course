@@ -28,22 +28,25 @@ echo ""
 echo -e "${BLUE}1. Testing /products endpoint${NC}"
 PRODUCTS_RESPONSE=$(curl -s http://localhost:3000/products | jq -r '.[0].name' 2>/dev/null || echo "OK")
 echo "   Response: $PRODUCTS_RESPONSE"
-PRODUCTS_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "trace_id" | grep "GET /products" | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
+sleep 1  # Give logs time to be written
+PRODUCTS_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "HTTP Request" | grep '"/products"' | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
 echo "   Trace ID: $PRODUCTS_TRACE_ID"
 echo ""
 
 echo -e "${BLUE}2. Testing /inject-error endpoint${NC}"
 ERROR_RESPONSE=$(curl -s http://localhost:3000/inject-error)
 echo "   Response: $ERROR_RESPONSE"
-ERROR_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "trace_id" | grep "/inject-error" | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
+sleep 1  # Give logs time to be written
+ERROR_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "HTTP Request" | grep '"/inject-error"' | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
 echo "   Trace ID: $ERROR_TRACE_ID"
 echo ""
 
-echo -e "${BLUE}3. Testing /inject-slow endpoint${NC}"
-SLOW_RESPONSE=$(curl -s http://localhost:3000/inject-slow)
-echo "   Response: $SLOW_RESPONSE"
-SLOW_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "trace_id" | grep "/inject-slow" | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
-echo "   Trace ID: $SLOW_TRACE_ID"
+echo -e "${BLUE}3. Testing /inject-leak endpoint${NC}"
+LEAK_RESPONSE=$(curl -s http://localhost:3000/inject-leak)
+echo "   Response: $LEAK_RESPONSE"
+sleep 1  # Give logs time to be written
+LEAK_TRACE_ID=$(docker logs o11y-full-products-api-1 2>&1 | grep "HTTP Request" | grep '"/inject-leak"' | tail -1 | grep -o '"trace_id":"[^"]*"' | cut -d'"' -f4)
+echo "   Trace ID: $LEAK_TRACE_ID"
 echo ""
 
 # Wait for logs to be processed
@@ -71,8 +74,8 @@ docker-compose logs products-api 2>&1 | grep "$TEST_TRACE_ID" | \
 echo ""
 
 echo "3️⃣  Checking Loki storage:"
-# URL-encode the query properly
-ENCODED_QUERY=$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} |= \"$TEST_TRACE_ID\"'))")
+# URL-encode the query properly - use structured metadata filter
+ENCODED_QUERY=$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} | trace_id=\"$TEST_TRACE_ID\"'))")
 LOKI_RESULT=$(curl -s "http://localhost:3100/loki/api/v1/query_range?query=$ENCODED_QUERY&limit=5&start=$(python3 -c 'import time; print(int((time.time()-3600)*1e9))')&end=$(python3 -c 'import time; print(int(time.time()*1e9))')" 2>&1 | \
   jq -r '.data.result | length' 2>/dev/null || echo "0")
 echo "   Found $LOKI_RESULT log stream(s) in Loki"
@@ -88,25 +91,28 @@ echo ""
 
 echo -e "${GREEN}=========================================="
 echo "✅ Trace-to-Logs Verification Complete!"
-echo "==========================================${NC}"
+echo -e "==========================================${NC}"
 echo ""
 echo "🔗 Grafana Explore URLs:"
 echo ""
 echo -e "   ${BLUE}Products endpoint logs:${NC}"
-PRODUCTS_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} |= \"$PRODUCTS_TRACE_ID\"'))")
-echo "   http://localhost:4000/explore?left=%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22expr%22%3A%22$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} |= \"' + '$PRODUCTS_TRACE_ID' + '\"'))")%22%7D%5D%7D"
+PRODUCTS_JSON=$(python3 -c "import json, urllib.parse; print(urllib.parse.quote(json.dumps({'datasource': 'loki', 'queries': [{'refId': 'A', 'expr': '{service_name=\"products-api\"} | trace_id=\"$PRODUCTS_TRACE_ID\"'}], 'range': {'from': 'now-1h', 'to': 'now'}})))")
+echo "   http://localhost:4000/explore?left=$PRODUCTS_JSON"
 echo ""
 echo -e "   ${BLUE}Inject Error endpoint logs:${NC}"
-echo "   http://localhost:4000/explore?left=%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22expr%22%3A%22$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} |= \"' + '$ERROR_TRACE_ID' + '\"'))")%22%7D%5D%7D"
+ERROR_JSON=$(python3 -c "import json, urllib.parse; print(urllib.parse.quote(json.dumps({'datasource': 'loki', 'queries': [{'refId': 'A', 'expr': '{service_name=\"products-api\"} | trace_id=\"$ERROR_TRACE_ID\"'}], 'range': {'from': 'now-1h', 'to': 'now'}})))")
+echo "   http://localhost:4000/explore?left=$ERROR_JSON"
 echo ""
-echo -e "   ${BLUE}Inject Slow endpoint logs:${NC}"
-echo "   http://localhost:4000/explore?left=%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22expr%22%3A%22$(python3 -c "import urllib.parse; print(urllib.parse.quote('{service_name=\"products-api\"} |= \"' + '$SLOW_TRACE_ID' + '\"'))")%22%7D%5D%7D"
+echo -e "   ${BLUE}Inject Leak endpoint logs:${NC}"
+LEAK_JSON=$(python3 -c "import json, urllib.parse; print(urllib.parse.quote(json.dumps({'datasource': 'loki', 'queries': [{'refId': 'A', 'expr': '{service_name=\"products-api\"} | trace_id=\"$LEAK_TRACE_ID\"'}], 'range': {'from': 'now-1h', 'to': 'now'}})))")
+echo "   http://localhost:4000/explore?left=$LEAK_JSON"
 echo ""
 echo -e "   ${BLUE}All products-api logs:${NC}"
-echo "   http://localhost:4000/explore?left=%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22expr%22%3A%22%7Bservice_name%3D%5C%22products-api%5C%22%7D%22%7D%5D%7D"
+ALL_JSON=$(python3 -c "import json, urllib.parse; print(urllib.parse.quote(json.dumps({'datasource': 'loki', 'queries': [{'refId': 'A', 'expr': '{service_name=\"products-api\"}'}], 'range': {'from': 'now-1h', 'to': 'now'}})))")
+echo "   http://localhost:4000/explore?left=$ALL_JSON"
 echo ""
-echo "📝 Trace IDs (abbreviated):"
-echo "   Products:     ${PRODUCTS_TRACE_ID:0:16}..."
-echo "   Inject Error: ${ERROR_TRACE_ID:0:16}..."
-echo "   Inject Slow:  ${SLOW_TRACE_ID:0:16}..."
+echo "📝 Full Trace IDs (for Grafana):"
+echo "   Products:     ${PRODUCTS_TRACE_ID}"
+echo "   Inject Error: ${ERROR_TRACE_ID}"
+echo "   Inject Leak:  ${LEAK_TRACE_ID}"
 echo ""

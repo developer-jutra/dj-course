@@ -1,9 +1,11 @@
 # Podsumowanie Metryk w Prometheus
 
+Follow the ⭐s.
+
 | Komponent             | Status  | Opis                         |
 |-----------------------|---------|------------------------------|
-| **products-api**      | ❌ BRAK | Metryki aplikacji            |
-| **node-exporter**     | ❌ BRAK | Metryki hosta                |
+| **products-api**      | ✅ OK   | Metryki aplikacji            |
+| **node-exporter**     | ✅ OK   | Metryki hosta                |
 | **postgres-exporter** | ✅ OK   | PostgreSQL metryki + info    |
 | **Go Runtime**        | ✅ OK   | Z postgres-exporter procesu  |
 | **Process Metrics**   | ✅ OK   | Metryki OS procesu           |

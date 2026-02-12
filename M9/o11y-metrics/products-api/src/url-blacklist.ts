@@ -1,5 +1,5 @@
 // Central place to configure URLs that should be ignored by logs/metrics
-export const URL_METRICS_BLACKLIST: string[] = [
+const URL_METRICS_BLACKLIST: string[] = [
   '/favicon.ico',
 ];
 

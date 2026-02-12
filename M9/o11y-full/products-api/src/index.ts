@@ -1,4 +1,3 @@
-// Load environment variables first
 // use only for local development (outside of Docker; see .env.local file)
 // require('dotenv').config();
 
