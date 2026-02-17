@@ -1,0 +1,1 @@
+{"Servers":{"1":{"Name":"Deliveroo Database","Group":"Servers","Host":"wms-postgres","Port":5432,"MaintenanceDB":"deliveroo","Username":"admin","SSLMode":"prefer","Password":"strongpassword123","Favorite":true}}}

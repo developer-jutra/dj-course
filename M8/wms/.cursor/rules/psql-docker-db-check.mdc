@@ -1,0 +1,64 @@
+---
+description: Generate psql commands to check WMS database content via Docker container shell
+globs: SQL.md, **/*.sql, **/postgres/**
+alwaysApply: false
+---
+
+# WMS Database Check via Docker psql
+
+When generating commands to check database content in this WMS project, use `docker exec` against the Postgres container.
+
+## Connection Details
+
+| Setting | Value |
+|---------|-------|
+| Container | `wms-postgres-container` |
+| User | `admin` |
+| Database | `deliveroo` |
+| Port (host) | `5432` |
+
+No password needed when using `docker exec`.
+
+---
+
+## Command Patterns
+
+### Interactive psql (inside container)
+
+```bash
+docker exec -it wms-postgres-container psql -U admin -d deliveroo
+```
+
+### Run a single query
+
+```bash
+docker exec wms-postgres-container psql -U admin -d deliveroo -c "YOUR_SQL_HERE"
+```
+
+Use `-c` for non-interactive execution. Omit `-it` when running single commands.
+
+### Run a SQL file
+
+```bash
+docker exec -i wms-postgres-container psql -U admin -d deliveroo -f - < path/to/query.sql
+```
+
+Or copy file into container first, then run with `-f /path/in/container`.
+
+---
+
+## Database Schema
+
+The WMS schema is defined in:
+
+- [wms-data-generator/schema/wms-er-diagram.mmd](wms-data-generator/schema/wms-er-diagram.mmd) — logical source of truth (ER diagram in Mermaid)
+- [wms-data-generator/schema/create-wms-schema.sql](wms-data-generator/schema/create-wms-schema.sql) — SQL DDL schema
+
+Refer to these files for table definitions, columns, and relationships when writing queries.
+
+---
+
+## Guidelines
+
+1. **Prefer `docker exec`** over host psql when suggesting commands—it works without local psql and no password.
+2. **Use double quotes** for the SQL string in `-c`; escape inner double quotes with `\"`.

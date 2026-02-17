@@ -1,0 +1,26 @@
+---
+description: Automate verification and manual testing via Taskfile.yml commands
+globs: Taskfile.yml, **/*.http
+alwaysApply: false
+---
+
+# Task Automation via Taskfile
+
+Automation of tasks—verification, manual testing, setup, and common workflows—should be done via commands defined in [Taskfile.yml](Taskfile.yml).
+
+## Guidelines
+
+1. **Add new tasks to Taskfile.yml** instead of suggesting ad-hoc shell commands for recurring operations.
+2. **Use existing tasks** when they cover the need: run `task --list` to see available tasks.
+3. **Prefer `task <name>`** over raw `docker compose`, `./script.sh`, or manual setup steps.
+4. **For verification or testing workflows**, create or extend tasks in Taskfile.yml rather than documenting one-off commands.
+
+## Example existing tasks
+
+| Task | Purpose |
+|------|---------|
+| `task run-wms` | Run full stack (postgres + api + pgadmin) |
+| `task run-wms-with-local-api` | Postgres + pgadmin in Docker, API locally |
+| `task generate-sql` | Generate WMS data SQL files |
+| `task generate-sql-and-sync` | Generate SQL and sync to postgres init-scripts |
+| `task wms-down-and-clear` | Stop and remove all WMS containers and volumes |

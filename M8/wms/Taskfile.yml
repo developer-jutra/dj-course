@@ -1,0 +1,72 @@
+version: "3"
+
+tasks:
+  setup:
+    desc: Create .env from .env.example if .env does not exist
+    cmds:
+      - |
+        if [ ! -f .env ]; then
+          cp .env.example .env
+          echo "Created .env from .env.example"
+        fi
+
+  generate-config:
+    desc: Generate pgadmin/servers.json from .env
+    cmds:
+      - chmod +x scripts/generate-pgadmin-config.sh
+      - ./scripts/generate-pgadmin-config.sh
+
+  run-wms:
+    desc: Run full WMS stack in Docker (postgres + api + pgadmin)
+    cmds:
+      - task: setup
+      - task: generate-config
+      - docker compose --profile full up -d --build
+
+  run-wms-with-local-api:
+    desc: Run postgres + pgadmin in Docker, wms-api locally
+    cmds:
+      - task: setup
+      - task: generate-config
+      - docker compose up -d
+      - cd wms-api && ./run-local.sh
+
+  setup-wms-api:
+    desc: Create venv and install wms-api dependencies (pip install -e .)
+    dir: wms-api
+    cmds:
+      - |
+        if [ -d .venv ]; then
+          if ! .venv/bin/python --version >/dev/null 2>&1; then
+            echo "⚠️  Virtual environment broken. Recreating..."
+            rm -rf .venv
+          fi
+        fi
+        if [ ! -d .venv ]; then
+          python3 -m venv .venv
+          echo "📦 Created virtual environment"
+        fi
+      - . .venv/bin/activate && pip install -e . --root-user-action=ignore
+
+  run-only-local-api:
+    desc: Run wms-api locally (requires postgres running, e.g. via run-wms-with-local-api)
+    cmds:
+      - task: setup
+      - cd wms-api && ./run-local.sh
+
+  generate-sql:
+    desc: "Generate SQL WMS data files (usage: task generate-sql [MODE=SMALL|LARGE] [VERBOSE=TRUE|FALSE], default: MODE=SMALL, VERBOSE=FALSE)"
+    dir: wms-data-generator
+    cmds:
+      - './generate.sh {{.MODE | default "SMALL"}} {{.VERBOSE | default "FALSE"}}'
+
+  generate-sql-and-sync:
+    desc: "Generate SQL and sync to postgres init-scripts (usage: task generate-sql-and-sync [MODE=SMALL|LARGE] [VERBOSE=TRUE|FALSE], default: MODE=SMALL, VERBOSE=FALSE)"
+    dir: wms-data-generator
+    cmds:
+      - './generate-and-sync.sh {{.MODE | default "SMALL"}} {{.VERBOSE | default "FALSE"}}'
+
+  wms-down-and-clear:
+    desc: Stop and remove all WMS containers, volumes, and networks (including orphaned containers with profiles)
+    cmds:
+      - docker compose --profile full down --remove-orphans -v
