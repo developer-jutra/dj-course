@@ -1,6 +1,25 @@
 # Zadanie 1
 
-TBD
+Analiza / Optymalizacja wydajności bazodanowej PostgreSQL.
+
+Wskakuj do `M8/wms` - masz tu rozbudowany setup docker compose z pythonem + postgresem:
+- różnych skryptów jest sporo, ale patrz na `Taskfile.yml` (uruchamiane: `task` po HELP lub `task <COMMAND>`).
+- albo wszystko uruchamiasz w dockerze (łącznie z API: `task run-wms`) albo wszystko w dockerze a API bezpośrednio lokalnie, poza dockerem (`run-wms-with-local-api`) - kwestia wygody/preferencji.
+- API `M8/wms/wms-api` strzela do postgresa - różnych query jest +-30, więc jest w czym wybierać
+- w pliku `.http` masz wylistowane wygodnie wszystkie endpointy HTTP (na które możesz strzelać, w razie czego zainstaluj [VSCode ext httpYac](https://marketplace.cursorapi.com/items/?itemName=anweber.vscode-httpyac) i przeklikuj requesty), to taki "quasi-kontrakt"
+
+Zadanie:
+- analizujesz dane query poprzez `EXPLAIN ANALYZE ...` i - jeśli jest co - to optymalizujesz
+- jeśli chcesz to ręcznie, a jeśli chcesz to koordynuj współpracę z agentem.
+- weź na tapet minimum 5 query. W niektórych trzeba coś poprawić, a w innych nie (query zostawiasz w spokoju - chodzi o indeksy)
+- możesz wygenerować sobie mały dataset (`task generate-sql-and-sync`) albo duży (`task generate-sql-and-sync MODE=LARGE`). Polecam duży :)
+
+Pytanie: ile roboty planujesz oddać agentowi? Jeśli zrobi za Ciebie wszystko (odpyta bazę, sprawdzi strukturę, indeksy, wdroży zmiany - a Ciebie tylko spyta o pozwolenie) to:
+- ile, jak myślisz, się nauczysz przy okazji?
+- jak planujesz weryfikować czy faktycznie zrobił co to trzeba?
+
+Rezultat:
+- podziel się na discordzie przykładowymi usprawnieniami + wyjaśnieniem
 
 # Zadanie 2
 
@@ -45,7 +64,9 @@ Na koniec, podziel się wrażeniami: łatwiej samodzielnie czy poprzez MCP?
 
 # Zadanie 5
 
-TBD
+Zamodeluj bazę przy użyciu JSONB. Uwzględnij tabele, kolumny, indeksy - oraz query.
+
+Całe zadanie jest rozpisane w folderze `M8/HOMEWORK-wms-storage` (zawiera plik readme + plik `.http`).
 
 # Zadanie 6
 

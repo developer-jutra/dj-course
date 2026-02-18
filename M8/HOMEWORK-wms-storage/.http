@@ -1,0 +1,81 @@
+@host = http://localhost:3001
+@cargo_id = 101
+
+### 1. Register new cargo
+
+// Example A: Electronics
+
+POST {{host}}/storage/cargo
+Content-Type: application/json
+
+{
+    "name": "Laptop XPS 13",
+    "category_id": 1,
+    "weight": 1.25,
+    "metadata": {
+        "serial_number": "SN-98765",
+        "firmware_version": "1.2.0",
+        "fragile": true,
+        "warranty_months": 24
+    }
+}
+// Expected result: 201 Created with an object containing the generated ID
+
+// Example B: Chemicals
+POST {{host}}/storage/cargo
+Content-Type: application/json
+
+{
+    "name": "Industrial Cleaning Agent X",
+    "category_id": 2,
+    "weight": 25.00,
+    "metadata": {
+        "adr_class": "8",
+        "un_number": "UN1760",
+        "storage_temperature_max": 25,
+        "expiry_date": "2027-12-31",
+        "requires_ventilation": true
+    }
+}
+
+### 2. Fetch details with category name
+
+GET {{host}}/storage/cargo/{{cargo_id}}
+Accept: application/json
+// Expected result: 200 OK, object with category AND full metadata
+
+### 3. Update firmware version (Partial Update)
+
+// EXAMPLE A: add new metadata
+PATCH {{host}}/storage/cargo/{{cargo_id}}/metadata
+Content-Type: application/json
+
+{
+    "firmware_version": "1.2.1",
+    "last_maintenance_date": "2024-05-20"
+}
+// Expected result: 200 OK, updated metadata object
+
+// EXAMPLE B: remove existing metadata
+DELETE {{host}}/storage/cargo/{{cargo_id}}/metadata/seasonal_promo
+Accept: application/json
+
+// Expected result: 200 OK, returns the metadata object with the specified key removed.
+
+### 4. Search by cargo metadata (e.g. fragile cargo)
+
+GET {{host}}/storage/cargo/search?fragile=true
+Accept: application/json
+// Expected result: 200 OK, list of items where "fragile" is true
+
+### 5. Weight statistics for specific firmware version
+
+GET {{host}}/storage/cargo/stats?firmware=1.2.1
+Accept: application/json
+// Expected result: 200 OK, e.g., { "total_weight": 1250.50, "count": 10 }
+
+### 6. Review attribute change history (audit log)
+
+GET {{host}}/storage/cargo/{{cargo_id}}/history
+Accept: application/json
+// Expected result: 200 OK, list of changes (timestamp, old_metadata, new_metadata)
