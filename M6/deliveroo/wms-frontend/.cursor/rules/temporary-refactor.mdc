@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Temporary Refactors
+
+1. No hardcoded data can remain in components. Hardcoded data is required for now, but they should be put into separate files. For instance, mock notifications should be put inside the src/app/mock/notifications.mock.ts file, and it includes MOCK_NOTIFICATIONS exported const variable. Adjust other mocks accordingly. Make sure that all imports are correct and the app compiles.
+
+2. [interfaces.ts](mdc:src/app/types/interfaces.ts) file should be split into smaller model files in their appropriate locations. For instance, if interfaces.ts file includes a section starting with comments such as this one `// User Authentication` the the proper directory is `auth` - and there should be a new file created auth/auth.model.ts which would include these interfaces. Make sure that all imports are correct and the app compiles. So the contents of [interfaces.ts](mdc:src/app/types/interfaces.ts) should be split across domain model-relevant files/directories.

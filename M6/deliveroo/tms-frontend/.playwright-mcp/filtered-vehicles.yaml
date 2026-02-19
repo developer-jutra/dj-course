@@ -1,0 +1,22 @@
+vehicles:
+  - registration: "PO-VW 5678"
+    model: "Scania R 450"
+    status: "MAINTENANCE"
+    type: "refrigerated"
+    year: 2020
+    mileage: "220 000 km"
+    capacity: "24t / 80m³"
+    driver:
+      name: "Tomasz Wiśniewski"
+      url: "/drivers/driver-003/details"
+    location: "Budapest, Hungary"
+    cargo_types:
+      - "chłodnicze"
+      - "mrożone"
+      - "farmaceutyczne"
+    ownership: "FINANCED"
+    monthly_cost: "7400,00 zł/mo"
+    actions:
+      - "Routes"
+      - "Maintenance"
+      - "Docs"

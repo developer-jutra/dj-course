@@ -1,0 +1,160 @@
+services:
+  # ============ PostgreSQL (2 databases: wms, tms) ============
+  postgres:
+    image: postgres:17-alpine
+    container_name: wms-postgres-container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strongpassword123}
+      POSTGRES_DB: ${POSTGRES_DB:-wms}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d wms"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  # ============ MongoDB (customer-portal) ============
+  mongodb:
+    image: mongo:7
+    container_name: deliveroo-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-example}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongodb/cp/init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============ WMS ============
+  wms-api:
+    container_name: wms-api
+    build:
+      context: ./wms-api
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${WMS_API_PORT:-3001}
+      SERVICE_NAME: wms-api
+      POSTGRES_URL: postgresql+psycopg2://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-strongpassword123}@postgres:5432/wms
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:4201}
+    ports:
+      - "${WMS_API_PORT:-3001}:3001"
+    networks:
+      - deliveroo-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  wms-frontend:
+    container_name: wms-frontend
+    build:
+      context: ./wms-frontend
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      API_URL: http://localhost:${WMS_API_PORT:-3001}
+    ports:
+      - "${WMS_FRONTEND_PORT:-4200}:4200"
+    volumes:
+      - ./wms-frontend:/app
+      - /app/node_modules
+    networks:
+      - deliveroo-network
+    depends_on:
+      - wms-api
+
+  # ============ TMS ============
+  tms-api:
+    container_name: tms-api
+    build:
+      context: ./tms-api
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${TMS_API_PORT:-3030}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+    ports:
+      - "${TMS_API_PORT:-3030}:3030"
+    networks:
+      - deliveroo-network
+
+  tms-frontend:
+    container_name: tms-frontend
+    build:
+      context: ./tms-frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_PROXY_TARGET: http://tms-api:${TMS_API_PORT:-3030}
+      VITE_PORT: ${TMS_FRONTEND_PORT:-5173}
+    ports:
+      - "${TMS_FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./tms-frontend:/app
+      - /app/node_modules
+    networks:
+      - deliveroo-network
+    depends_on:
+      - tms-api
+
+  # ============ Customer Portal ============
+  customer-portal:
+    container_name: customer-portal
+    build:
+      context: ./customer-portal
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      NUXT_PUBLIC_API_URL: http://localhost:${CUSTOMER_PORTAL_PORT:-3000}
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-example}@mongodb:27017/cp-db?authSource=admin
+    ports:
+      - "${CUSTOMER_PORTAL_PORT:-3000}:3000"
+    volumes:
+      - ./customer-portal:/app
+      - /app/node_modules
+    networks:
+      - deliveroo-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # ============ pgAdmin (optional) ============
+  pgadmin:
+    image: dpage/pgadmin4:9.4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-pgadmin_password}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    networks:
+      - deliveroo-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  deliveroo-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  pgadmin_data:

@@ -1,0 +1,26 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Deliveroo WMS",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "wms",
+      "Username": "admin",
+      "SSLMode": "prefer",
+      "Password": "strongpassword123",
+      "Favorite": true
+    },
+    "2": {
+      "Name": "Deliveroo TMS",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "tms",
+      "Username": "admin",
+      "SSLMode": "prefer",
+      "Password": "strongpassword123",
+      "Favorite": true
+    }
+  }
+}

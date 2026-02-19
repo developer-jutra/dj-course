@@ -1,0 +1,37 @@
+version: '3'
+
+tasks:
+  default:
+    desc: "Sets up the environment and runs the dev server."
+    cmds:
+      - task: dev
+
+  setup:
+    desc: "Creates a virtual environment and installs dependencies."
+    cmds:
+      - |
+        if [ -n "$VIRTUAL_ENV" ]; then
+          echo "Deactivating existing virtual environment..."
+          unset VIRTUAL_ENV
+        fi
+      - uv venv .venv
+      - . .venv/bin/activate
+      - uv pip install -r requirements.txt
+    silent: true
+
+  activate:
+    desc: "Activates the virtual environment."
+    cmds:
+      - source .venv/bin/activate
+
+  dev:
+    desc: "Runs the Flask app in development mode."
+    cmds:
+      - source .venv/bin/activate && python app.py
+    silent: true
+
+  start:
+    desc: "Runs the app with Gunicorn."
+    cmds:
+      - source .venv/bin/activate && gunicorn -w 4 -b 0.0.0.0:8000 app:app
+    silent: true

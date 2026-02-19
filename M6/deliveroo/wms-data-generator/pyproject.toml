@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wms-data-generator"
+version = "0.1.0"
+description = "Generate initial WMS SQL"
+requires-python = ">=3.8"
+dependencies = [
+    "faker>=24.0.0",
+    "numpy>=1.26.0",
+    "psycopg2-binary>=2.9.0"
+]

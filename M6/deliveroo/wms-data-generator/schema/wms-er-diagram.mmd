@@ -1,0 +1,212 @@
+erDiagram
+
+WAREHOUSE {
+  int warehouse_id PK
+  int location_id FK
+  string name
+  string description
+}
+
+ZONE {
+  int zone_id PK
+  int warehouse_id FK
+  string name
+  string description
+}
+
+AISLE {
+  int aisle_id PK
+  int zone_id FK
+  string label
+  int width
+  string width_unit
+}
+
+RACK {
+  int rack_id PK
+  int aisle_id FK
+  string label
+  int max_height
+  string height_unit
+}
+
+SHELF {
+  int shelf_id PK
+  int rack_id FK
+  string level
+  decimal max_weight
+  decimal max_volume
+}
+
+CAPACITY {
+  int capacity_id PK
+  string entity_type "WAREHOUSE|ZONE|RACK|SHELF"
+  int entity_id
+  decimal value
+  string unit
+  string description
+}
+
+LOCATION {
+  int location_id PK
+  string address
+  string city
+  string postal_code
+  string country
+}
+
+STORAGE_REQUEST {
+  int request_id PK
+  int customer_id FK
+  int warehouse_id FK
+  datetime requested_entry_date
+  datetime requested_exit_date
+  string status "pending|accepted|rejected"
+  int decision_employee_id FK
+  datetime decision_date
+}
+
+STORAGE_RESERVATION {
+  int reservation_id PK
+  int request_id FK
+  int customer_id FK
+  int shelf_id FK
+  decimal reserved_weight
+  decimal reserved_volume
+  datetime reserved_from
+  datetime reserved_until
+  string status "pending|active|expired|cancelled"
+}
+
+STORAGE_RECORD {
+  int storage_record_id PK
+  int request_id FK
+  int customer_id FK
+  int shelf_id FK
+  datetime actual_entry_date
+  datetime actual_exit_date
+  string cargo_description
+  decimal cargo_weight
+  decimal cargo_volume
+}
+
+PAYMENT {
+  int payment_id PK
+  int storage_record_id FK
+  int customer_id FK
+  decimal amount
+  string currency
+  string status "pending|paid|failed|cancelled"
+  datetime payment_date
+  string external_reference
+}
+
+STORAGE_EVENT_TYPE {
+  int event_type_id PK
+  string name
+  string description
+}
+
+STORAGE_EVENT_HISTORY {
+  int event_id PK
+  int storage_record_id FK
+  int event_type_id FK
+  datetime event_time
+  int employee_id FK
+  jsonb details
+}
+
+EMPLOYEE {
+  int employee_id PK
+  string name
+  string email
+  string phone
+  datetime hire_date
+  boolean is_deleted "default: false, INDEXED, soft delete"
+}
+
+ROLE {
+  int role_id PK
+  string name "warehouse_manager|logistics_coordinator|storage_approver"
+  string description
+}
+
+EMPLOYEE_ROLE {
+  int employee_id FK
+  int role_id FK
+  datetime assigned_date
+}
+
+EMPLOYEE_WAREHOUSE {
+  int employee_id FK
+  int warehouse_id FK
+  datetime assigned_from
+  datetime assigned_until
+}
+
+CUSTOMER {
+  int customer_id PK
+  string name
+  string email
+  string phone
+  string status "active|inactive"
+  string tax_id_number
+  boolean is_deleted "default: false, INDEXED, soft delete"
+  datetime created_at
+  datetime updated_at
+}
+
+CUSTOMER_CONTACT {
+  int contact_id PK
+  int customer_id FK
+  string type
+  string details
+}
+
+CUSTOMER_ADDRESS {
+  int address_id PK
+  int customer_id FK
+  string street_address
+  string city
+  string country
+  string postal_code
+  string address_type "BILLING|SHIPPING|CORPORATE|OTHER"
+}
+
+CUSTOMER_EMPLOYEE {
+  int customer_id FK
+  int employee_id FK
+  string job_title
+  string employee_type
+}
+
+WAREHOUSE ||--o{ ZONE : "contains"
+ZONE ||--o{ AISLE : "has"
+AISLE ||--o{ RACK : "contains"
+RACK ||--o{ SHELF : "has"
+WAREHOUSE ||--|| LOCATION : "located at"
+WAREHOUSE ||--o{ STORAGE_REQUEST : "receives"
+WAREHOUSE ||--o{ EMPLOYEE_WAREHOUSE : "staffed_by"
+EMPLOYEE ||--o{ EMPLOYEE_WAREHOUSE : "assigned_to"
+STORAGE_RECORD }o--|| SHELF : "occupies"
+STORAGE_RECORD }o--|| CUSTOMER : "for"
+CUSTOMER ||--o{ CUSTOMER_CONTACT : "has"
+CUSTOMER ||--o{ CUSTOMER_ADDRESS : "has"
+CUSTOMER ||--o{ CUSTOMER_EMPLOYEE : "employs"
+EMPLOYEE ||--o{ CUSTOMER_EMPLOYEE : "works_for"
+STORAGE_REQUEST }o--|| CUSTOMER : "requested_by"
+STORAGE_REQUEST }o--|| EMPLOYEE : "decided_by"
+STORAGE_REQUEST ||--o{ STORAGE_RECORD : "results_in"
+STORAGE_REQUEST ||--o{ STORAGE_RESERVATION : "reserves"
+STORAGE_RESERVATION }o--|| SHELF : "on"
+STORAGE_RESERVATION }o--|| CUSTOMER : "for"
+EMPLOYEE ||--o{ EMPLOYEE_ROLE : "has"
+ROLE ||--o{ EMPLOYEE_ROLE : "assigned"
+STORAGE_RECORD ||--o{ STORAGE_EVENT_HISTORY : "has_event"
+STORAGE_EVENT_TYPE ||--o{ STORAGE_EVENT_HISTORY : "categorizes"
+EMPLOYEE ||--o{ STORAGE_EVENT_HISTORY : "performed"
+STORAGE_RECORD ||--o{ PAYMENT : "billed"
+PAYMENT }o--|| CUSTOMER : "for"
+
+%% NOTE: When querying EMPLOYEE, always filter with is_deleted = false (soft delete)
+%% NOTE: When querying CUSTOMER, always filter with is_deleted = false (soft delete)

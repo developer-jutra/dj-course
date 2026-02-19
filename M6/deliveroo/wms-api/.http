@@ -1,0 +1,127 @@
+@host = http://localhost:3001
+
+# example values
+@customer_id = 1
+@storage_record_id = 1
+@employee_id = 1
+@contractor_id = 1
+@warehouse_id = 1
+@city = Kraków
+@description = electronics
+@min_amount = 1000
+@contact_type = billing_email
+@country = Poland
+@severity = critical
+
+### Health check
+GET {{host}}/health
+Accept: text/plain
+
+########################################################
+## Contractors
+########################################################
+
+### Get all contractors
+GET {{host}}/contractors
+Accept: application/json
+
+### Get contractor representatives
+GET {{host}}/contractors/representatives
+Accept: application/json
+
+### Get contractors by city
+GET {{host}}/contractors?city={{city}}
+Accept: application/json
+
+### Get contractor details
+GET {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+
+### Get contractor contacts by type
+GET {{host}}/contractors/{{contractor_id}}/contacts?type={{contact_type}}
+Accept: application/json
+
+### Update contractor status
+PATCH {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "status": "INACTIVE"
+}
+
+########################################################
+## Payments
+########################################################
+
+### Get all pending payments
+GET {{host}}/payments?status=PENDING
+Accept: application/json
+
+### Get all paid payments
+GET {{host}}/payments?status=PAID
+Accept: application/json
+
+### Get all payments by customer
+GET {{host}}/payments?customer_id={{customer_id}}
+Accept: application/json
+
+### Get pending payments by customer
+GET {{host}}/payments?customer_id={{customer_id}}&status=PENDING
+Accept: application/json
+
+### Get payments above minimum amount
+GET {{host}}/payments?min_amount={{min_amount}}
+Accept: application/json
+
+########################################################
+## Employees
+########################################################
+
+### Get all employees
+GET {{host}}/employees
+Accept: application/json
+
+### Get employee details
+GET {{host}}/employees/{{employee_id}}
+Accept: application/json
+
+### Get employee warehouses
+GET {{host}}/employees/{{employee_id}}/warehouses
+Accept: application/json
+
+########################################################
+## Warehouse
+########################################################
+
+### Get warehouse locations by country
+GET {{host}}/warehouse/locations?country={{country}}
+Accept: application/json
+
+### Get warehouse capacity
+GET {{host}}/warehouse/capacity?warehouse_id={{warehouse_id}}
+Accept: application/json
+
+### Get employees for warehouse
+GET {{host}}/warehouse/{{warehouse_id}}
+Accept: application/json
+
+########################################################
+## Storage
+########################################################
+
+### Get active reservations
+GET {{host}}/storage/reservations/active
+Accept: application/json
+
+### Search cargo by description
+GET {{host}}/storage/cargo?description={{description}}
+Accept: application/json
+
+### Storage event history for a storage record
+GET {{host}}/storage/{{storage_record_id}}/events
+Accept: application/json
+
+### Storage events filtered by severity
+GET {{host}}/storage/{{storage_record_id}}/events?severity={{severity}}
+Accept: application/json

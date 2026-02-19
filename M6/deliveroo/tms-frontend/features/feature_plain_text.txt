@@ -1,0 +1,1 @@
+Otwierasz aplikację, przechodzisz do zakładki Documents, następnie z listy dokumentów wybierasz pierwszy, który ma nazwę "REJ-WA-LOG-2024" (dokładnie taką), klikasz w przycisk `Edit`, następnie w polu nazwy, zmieniasz mu na `Ala ma kota`, wciskasz SAVE, aby zapisać nową nazwę i upewniasz się, że nowa nazwa się wyświetla oraz że przycisk `Edit` z powrotem jest widoczny.
