@@ -13,6 +13,7 @@ Dla punktów niejasnych/wątpliwych:
     jak sobie poradzić:
         przykładowy prompt: _ile wynosi DMC dla TIRa?_
         przykładowa odpowiedź LLMa: _40 ton: Podstawowy limit dla większości zestawów złożonych z 3-osiowego ciągnika i 2- lub 3-osiowej naczepy (łącznie 5 lub 6 osi). [...]_
+        przykład: 👉 https://gemini.google.com/share/769f97c29bf8 👈
     **GOOD ENOUGH EXAMPLE** - przykłady:
         - Ciągnik 3-osiowy ma DMC 40 ton a waga towaru wynosi 30 ton - waga nie jest przekroczona
         - Ciągnik 2-osiowy ma DMC 40 ton a waga towaru wynosi 30 ton - waga nie jest przekroczona
