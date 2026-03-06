@@ -1,0 +1,39 @@
+version: '3'
+
+vars:
+  # The main application package
+  APP_PKG: ./cmd/tms-data-generator
+  # The output binary path
+  BINARY: bin/tms-data-generator
+
+tasks:
+  build:
+    desc: Build the application binary
+    sources:
+      - "**/*.go"
+    generates:
+      - "{{.BINARY}}"
+    cmds:
+      - go build -o {{.BINARY}} {{.APP_PKG}}
+
+  run:
+    desc: Run the compiled application binary
+    cmds:
+      - ./{{.BINARY}}
+    deps:
+      - build
+
+  run-go:
+    desc: Generate the SQL file using go run
+    cmds:
+      - go run {{.APP_PKG}}
+
+  clean:
+    desc: Clean up build artifacts and generated files
+    cmds:
+      - rm -rf bin output
+
+  default:
+    desc: Build and run the generator
+    cmds:
+      - task: run

@@ -1,0 +1,504 @@
+openapi: 3.0.3
+info:
+  title: TMS API
+  description: |
+    Transportation Management System API. Provides endpoints for managing vehicles,
+    drivers, transportation orders, and notifications.
+  version: 1.0.0
+  contact:
+    name: TMS API Support
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: /
+    description: Relative base path (use with API gateway or proxy)
+
+paths:
+  /:
+    get:
+      summary: Server uptime
+      description: Returns plain text with server start time and uptime duration.
+      operationId: getServerUptime
+      responses:
+        '200':
+          description: Server uptime information
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Server up and running since 2025-02-26 10:00:00 UTC. Uptime: 0d 2h 15m 30s"
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns service health status. Used for liveness/readiness probes.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /vehicles:
+    get:
+      summary: List all vehicles
+      description: Retrieves all vehicles from the fleet.
+      operationId: getVehicles
+      responses:
+        '200':
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehicle'
+        '500':
+          description: Failed to fetch vehicles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create vehicle
+      description: Creates a new vehicle in the fleet.
+      operationId: createVehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleCreate'
+      responses:
+        '201':
+          description: Vehicle created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vehicles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/VehicleId'
+    get:
+      summary: Get vehicle by ID
+      description: Retrieves a single vehicle by its ID.
+      operationId: getVehicleById
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: Vehicle ID is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update vehicle
+      description: Updates an existing vehicle. All fields are optional; only provided fields are updated.
+      operationId: updateVehicle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleUpdate'
+      responses:
+        '200':
+          description: Vehicle updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '404':
+          description: Vehicle not found or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete vehicle
+      description: Deletes a vehicle from the fleet.
+      operationId: deleteVehicle
+      responses:
+        '204':
+          description: Vehicle deleted successfully (no content)
+        '404':
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers:
+    get:
+      summary: List all drivers
+      description: Retrieves up to 100 drivers.
+      operationId: getDrivers
+      responses:
+        '200':
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Driver'
+        '500':
+          description: Failed to fetch drivers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create driver
+      description: Creates a new driver.
+      operationId: createDriver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverCreate'
+      responses:
+        '201':
+          description: Driver created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create driver
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DriverId'
+    get:
+      summary: Get driver by ID
+      description: Retrieves a single driver by their ID.
+      operationId: getDriverById
+      responses:
+        '200':
+          description: Driver found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '404':
+          description: Driver not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch driver
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transportation-orders:
+    get:
+      summary: List transportation orders
+      description: Retrieves transportation orders ordered by order date descending (limit 100).
+      operationId: getTransportationOrders
+      responses:
+        '200':
+          description: List of transportation orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransportationOrder'
+        '500':
+          description: Failed to fetch transportation orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notifications:
+    get:
+      summary: List notifications
+      description: Returns mock notifications. This is a static mock endpoint for UI development.
+      operationId: getNotifications
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+components:
+  parameters:
+    VehicleId:
+      name: id
+      in: path
+      required: true
+      description: Vehicle identifier
+      schema:
+        type: string
+    DriverId:
+      name: id
+      in: path
+      required: true
+      description: Driver identifier
+      schema:
+        type: string
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          example: ok
+        service:
+          type: string
+          description: Service name (from SERVICE_NAME env)
+          example: tms-api
+
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Vehicle identifier
+        make:
+          type: string
+          maxLength: 50
+          nullable: true
+        model:
+          type: string
+          maxLength: 50
+          nullable: true
+        year:
+          type: integer
+          nullable: true
+        fuel_tank_capacity:
+          type: number
+          format: double
+          nullable: true
+          description: Maximum fuel capacity in liters
+
+    VehicleCreate:
+      type: object
+      properties:
+        make:
+          type: string
+          maxLength: 50
+        model:
+          type: string
+          maxLength: 50
+        year:
+          type: integer
+        fuel_tank_capacity:
+          type: number
+          format: double
+          description: Maximum fuel capacity in liters
+
+    VehicleUpdate:
+      type: object
+      description: All fields optional; only provided fields are updated
+      properties:
+        make:
+          type: string
+          maxLength: 50
+        model:
+          type: string
+          maxLength: 50
+        year:
+          type: integer
+        fuel_tank_capacity:
+          type: number
+          format: double
+
+    Driver:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Driver identifier
+        first_name:
+          type: string
+          maxLength: 50
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 50
+          nullable: true
+        email:
+          type: string
+          maxLength: 100
+          format: email
+          nullable: true
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+        contract_type:
+          type: string
+          enum: [CONTRACTOR, FULL_TIME]
+          nullable: true
+        status:
+          type: string
+          enum: [ACTIVE, ON_ROUTE, RESTING, OFF_DUTY, SICK_LEAVE]
+          nullable: true
+
+    DriverCreate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          maxLength: 100
+          format: email
+        phone:
+          type: string
+          maxLength: 20
+        contract_type:
+          type: string
+          enum: [CONTRACTOR, FULL_TIME]
+        status:
+          type: string
+          enum: [ACTIVE, ON_ROUTE, RESTING, OFF_DUTY, SICK_LEAVE]
+
+    TransportationOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Order identifier
+        order_number:
+          type: string
+          maxLength: 20
+          description: Unique order reference
+        customer_id:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, IN_TRANSIT, READY_FOR_PICKUP, DELIVERED, CANCELLED]
+        amount:
+          type: number
+          format: double
+        order_date:
+          type: string
+          format: date-time
+        expected_delivery:
+          type: string
+          format: date
+          nullable: true
+        shipping_address:
+          type: string
+          maxLength: 255
+          nullable: true
+        shipping_city:
+          type: string
+          maxLength: 100
+          nullable: true
+        shipping_state:
+          type: string
+          maxLength: 50
+          nullable: true
+        shipping_zip_code:
+          type: string
+          maxLength: 20
+          nullable: true
+        shipping_method:
+          type: string
+          maxLength: 50
+          nullable: true
+        tracking_number:
+          type: string
+          maxLength: 50
+          nullable: true
+
+    Notification:
+      type: object
+      description: Mock notification (static data for UI)
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [success, info, message, warning]
+        message:
+          type: string
+        time:
+          type: string
+          description: Human-readable time ago (e.g. "2h", "5h", "1d")
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        id:
+          type: string
+          description: Optional resource ID (e.g. vehicle_id) when applicable

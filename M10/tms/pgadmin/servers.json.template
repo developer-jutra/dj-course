@@ -1,0 +1,1 @@
+{"Servers":{"1":{"Name":"Deliveroo Database","Group":"Servers","Host":"${POSTGRES_HOST}","Port":${POSTGRES_PORT},"MaintenanceDB":"${POSTGRES_DB}","Username":"${POSTGRES_USER}","SSLMode":"prefer","Password":"${POSTGRES_PASSWORD}","Favorite":true}}}
