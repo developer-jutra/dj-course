@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:3000
+@customersUrl = {{baseUrl}}/customers
+@customerId = 1
+
+### Pobierz szczegóły klienta
+# @name getCustomer
+GET {{customersUrl}}/{{customerId}}
+### Aktualizuj klienta (PATCH)
+
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+{
+  "version": {{getCustomer.version}},
+  "first_name": "Krzyś"
+}

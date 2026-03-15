@@ -1,0 +1,38 @@
+@graphqlUrl = http://localhost:3000/graphql
+
+### Lista kierowców z uprawnieniami
+# Zwraca wszystkich kierowców z ich licencjami, datami wygaśnięcia i statusem.
+
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "{ listDrivers { id firstName lastName contractType status licenses { licenseType { code name } expiryDate status } } }"
+}
+
+###
+
+### Szczegóły kierowcy (id=3) — pełny profil z numerami dokumentów
+# Zwraca Brain Ryan z 6 licencjami (C, C+E, ADR Basic, ADR Tank, ADR Klasa 1, Kod 95).
+# Jedna licencja (Kod 95) jest już wygasła — widać to w polu status: "expired".
+
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "query { getDriver(id: 3) { id firstName lastName email phone contractType status licenses { licenseType { code name description } documentNumber issueDate expiryDate status } } }"
+}
+
+###
+
+### Mutacja — dodanie nowej licencji kierowcy
+# Dodaje licencję ADR Tank (licenseTypeId=4) kierowcy o id=5 z datą wygaśnięcia 2028-12-31.
+# Zwraca nowo utworzony rekord z pełnym obiektem licenseType.
+# UWAGA: powtórne wywołanie zwróci błąd (constraint unique_driver_license).
+
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation { addDriverLicense(driverId: 5, licenseTypeId: 4, expiryDate: \"2028-12-31\") { id driverId licenseType { code name } expiryDate status } }"
+}

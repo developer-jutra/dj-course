@@ -18,4 +18,5 @@ type Customer struct {
 	Phone        string
 	CustomerType CustomerType
 	Address      string
+	Version      int
 }

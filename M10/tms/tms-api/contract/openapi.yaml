@@ -1,0 +1,1409 @@
+openapi: 3.0.3
+info:
+  title: TMS API
+  description: Transportation Management System API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local environment
+tags:
+  - name: Customers
+    description: Operations for managing customer records
+  - name: Drivers
+    description: Driver records and license management
+  - name: Vehicles
+    description: CRUD operations for vehicle records
+  - name: TransportationOrders
+    description: Transportation order records and filtering
+  - name: Notifications
+    description: User notifications
+  - name: Status
+    description: Server status and health checks
+paths:
+  /customers:
+    get:
+      summary: List customers
+      description: Returns a paginated list of customers. Supports optional full-text search by first or last name.
+      operationId: getCustomers
+      tags:
+        - Customers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          description: Filter customers by first or last name prefix (case-insensitive)
+          required: false
+          schema:
+            type: string
+          example: an
+      responses:
+        '200':
+          description: Paginated list of customers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerListResponse'
+              example:
+                data:
+                  - id: 1
+                    first_name: Maida
+                    last_name: Dach
+                    email: forestraynor@bauch.io
+                    phone: '8082482608'
+                    customer_type: BUSINESS
+                    _links:
+                      orders: http://localhost:3000/transportation-orders?customer_id=1
+                  - id: 2
+                    first_name: Christelle
+                    last_name: Koepp
+                    email: jazminfadel@klein.io
+                    phone: '5768528684'
+                    customer_type: INDIVIDUAL
+                    _links:
+                      orders: http://localhost:3000/transportation-orders?customer_id=2
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 500
+                  totalPages: 25
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /customers/{id}:
+    get:
+      summary: Get customer by ID
+      description: Returns a single customer with their full details and a summary of associated transportation orders.
+      operationId: getCustomerById
+      tags:
+        - Customers
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      responses:
+        '200':
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDetail'
+              example:
+                id: 1
+                first_name: Maida
+                last_name: Dach
+                email: forestraynor@bauch.io
+                phone: '8082482608'
+                customer_type: BUSINESS
+                address: 75968 Villageshire, St. Louis, New Hampshire 86673
+                version: 1
+                orders:
+                  - id: 472
+                    order_number: '#00472'
+                    amount: 43.19
+                    status: DELIVERED
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      summary: Update customer name
+      description: |
+        Partially updates a customer's first and/or last name. Uses optimistic locking – the request must include the current `version` value. If the resource was modified by another request since it was last read, a 409 conflict is returned.
+      operationId: patchCustomer
+      tags:
+        - Customers
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPatchInput'
+            example:
+              version: 1
+              first_name: Maida
+              last_name: Dach
+      responses:
+        '200':
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPatchResponse'
+              example:
+                id: 1
+                first_name: Maida Updated
+                last_name: Dach
+                version: 2
+        '400':
+          description: Request payload is missing required fields or contains invalid values (e.g. missing version, no name field provided).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '409':
+          description: Version conflict – the customer was modified by another request. Fetch the latest version and retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Version conflict – resource was modified by another request. Fetch the latest version and retry.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a customer
+      description: Permanently deletes a customer by their ID.
+      operationId: deleteCustomer
+      tags:
+        - Customers
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      responses:
+        '204':
+          description: Customer deleted successfully – no body returned.
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /vehicles:
+    get:
+      summary: List vehicles
+      description: Returns a paginated list of all vehicles.
+      operationId: getVehicles
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Paginated list of vehicles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleListResponse'
+              example:
+                data:
+                  - id: 1
+                    make: Suzuki
+                    model: S4
+                    year: 2021
+                    fuel_tank_capacity: '51.1'
+                  - id: 2
+                    make: Volvo
+                    model: S80 Fwd
+                    year: 2022
+                    fuel_tank_capacity: '52.2'
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 50
+                  totalPages: 3
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a vehicle
+      description: Creates a new vehicle record.
+      operationId: createVehicle
+      tags:
+        - Vehicles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleCreateInput'
+            example:
+              make: Toyota
+              model: Corolla
+              year: 2024
+              fuel_tank_capacity: 55
+      responses:
+        '201':
+          description: Vehicle created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 51
+                make: Toyota
+                model: Corolla
+                year: 2024
+                fuel_tank_capacity: '55.0'
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /vehicles/{id}:
+    get:
+      summary: Get vehicle by ID
+      description: Returns a single vehicle by its numeric ID.
+      operationId: getVehicleById
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 1
+                make: Suzuki
+                model: S4
+                year: 2021
+                fuel_tank_capacity: '51.1'
+        '400':
+          description: The provided ID is missing or has an invalid format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update a vehicle
+      description: Replaces vehicle data. All fields are optional – only provided fields are updated.
+      operationId: updateVehicle
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleUpdateInput'
+            example:
+              make: Toyota
+              model: Camry
+              year: 2025
+              fuel_tank_capacity: 60
+      responses:
+        '200':
+          description: Vehicle updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 1
+                make: Toyota
+                model: Camry
+                year: 2025
+                fuel_tank_capacity: '60.0'
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID, or the update produced no result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found or invalid data
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a vehicle
+      description: Permanently deletes a vehicle by its ID.
+      operationId: deleteVehicle
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      responses:
+        '204':
+          description: Vehicle deleted successfully – no body returned.
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /drivers:
+    get:
+      summary: List drivers
+      description: Returns a list of all drivers (up to 100). No pagination.
+      operationId: getDrivers
+      tags:
+        - Drivers
+      responses:
+        '200':
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverListItem'
+              example:
+                - id: 1
+                  first_name: Matt
+                  last_name: Jerde
+                  email: celiawalker@swift.net
+                  phone: '4111234962'
+                  contract_type: CONTRACTOR
+                  status: ON_ROUTE
+                - id: 2
+                  first_name: Mekhi
+                  last_name: Konopelski
+                  email: karsonschaefer@franecki.info
+                  phone: '6392038976'
+                  contract_type: CONTRACTOR
+                  status: RESTING
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a driver
+      description: Creates a new driver record. All fields are optional.
+      operationId: createDriver
+      tags:
+        - Drivers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverCreateInput'
+            example:
+              first_name: Jan
+              last_name: Kowalski
+              email: jan.kowalski@example.com
+              phone: '1234567890'
+              contract_type: FULL_TIME
+              status: ACTIVE
+      responses:
+        '201':
+          description: Driver created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverListItem'
+              example:
+                id: 21
+                first_name: Jan
+                last_name: Kowalski
+                email: jan.kowalski@example.com
+                phone: '1234567890'
+                contract_type: FULL_TIME
+                status: ACTIVE
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /drivers/{id}:
+    get:
+      summary: Get driver by ID
+      description: Returns a single driver with their associated driver licenses.
+      operationId: getDriverById
+      tags:
+        - Drivers
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      responses:
+        '200':
+          description: Driver found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverDetail'
+              example:
+                id: 1
+                first_name: Matt
+                last_name: Jerde
+                email: celiawalker@swift.net
+                phone: '4111234962'
+                contract_type: CONTRACTOR
+                status: ON_ROUTE
+                licenses:
+                  - id: 1
+                    document_number: CXX232105
+                    issue_date: '2020-08-30'
+                    expiry_date: '2027-09-21'
+                    status: active
+                    code: C
+                    name: Prawo jazdy kat. C
+                    description: Pojazdy ciężarowe powyżej 3,5t
+                  - id: 2
+                    document_number: C+E728699
+                    issue_date: '2023-01-07'
+                    expiry_date: '2028-01-07'
+                    status: active
+                    code: C+E
+                    name: Prawo jazdy kat. C+E
+                    description: Ciągnik siodłowy z naczepą
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No driver exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Driver not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /transportation-orders:
+    get:
+      summary: List transportation orders
+      description: Returns a list of transportation orders, optionally filtered by customer ID. Results are ordered by order_date descending, limited to 100 items.
+      operationId: getTransportationOrders
+      tags:
+        - TransportationOrders
+      parameters:
+        - name: customer_id
+          in: query
+          description: Filter orders by customer ID. When omitted, returns all orders.
+          required: false
+          schema:
+            type: string
+          example: '1'
+      responses:
+        '200':
+          description: List of transportation orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransportationOrder'
+              example:
+                - id: 472
+                  order_number: '#00472'
+                  customer_id: 1
+                  status: DELIVERED
+                  amount: '43.19'
+                  order_date: '2025-11-25T22:31:47.000Z'
+                  expected_delivery: '2025-12-02T00:00:00.000Z'
+                  shipping_address: 6806 East Landchester, Plano, Utah 10652
+                  shipping_city: Plano
+                  shipping_state: Utah
+                  shipping_zip_code: '10652'
+                  shipping_method: Standard Delivery
+                  tracking_number: SR0472
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /transportation-orders/{id}/driver:
+    put:
+      summary: Assign a driver to a transportation order
+      description: Assigns an existing driver to the specified transportation order. Replaces any previously assigned driver. The operation is idempotent.
+      operationId: assignDriverToOrder
+      tags:
+        - TransportationOrders
+      parameters:
+        - $ref: '#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignDriverInput'
+            example:
+              driver_id: 7
+      responses:
+        '200':
+          description: Driver assigned successfully.
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: driver_id is required and must be a positive integer
+        '404':
+          description: Transportation order or driver with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Transportation order not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /notifications:
+    get:
+      summary: List notifications by user
+      description: Returns a paginated list of notifications for the given user. Results are ordered by created_at descending.
+      operationId: getNotificationsByUserId
+      tags:
+        - Notifications
+      parameters:
+        - name: userId
+          in: query
+          description: User ID to fetch notifications for. Required.
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9]\d*$
+          example: '1'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Paginated list of notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+              example:
+                data:
+                  - id: 115
+                    user_id: 1
+                    type: warning
+                    message: Low fuel alert for assigned truck
+                    created_at: '2026-03-13T19:10:40.000Z'
+                    is_read: false
+                  - id: 14
+                    user_id: 1
+                    type: warning
+                    message: Low fuel alert for assigned truck
+                    created_at: '2026-03-12T22:49:04.000Z'
+                    is_read: false
+                  - id: 77
+                    user_id: 1
+                    type: success
+                    message: Payment received successfully
+                    created_at: '2026-03-11T21:38:45.000Z'
+                    is_read: true
+                pagination:
+                  page: 1
+                  limit: 3
+                  total: 4
+                  totalPages: 2
+        '400':
+          description: The userId query parameter is missing or invalid (must be a positive integer).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /:
+    get:
+      summary: Server status
+      description: Returns a plain-text message with server start time and uptime.
+      operationId: getServerStatus
+      tags:
+        - Status
+      responses:
+        '200':
+          description: Server status (plain text)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Server up and running since 2026-03-14 20:51:29.291 UTC. Uptime: 0d 2h 22m 57s'
+  /health:
+    get:
+      summary: Health check
+      description: Returns a JSON object indicating the service is healthy. Used by load balancers and monitoring.
+      operationId: getHealth
+      tags:
+        - Status
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                service: tms-api
+components:
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (1-based)
+      required: false
+      schema:
+        type: string
+        default: '1'
+      example: '1'
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page (max 100)
+      required: false
+      schema:
+        type: string
+        default: '20'
+      example: '20'
+    PathIdParam:
+      name: id
+      in: path
+      description: Numeric resource identifier
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    BadRequest:
+      description: The request contains unknown or invalid query parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: An unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    Pagination:
+      type: object
+      description: Pagination metadata attached to list responses.
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          description: Current page number (1-based)
+          example: 1
+        limit:
+          type: integer
+          description: Number of items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of records across all pages
+          example: 50
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 3
+    ErrorResponse:
+      type: object
+      description: Standard error envelope returned on 4xx / 5xx responses.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
+          example: Vehicle not found
+    CustomerListItem:
+      type: object
+      description: A single customer record as returned in list responses.
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer first name
+          example: Maida
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer last name
+          example: Dach
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Customer email address
+          example: forestraynor@bauch.io
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer phone number
+          example: '8082482608'
+        customer_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer classification (e.g. BUSINESS, INDIVIDUAL)
+          example: BUSINESS
+        _links:
+          type: object
+          description: Hypermedia links for related resources
+          properties:
+            orders:
+              type: string
+              description: URL to fetch transportation orders for this customer
+              example: http://localhost:3000/transportation-orders?customer_id=1
+    CustomerListResponse:
+      type: object
+      description: Paginated list of customers.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerListItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    CustomerOrderSummary:
+      type: object
+      description: Brief summary of a transportation order linked to a customer.
+      required:
+        - id
+        - order_number
+        - amount
+        - status
+      properties:
+        id:
+          type: integer
+          description: Order identifier
+          example: 472
+        order_number:
+          type: string
+          description: Human-readable order number
+          example: '#00472'
+        amount:
+          type: number
+          format: float
+          description: Order total amount
+          example: 43.19
+        status:
+          type: string
+          description: Current order status
+          example: DELIVERED
+    CustomerDetail:
+      type: object
+      description: Full customer record including all fields and associated orders summary.
+      required:
+        - id
+        - version
+        - orders
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer first name
+          example: Maida
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer last name
+          example: Dach
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Customer email address
+          example: forestraynor@bauch.io
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer phone number
+          example: '8082482608'
+        customer_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer classification (e.g. BUSINESS, INDIVIDUAL)
+          example: BUSINESS
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+          description: Customer address
+          example: 75968 Villageshire, St. Louis, New Hampshire 86673
+        version:
+          type: integer
+          description: Optimistic locking version counter – must be passed in PATCH requests
+          example: 1
+        orders:
+          type: array
+          description: Summary of transportation orders associated with this customer
+          items:
+            $ref: '#/components/schemas/CustomerOrderSummary'
+    CustomerPatchInput:
+      type: object
+      description: |
+        Payload for partially updating a customer's name. `version` (optimistic lock) is required. At least one of `first_name` or `last_name` must be provided.
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          description: Current version of the customer record (used for optimistic locking)
+          example: 1
+        first_name:
+          type: string
+          maxLength: 50
+          description: New first name (optional – provide to update)
+          example: Maida
+        last_name:
+          type: string
+          maxLength: 50
+          description: New last name (optional – provide to update)
+          example: Dach
+    CustomerPatchResponse:
+      type: object
+      description: Updated customer data returned after a successful PATCH.
+      required:
+        - id
+        - version
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          description: Updated first name
+          example: Maida Updated
+        last_name:
+          type: string
+          nullable: true
+          description: Updated last name
+          example: Dach
+        version:
+          type: integer
+          description: Incremented version number after the update
+          example: 2
+    Vehicle:
+      type: object
+      description: A single vehicle record as returned by the API.
+      required:
+        - id
+        - model
+      properties:
+        id:
+          type: integer
+          description: Unique vehicle identifier
+          example: 1
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Suzuki
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: S4
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2021
+        fuel_tank_capacity:
+          type: string
+          nullable: true
+          description: |
+            Fuel tank capacity in litres. Returned as a decimal string (e.g. "51.1") because Postgres numeric/decimal is serialised as a string by the pg driver.
+          example: '51.1'
+    VehicleListResponse:
+      type: object
+      description: Paginated list of vehicles.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    VehicleCreateInput:
+      type: object
+      description: Payload for creating a new vehicle. Only `model` is required.
+      required:
+        - model
+      properties:
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Toyota
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: Corolla
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2024
+        fuel_tank_capacity:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+          exclusiveMinimum: true
+          description: Fuel tank capacity in litres (positive number)
+          example: 55
+    VehicleUpdateInput:
+      type: object
+      description: |
+        Payload for updating an existing vehicle. All fields are optional (partial update). Provide only the fields you want to change.
+      properties:
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Toyota
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: Camry
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2025
+        fuel_tank_capacity:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+          exclusiveMinimum: true
+          description: Fuel tank capacity in litres (positive number)
+          example: 60
+    DriverListItem:
+      type: object
+      description: A single driver record as returned in list and create responses.
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: Unique driver identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Matt
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Jerde
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: celiawalker@swift.net
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: '4111234962'
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. CONTRACTOR, FULL_TIME)
+          example: CONTRACTOR
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status (e.g. ON_ROUTE, ACTIVE, RESTING)
+          example: ON_ROUTE
+    DriverCreateInput:
+      type: object
+      description: Payload for creating a new driver. All fields are optional.
+      properties:
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Jan
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Kowalski
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: jan.kowalski@example.com
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: '1234567890'
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. FULL_TIME, CONTRACTOR)
+          example: FULL_TIME
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status
+          example: ACTIVE
+    DriverLicense:
+      type: object
+      description: Driver license record with license type details (returned in driver detail).
+      properties:
+        id:
+          type: integer
+          description: License record identifier
+          example: 1
+        document_number:
+          type: string
+          nullable: true
+          description: License document number
+          example: CXX232105
+        issue_date:
+          type: string
+          format: date
+          nullable: true
+          description: License issue date (YYYY-MM-DD)
+          example: '2020-08-30'
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+          description: License expiry date (YYYY-MM-DD)
+          example: '2027-09-21'
+        status:
+          type: string
+          nullable: true
+          description: License status (e.g. active)
+          example: active
+        code:
+          type: string
+          nullable: true
+          description: License type code
+          example: C
+        name:
+          type: string
+          nullable: true
+          description: License type name
+          example: Prawo jazdy kat. C
+        description:
+          type: string
+          nullable: true
+          description: License type description
+          example: Pojazdy ciężarowe powyżej 3,5t
+    DriverDetail:
+      type: object
+      description: Full driver record including associated licenses (returned by GET /drivers/{id}).
+      required:
+        - id
+        - licenses
+      properties:
+        id:
+          type: integer
+          description: Unique driver identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Matt
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Jerde
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: celiawalker@swift.net
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: '4111234962'
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. CONTRACTOR, FULL_TIME)
+          example: CONTRACTOR
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status
+          example: ON_ROUTE
+        licenses:
+          type: array
+          description: Associated driver licenses with type details
+          items:
+            $ref: '#/components/schemas/DriverLicense'
+    TransportationOrder:
+      type: object
+      description: A single transportation order as returned by the API.
+      required:
+        - id
+        - order_number
+        - customer_id
+        - status
+        - amount
+        - order_date
+      properties:
+        id:
+          type: integer
+          description: Unique order identifier
+          example: 472
+        order_number:
+          type: string
+          maxLength: 20
+          description: Human-readable order number (e.g.
+          example: '#00472'
+        customer_id:
+          type: integer
+          description: ID of the customer who placed the order
+          example: 1
+        driver_id:
+          type: integer
+          nullable: true
+          description: ID of the driver assigned to this order. Null when no driver has been assigned yet.
+          example: 7
+        status:
+          type: string
+          maxLength: 20
+          description: Order status (e.g. DELIVERED, PENDING)
+          example: DELIVERED
+        amount:
+          type: string
+          description: |
+            Order total amount. Returned as a decimal string (e.g. "43.19") because Postgres numeric is serialised as a string by the pg driver.
+          example: '43.19'
+        order_date:
+          type: string
+          format: date-time
+          description: When the order was placed (ISO 8601)
+          example: '2025-11-25T22:31:47.000Z'
+        expected_delivery:
+          type: string
+          format: date-time
+          nullable: true
+          description: Expected delivery date (ISO 8601; Postgres date may be serialised with time component)
+          example: '2025-12-02T00:00:00.000Z'
+        shipping_address:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Delivery street address
+          example: 6806 East Landchester, Plano, Utah 10652
+        shipping_city:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Delivery city
+          example: Plano
+        shipping_state:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Delivery state or region
+          example: Utah
+        shipping_zip_code:
+          type: string
+          maxLength: 20
+          nullable: true
+          description: Delivery postal code
+          example: '10652'
+        shipping_method:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Shipping method name
+          example: Standard Delivery
+        tracking_number:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Carrier tracking number
+          example: SR0472
+    AssignDriverInput:
+      type: object
+      description: Payload for assigning a driver to a transportation order.
+      required:
+        - driver_id
+      properties:
+        driver_id:
+          type: integer
+          description: ID of the driver to assign to the order.
+          example: 7
+    Notification:
+      type: object
+      description: A single notification as returned by the API.
+      required:
+        - id
+        - user_id
+        - type
+        - message
+        - created_at
+        - is_read
+      properties:
+        id:
+          type: integer
+          description: Unique notification identifier
+          example: 115
+        user_id:
+          type: integer
+          description: ID of the user who receives the notification
+          example: 1
+        type:
+          type: string
+          maxLength: 20
+          description: Notification type (e.g. warning, success)
+          example: warning
+        message:
+          type: string
+          description: Notification message content
+          example: Low fuel alert for assigned truck
+        created_at:
+          type: string
+          format: date-time
+          description: When the notification was created (ISO 8601)
+          example: '2026-03-13T19:10:40.000Z'
+        is_read:
+          type: boolean
+          description: Whether the notification has been read
+          example: false
+    NotificationListResponse:
+      type: object
+      description: Paginated list of notifications.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    HealthResponse:
+      type: object
+      description: Health check response body.
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          description: Health status (always "ok" when the service is running)
+          example: ok
+        service:
+          type: string
+          description: Service name (from SERVICE_NAME env or default tms-api)
+          example: tms-api

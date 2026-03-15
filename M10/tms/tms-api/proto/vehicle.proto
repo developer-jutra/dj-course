@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package vehicle;
+
+service VehicleService {
+  rpc GetVehicles (GetVehiclesRequest) returns (GetVehiclesResponse);
+  rpc GetVehicleById (GetVehicleByIdRequest) returns (Vehicle);
+  rpc CreateVehicle (CreateVehicleRequest) returns (Vehicle);
+  rpc UpdateVehicle (UpdateVehicleRequest) returns (Vehicle);
+  rpc DeleteVehicle (DeleteVehicleRequest) returns (DeleteVehicleResponse);
+}
+
+message Vehicle {
+  int32 id = 1;
+  string make = 2;
+  string model = 3;
+  int32 year = 4;
+  float fuel_tank_capacity = 5;
+}
+
+message GetVehiclesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetVehiclesResponse {
+  repeated Vehicle rows = 1;
+  int32 total = 2;
+}
+
+message GetVehicleByIdRequest {
+  string id = 1;
+}
+
+message CreateVehicleRequest {
+  string make = 1;
+  string model = 2;
+  int32 year = 3;
+  float fuel_tank_capacity = 4;
+}
+
+message UpdateVehicleRequest {
+  string id = 1;
+  optional string make = 2;
+  optional string model = 3;
+  optional int32 year = 4;
+  optional float fuel_tank_capacity = 5;
+}
+
+message DeleteVehicleRequest {
+  string id = 1;
+}
+
+message DeleteVehicleResponse {
+  bool success = 1;
+}

@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  run-tests:
+    desc: Run tests
+    cmds:
+      - uv sync 
+      - uv run pytest tests/test_contract.py
+
+  default:
+    cmds:
+      - task: run-tests

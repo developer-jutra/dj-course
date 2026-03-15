@@ -1,0 +1,30 @@
+---
+description: Docker workflow dla TMS – budowa, restart, weryfikacja
+alwaysApply: true
+---
+
+# Docker – reguły workflow
+
+## Czyszczenie i restart
+1. `docker compose down -v` – zatrzymaj serwisy i usuń wolumeny
+2. Przy każdej modyfikacji aplikacji: `docker compose build --no-cache tms-api` – przebuduj API bez cache
+
+## Uruchomienie
+3. `docker compose up -d` – uruchom stack w tle
+
+## Weryfikacja end-to-end
+4. Po przebudowie zrób żądanie HTTP na endpoint (np. `curl -s http://localhost:3000/drivers` albo `/vehicles`) – upewnij się, że API odpowiada poprawnie
+
+## Dane inicjalne bazy
+- Plik inicjalizujący bazę Postgres: `postgres/init-scripts/tms-latest.sql`
+- Generator danych (Go): `tms-data-generator/` – wynik trafia do `tms-data-generator/output/tms-latest.sql`
+- Po każdym uruchomieniu generatora (`task run` w katalogu `tms-data-generator`) **skopiuj** output do init-scripts:
+  ```bash
+  cp tms-data-generator/output/tms-latest.sql postgres/init-scripts/tms-latest.sql
+  ```
+- Bez tego kroku `docker compose down -v && docker compose up -d` załaduje starą wersję schematu
+
+## Zasady
+- Używaj Docker CLI
+- Konfiguracja w @docker-compose.yml (katalog projektu TMS)
+- `down -v` zawsze usuwa wolumeny – czysty start bazy i pgAdmin

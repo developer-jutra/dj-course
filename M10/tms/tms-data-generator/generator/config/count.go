@@ -5,4 +5,5 @@ const (
 	DRIVERS               = 20
 	TRANSPORTATION_ORDERS = 1000
 	CUSTOMERS             = 500
+	NOTIFICATIONS         = 200
 )

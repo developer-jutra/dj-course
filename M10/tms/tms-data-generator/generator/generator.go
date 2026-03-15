@@ -11,7 +11,9 @@ import (
 
 	"tms-data-generator/generator/config"
 	"tms-data-generator/generator/customers"
+	driver_licenses "tms-data-generator/generator/driver_licenses"
 	"tms-data-generator/generator/drivers"
+	"tms-data-generator/generator/notifications"
 	"tms-data-generator/generator/transportation_orders"
 	"tms-data-generator/generator/vehicles"
 )
@@ -49,12 +51,15 @@ func Generate(outputFile string) error {
 	var vehiclesStatements string
 	var driversStatements string
 	var customersStatements string
+	var notificationsStatements string
+	var licenseTypesStatements string
+	var driverLicensesStatements string
 	wg := sync.WaitGroup{}
 
 	start := time.Now() // Start timing
 
 	// Phase 1: Generate independent entities in parallel
-	wg.Add(3)
+	wg.Add(5)
 	go func() {
 		defer wg.Done()
 		startVehicles := time.Now()
@@ -75,6 +80,23 @@ func Generate(outputFile string) error {
 		fmt.Println("Generating customers...", time.Now())
 		customersStatements = customers.GenerateInsertStatements(customers.GenerateCustomers(config.CUSTOMERS))
 		fmt.Println("done generating customers", time.Now(), time.Since(startCustomers))
+	}()
+	go func() {
+		defer wg.Done()
+		startNotifications := time.Now()
+		fmt.Println("Generating notifications...", time.Now())
+		notificationsStatements = notifications.GenerateInsertStatements(notifications.GenerateNotifications(config.NOTIFICATIONS))
+		fmt.Println("done generating notifications", time.Now(), time.Since(startNotifications))
+	}()
+	go func() {
+		defer wg.Done()
+		startLicenses := time.Now()
+		fmt.Println("Generating driver licenses...", time.Now())
+		licenseTypes := driver_licenses.GenerateLicenseTypes()
+		licenseTypesStatements = driver_licenses.GenerateLicenseTypesInsertStatements(licenseTypes)
+		driverLicensesList := driver_licenses.GenerateDriverLicenses(config.DRIVERS)
+		driverLicensesStatements = driver_licenses.GenerateDriverLicensesInsertStatements(driverLicensesList)
+		fmt.Println("done generating driver licenses", time.Now(), time.Since(startLicenses))
 	}()
 
 	fmt.Println("Waiting for independent entities...", time.Now())
@@ -123,10 +145,13 @@ func Generate(outputFile string) error {
 	sb.WriteString("\n")
 	sb.WriteString(vehiclesStatements)
 	sb.WriteString(driversStatements)
+	sb.WriteString(licenseTypesStatements)
+	sb.WriteString(driverLicensesStatements)
 	sb.WriteString(customersStatements)
 	sb.WriteString(ordersStatements)
 	sb.WriteString(timelineStatements)
 	sb.WriteString(itemsStatements)
+	sb.WriteString(notificationsStatements)
 
 	err = os.WriteFile(outputFile, []byte(sb.String()), 0644)
 	if err != nil {

@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+---
+# SQL Data Generation Workflow Rules
+
+## Overview
+This project contains Python scripts that generate SQL data for a warehouse management system (WMS). These scripts have specific dependencies and must be run within a proper virtual environment.
+
+## Key Files
+- schema:
+  - [schema/wms-er-diagram.mmd](mdc:schema/wms-er-diagram.mmd) - Logical source of truth for the WMS schema, an ER diagram in mermaid format.
+  - [create-wms-schema.sql](mdc:create-wms-schema.sql) - The SQL schema which should always remain in sync with the changes made to the [Mermaid ER diagram]((mdc:schema/wms-er-diagram.mmd)).
+- output:
+  - [output](mdc:output) - Directory including the output SQL files, which include the date, time in their name. Also, they include the create table DDL SQL part, as well as inserting rows.
+- scripts
+  - [generate.sh](mdc:generate.sh) - Main script that activates virtual environment and runs data generation
+  - [generate-and-sync.sh](mdc:generate-and-sync.sh) - Runs `generate.sh` but also copies the file into the Postgres containers directory.
+  - [run-queries.sh](mdc:run-queries.sh) - Runs queries against a postgres connection to verify whether all queries return expected
+- data generator:
+  - [src/run.py](mdc:src/run.py) - Main Python entry point for data generation
+  - [src/generate_sql_inserts.py](mdc:src/generate_sql_inserts.py) - Core SQL generation logic
+  - [src/generators/](mdc:src/generators) - Directory containing all data generation modules
+  - [src/generators/enums.py](mdc:src/generators/enums.py) - Includes predefined enums for the database
+- setup:
+  - [pyproject.toml](mdc:pyproject.toml) - Python project configuration and dependencies
+
+## Data Generation
+
+- Make sure that all strings that are being created within the data generator are correctly escaped, because the consequences of not escaping the strings are very time-expensive to fix.
+
+## Critical Rules for Modifications
+
+### 0. Changes to ER diagram should be followed by updates to the SQL scripts and data generator.
+- However, this doesn't have to be in one step. Most probably, I need to verify the changes to the ER diagram separately. And when this is done, I would like you to suggest to update the SQL script and the data generator.
+- I would like this suggestion to include what do you actually plan to do? I would like to see the plan before confirmation.
+
+### 1. Always Run generate.sh After Changes
+**IMPORTANT**: Whenever you modify any Python files in the data generation system, you MUST run the [generate.sh](mdc:generate.sh) script to:
+- Verify the changes work correctly
+- Generate updated SQL output files
+- Ensure dependencies are properly resolved
+
+### 2. Never Run Python Code Outside Virtual Environment
+**DO NOT** attempt to run Python code directly from these files outside of the [generate.sh](mdc:generate.sh) script because:
+- Dependencies are only available within the virtual environment
+- The generate.sh script properly activates the virtual environment
+- Running code outside the venv will result in import errors and failures
+
+### 3. Files That Require generate.sh After Modification
+Run [generate.sh](mdc:generate.sh) after modifying any of these files:
+- Any file in [src/generators/](mdc:src/generators) directory
+- [src/run.py](mdc:src/run.py)
+- [src/generate_sql_inserts.py](mdc:src/generate_sql_inserts.py)
+- [src/config.py](mdc:src/config.py)
+- [pyproject.toml](mdc:pyproject.toml)
+
+### 4. Testing Workflow
+1. Make your changes to the Python files
+2. Run `./generate.sh` from the project root
+3. Check the output for errors
+4. Verify generated SQL files in the output directory
+
+### 5. Dependencies Management
+- All Python dependencies are defined in [pyproject.toml](mdc:pyproject.toml)
+- The virtual environment is automatically managed by [generate.sh](mdc:generate.sh)
+- Do not attempt to install or run dependencies manually outside the script
+
+Each generator module should follow the established patterns and be tested via [generate.sh](mdc:generate.sh) after modifications.

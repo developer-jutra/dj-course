@@ -1,0 +1,183 @@
+# Transportation orders entity – paths and schemas
+paths:
+  /transportation-orders:
+    get:
+      summary: List transportation orders
+      description: Returns a list of transportation orders, optionally filtered by customer ID. Results are ordered by order_date descending, limited to 100 items.
+      operationId: getTransportationOrders
+      tags:
+        - TransportationOrders
+      parameters:
+        - name: customer_id
+          in: query
+          description: Filter orders by customer ID. When omitted, returns all orders.
+          required: false
+          schema:
+            type: string
+          example: '1'
+      responses:
+        '200':
+          description: List of transportation orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransportationOrder'
+              example:
+                - id: 472
+                  order_number: "#00472"
+                  customer_id: 1
+                  status: DELIVERED
+                  amount: "43.19"
+                  order_date: "2025-11-25T22:31:47.000Z"
+                  expected_delivery: "2025-12-02T00:00:00.000Z"
+                  shipping_address: "6806 East Landchester, Plano, Utah 10652"
+                  shipping_city: Plano
+                  shipping_state: Utah
+                  shipping_zip_code: "10652"
+                  shipping_method: Standard Delivery
+                  tracking_number: SR0472
+        '400':
+          $ref: '../../contract/entry.yaml#/components/responses/BadRequest'
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /transportation-orders/{id}/driver:
+    put:
+      summary: Assign a driver to a transportation order
+      description: Assigns an existing driver to the specified transportation order. Replaces any previously assigned driver. The operation is idempotent.
+      operationId: assignDriverToOrder
+      tags:
+        - TransportationOrders
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignDriverInput'
+            example:
+              driver_id: 7
+      responses:
+        '200':
+          description: Driver assigned successfully.
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: driver_id is required and must be a positive integer
+        '404':
+          description: Transportation order or driver with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Transportation order not found
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    TransportationOrder:
+      type: object
+      description: A single transportation order as returned by the API.
+      required:
+        - id
+        - order_number
+        - customer_id
+        - status
+        - amount
+        - order_date
+      properties:
+        id:
+          type: integer
+          description: Unique order identifier
+          example: 472
+        order_number:
+          type: string
+          maxLength: 20
+          description: Human-readable order number (e.g. #00472)
+          example: "#00472"
+        customer_id:
+          type: integer
+          description: ID of the customer who placed the order
+          example: 1
+        driver_id:
+          type: integer
+          nullable: true
+          description: ID of the driver assigned to this order. Null when no driver has been assigned yet.
+          example: 7
+        status:
+          type: string
+          maxLength: 20
+          description: Order status (e.g. DELIVERED, PENDING)
+          example: DELIVERED
+        amount:
+          type: string
+          description: |
+            Order total amount. Returned as a decimal string (e.g. "43.19") because Postgres numeric is serialised as a string by the pg driver.
+          example: "43.19"
+        order_date:
+          type: string
+          format: date-time
+          description: When the order was placed (ISO 8601)
+          example: "2025-11-25T22:31:47.000Z"
+        expected_delivery:
+          type: string
+          format: date-time
+          nullable: true
+          description: Expected delivery date (ISO 8601; Postgres date may be serialised with time component)
+          example: "2025-12-02T00:00:00.000Z"
+        shipping_address:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Delivery street address
+          example: "6806 East Landchester, Plano, Utah 10652"
+        shipping_city:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Delivery city
+          example: Plano
+        shipping_state:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Delivery state or region
+          example: Utah
+        shipping_zip_code:
+          type: string
+          maxLength: 20
+          nullable: true
+          description: Delivery postal code
+          example: "10652"
+        shipping_method:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Shipping method name
+          example: Standard Delivery
+        tracking_number:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Carrier tracking number
+          example: SR0472
+
+    AssignDriverInput:
+      type: object
+      description: Payload for assigning a driver to a transportation order.
+      required:
+        - driver_id
+      properties:
+        driver_id:
+          type: integer
+          description: ID of the driver to assign to the order.
+          example: 7

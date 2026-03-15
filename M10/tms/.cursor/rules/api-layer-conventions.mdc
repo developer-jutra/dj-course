@@ -1,0 +1,14 @@
+---
+description: Konwencje podzialu odpowiedzialnosci warstw API
+alwaysApply: true
+---
+
+# API Layer Conventions
+
+- Umieszczaj techniczne, reuzywalne elementy w `src/shared` (np. paginacja, parsery query, parsery int/string, pomocnicze typy).
+- Nie trzymaj logiki domenowej ani HTTP w `src/shared`.
+- W plikach `*.queries.ts` umieszczaj tylko logike bazy danych (SQL, mapowanie wynikow, parametry techniczne dla zapytan, np. `limit`, `offset`).
+- Nie umieszczaj typow i struktur zwiazanych z HTTP w `*.queries.ts` (np. query string, payload, naglowki, HTTP response contracts).
+- W plikach `*.routes.ts` umieszczaj logike warstwy HTTP/aplikacji (parsowanie i walidacja parametrow requestu, mapowanie request -> query params, mapowanie wynikow -> response).
+- Parametry endpointow GET modeluj jako kontrakt HTTP w `*.routes.ts`; `queries` powinny dostawac tylko parametry potrzebne do pracy z baza.
+- Po modyfikacjach w parametrach API i/lub dodawaniu/modyfikowaniu/usuwaniu endpointów - aktualizuj plik `.http` aby wylistowane w nim endpointy były adekwatne.

@@ -1,0 +1,299 @@
+# Vehicles entity – paths and schemas
+paths:
+  /vehicles:
+    get:
+      summary: List vehicles
+      description: Returns a paginated list of all vehicles.
+      operationId: getVehicles
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PageParam'
+        - $ref: '../../contract/entry.yaml#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Paginated list of vehicles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleListResponse'
+              example:
+                data:
+                  - id: 1
+                    make: Suzuki
+                    model: S4
+                    year: 2021
+                    fuel_tank_capacity: '51.1'
+                  - id: 2
+                    make: Volvo
+                    model: S80 Fwd
+                    year: 2022
+                    fuel_tank_capacity: '52.2'
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 50
+                  totalPages: 3
+        '400':
+          $ref: '../../contract/entry.yaml#/components/responses/BadRequest'
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+    post:
+      summary: Create a vehicle
+      description: Creates a new vehicle record.
+      operationId: createVehicle
+      tags:
+        - Vehicles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleCreateInput'
+            example:
+              make: Toyota
+              model: Corolla
+              year: 2024
+              fuel_tank_capacity: 55
+      responses:
+        '201':
+          description: Vehicle created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 51
+                make: Toyota
+                model: Corolla
+                year: 2024
+                fuel_tank_capacity: '55.0'
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+  /vehicles/{id}:
+    get:
+      summary: Get vehicle by ID
+      description: Returns a single vehicle by its numeric ID.
+      operationId: getVehicleById
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 1
+                make: Suzuki
+                model: S4
+                year: 2021
+                fuel_tank_capacity: '51.1'
+        '400':
+          description: The provided ID is missing or has an invalid format.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+    put:
+      summary: Update a vehicle
+      description: Replaces vehicle data. All fields are optional – only provided fields are updated.
+      operationId: updateVehicle
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleUpdateInput'
+            example:
+              make: Toyota
+              model: Camry
+              year: 2025
+              fuel_tank_capacity: 60
+      responses:
+        '200':
+          description: Vehicle updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+              example:
+                id: 1
+                make: Toyota
+                model: Camry
+                year: 2025
+                fuel_tank_capacity: '60.0'
+        '400':
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID, or the update produced no result.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found or invalid data
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a vehicle
+      description: Permanently deletes a vehicle by its ID.
+      operationId: deleteVehicle
+      tags:
+        - Vehicles
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      responses:
+        '204':
+          description: Vehicle deleted successfully – no body returned.
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No vehicle exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Vehicle not found
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Vehicle:
+      type: object
+      description: A single vehicle record as returned by the API.
+      required:
+        - id
+        - model
+      properties:
+        id:
+          type: integer
+          description: Unique vehicle identifier
+          example: 1
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Suzuki
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: S4
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2021
+        fuel_tank_capacity:
+          type: string
+          nullable: true
+          description: |
+            Fuel tank capacity in litres. Returned as a decimal string (e.g. "51.1") because Postgres numeric/decimal is serialised as a string by the pg driver.
+          example: '51.1'
+    VehicleListResponse:
+      type: object
+      description: Paginated list of vehicles.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pagination:
+          $ref: '../../contract/entry.yaml#/components/schemas/Pagination'
+    VehicleCreateInput:
+      type: object
+      description: Payload for creating a new vehicle. Only `model` is required.
+      required:
+        - model
+      properties:
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Toyota
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: Corolla
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2024
+        fuel_tank_capacity:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+          exclusiveMinimum: true
+          description: Fuel tank capacity in litres (positive number)
+          example: 55
+    VehicleUpdateInput:
+      type: object
+      description: |
+        Payload for updating an existing vehicle. All fields are optional (partial update). Provide only the fields you want to change.
+      properties:
+        make:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Vehicle manufacturer / brand
+          example: Toyota
+        model:
+          type: string
+          maxLength: 50
+          description: Vehicle model name
+          example: Camry
+        year:
+          type: integer
+          nullable: true
+          description: Manufacturing year
+          example: 2025
+        fuel_tank_capacity:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+          exclusiveMinimum: true
+          description: Fuel tank capacity in litres (positive number)
+          example: 60

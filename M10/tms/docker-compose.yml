@@ -55,6 +55,42 @@ services:
       - tms-postgres
     restart: unless-stopped
 
+  pact-postgres:
+    image: postgres:15-alpine
+    container_name: pact-postgres-container
+    environment:
+      POSTGRES_USER: ${PACT_POSTGRES_USER:-pact_user}
+      POSTGRES_PASSWORD: ${PACT_POSTGRES_PASSWORD:-pact_password}
+      POSTGRES_DB: ${PACT_POSTGRES_DB:-pact_broker}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PACT_POSTGRES_USER:-pact_user} -d ${PACT_POSTGRES_DB:-pact_broker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pact-postgres_data:/var/lib/postgresql/data
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    container_name: pact-broker-container
+    ports:
+      - "9292:9292"
+    depends_on:
+      pact-postgres:
+        condition: service_healthy
+    environment:
+      PACT_BROKER_DATABASE_HOST: pact-postgres
+      PACT_BROKER_DATABASE_USERNAME: ${PACT_POSTGRES_USER:-pact_user}
+      PACT_BROKER_DATABASE_PASSWORD: ${PACT_POSTGRES_PASSWORD:-pact_password}
+      PACT_BROKER_DATABASE_NAME: ${PACT_POSTGRES_DB:-pact_broker}
+      PACT_BROKER_LOG_LEVEL: INFO
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+
 networks:
   deliveroo-network:
     driver: bridge
@@ -62,3 +98,4 @@ networks:
 volumes:
   tms-postgres_data:
   pgadmin_data:
+  pact-postgres_data:

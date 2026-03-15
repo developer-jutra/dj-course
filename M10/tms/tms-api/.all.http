@@ -1,0 +1,218 @@
+@baseUrl = http://localhost:3000
+@customersUrl = {{baseUrl}}/customers
+
+# Set this to an existing customer before running detail/delete requests.
+@customerId = 1
+@missingCustomerId = 999999
+
+@page = 1
+@limit = 10
+@search = john
+
+###
+# Status
+###
+
+### Server status (plain text)
+GET {{baseUrl}}/
+
+### Health check
+GET {{baseUrl}}/health
+
+###
+# Customers
+###
+
+### List customers
+GET {{customersUrl}}?page={{page}}&limit={{limit}}
+
+### List customers with search
+GET {{customersUrl}}?page={{page}}&limit={{limit}}&search={{search}}
+
+### Get customer details
+GET {{customersUrl}}/{{customerId}}
+
+### Get missing customer details
+GET {{customersUrl}}/{{missingCustomerId}}
+
+### Update customer first name
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+
+{
+  "version": 3,
+  "first_name": "Krzyś"
+}
+
+### Update customer last name
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+
+{
+  "version": 1,
+  "last_name": "Nowak"
+}
+
+### Update customer first and last name
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+
+{
+  "version": 1,
+  "first_name": "UpdatedName",
+  "last_name": "UpdatedLastName"
+}
+
+### Patch missing customer – should return 404
+PATCH {{customersUrl}}/{{missingCustomerId}}
+Content-Type: application/json
+
+{
+  "version": 1,
+  "first_name": "Ghost"
+}
+
+### Patch customer without body fields – should return 400
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+
+{}
+
+### Patch customer with stale version – should return 409
+PATCH {{customersUrl}}/{{customerId}}
+Content-Type: application/json
+
+{
+  "version": 0,
+  "first_name": "Konflikt"
+}
+
+### Delete customer
+DELETE {{customersUrl}}/{{customerId}}
+
+### Delete missing customer
+DELETE {{customersUrl}}/{{missingCustomerId}}
+
+
+###
+# Drivers
+###
+
+@driversUrl = {{baseUrl}}/drivers
+@driverId = 1
+@missingDriverId = 999999
+
+### List all drivers
+GET {{driversUrl}}
+
+### Get driver details (with licenses)
+GET {{driversUrl}}/{{driverId}}
+
+### Get missing driver – should return 404
+GET {{driversUrl}}/{{missingDriverId}}
+
+### Create driver
+POST {{driversUrl}}
+Content-Type: application/json
+
+{
+  "first_name": "Jan",
+  "last_name": "Kowalski",
+  "email": "jan.kowalski@example.com",
+  "phone": "+48123456789",
+  "contract_type": "full_time",
+  "status": "active"
+}
+
+### Delete missing driver – should return 404
+DELETE {{driversUrl}}/{{missingDriverId}}
+
+###
+# Transportation Orders
+###
+
+@ordersUrl = {{baseUrl}}/transportation-orders
+@orderCustomerId = 1
+
+### List all transportation orders
+GET {{ordersUrl}}
+
+### List transportation orders for a specific customer
+GET {{ordersUrl}}?customer_id={{orderCustomerId}}
+
+
+###
+# Notifications
+###
+
+@notificationsUrl = {{baseUrl}}/notifications
+@notificationUserId = 1
+
+### List notifications for a user
+GET {{notificationsUrl}}?userId={{notificationUserId}}
+
+### List notifications for a user – page 2
+GET {{notificationsUrl}}?userId={{notificationUserId}}&page=2&limit=5
+
+### Missing userId – should return 400
+GET {{notificationsUrl}}
+
+### Invalid userId – should return 400
+GET {{notificationsUrl}}?userId=abc
+
+
+###
+# Vehicles
+###
+
+@vehiclesUrl = {{baseUrl}}/vehicles
+@vehicleId = 1
+@missingVehicleId = 999999
+
+### List all vehicles
+GET {{vehiclesUrl}}
+
+### Get vehicle details
+GET {{vehiclesUrl}}/{{vehicleId}}
+
+### Get missing vehicle – should return 404
+GET {{vehiclesUrl}}/{{missingVehicleId}}
+
+### Create vehicle
+POST {{vehiclesUrl}}
+Content-Type: application/json
+
+{
+  "make": "Volvo",
+  "model": "FH16",
+  "year": 2022,
+  "fuel_tank_capacity": 750
+}
+
+### Update vehicle
+PUT {{vehiclesUrl}}/{{vehicleId}}
+Content-Type: application/json
+
+{
+  "make": "Scania",
+  "model": "R500",
+  "year": 2023,
+  "fuel_tank_capacity": 800
+}
+
+### Update missing vehicle – should return 404
+PUT {{vehiclesUrl}}/{{missingVehicleId}}
+Content-Type: application/json
+
+{
+  "make": "Scania",
+  "model": "R500",
+  "year": 2023,
+  "fuel_tank_capacity": 800
+}
+
+### Delete vehicle
+DELETE {{vehiclesUrl}}/{{vehicleId}}
+
+### Delete missing vehicle – should return 404
+DELETE {{vehiclesUrl}}/{{missingVehicleId}}

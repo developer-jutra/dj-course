@@ -1,0 +1,199 @@
+erDiagram
+
+WAREHOUSE {
+  int warehouse_id PK
+  int location_id FK
+  string name
+  string description
+}
+
+ZONE {
+  int zone_id PK
+  int warehouse_id FK
+  string name
+  string description
+}
+
+AISLE {
+  int aisle_id PK
+  int zone_id FK
+  string label
+  int width
+  string width_unit
+}
+
+RACK {
+  int rack_id PK
+  int aisle_id FK
+  string label
+  int max_height
+  string height_unit
+}
+
+SHELF {
+  int shelf_id PK
+  int rack_id FK
+  string level
+  decimal max_weight
+  decimal max_volume
+}
+
+CAPACITY {
+  int capacity_id PK
+  string entity_type "WAREHOUSE, ZONE, RACK, SHELF"
+  int entity_id
+  decimal value
+  string unit
+  string description
+}
+
+LOCATION {
+  int location_id PK
+  string address
+  string city
+  string postal_code
+  string country
+}
+
+STORAGE_REQUEST {
+  int request_id PK
+  int issuing_party_id FK
+  int warehouse_id FK
+  datetime requested_entry_date
+  datetime requested_exit_date
+  string status "PENDING, ACCEPTED, REJECTED"
+  int decisive_party_id FK
+  datetime decision_date
+}
+
+STORAGE_RESERVATION {
+  int reservation_id PK
+  int request_id FK
+  int party_id FK
+  int shelf_id FK
+  decimal reserved_weight
+  decimal reserved_volume
+  datetime reserved_from
+  datetime reserved_until
+  string status "PENDING, ACTIVE, EXPIRED, CANCELLED"
+}
+
+STORAGE_RECORD {
+  int storage_record_id PK
+  int request_id FK
+  int party_id FK
+  int shelf_id FK
+  datetime actual_entry_date
+  datetime actual_exit_date
+  string cargo_description
+  decimal cargo_weight
+  decimal cargo_volume
+}
+
+PAYMENT {
+  int payment_id PK
+  int storage_record_id FK
+  int party_id FK
+  decimal amount
+  string currency
+  string status "PENDING, PAID, FAILED, CANCELLED"
+  datetime payment_date
+  string external_reference
+}
+
+CARGO_EVENT_TYPE {
+  int event_type_id PK
+  string name
+  string description
+}
+
+CARGO_EVENT_HISTORY {
+  int event_id PK
+  int party_id FK
+  int storage_record_id FK
+  int event_type_id FK
+  datetime event_time
+  jsonb details
+}
+
+ROLE {
+  int role_id PK
+  string name "DIRECTOR, WAREHOUSE_MANAGER, LOGISTICS_COORDINATOR, STORAGE_APPROVER, OPERATOR"
+  string description
+}
+
+PARTY_ROLE {
+  int party_id PK, FK
+  int role_id PK, FK
+  datetime assigned_date
+}
+
+EMPLOYEE_WAREHOUSE {
+  int party_id FK
+  int warehouse_id FK
+  datetime assigned_from
+  datetime assigned_until
+}
+
+ADDRESS {
+    uuid address_id PK
+    int party_id PK, FK
+    string street_address
+    string city
+    string country
+    string postal_code
+    string address_type "BILLING, SHIPPING, CORPORATE, PERSONAL, OTHER"
+}
+
+PARTY_CONTACT {
+    int contact_id PK
+    int party_id FK
+    string type
+    string details
+}
+
+PARTY {
+    int party_id PK
+    string name
+    jsonb data 
+    datetime created_at
+    datetime updated_at
+}
+
+PARTY_RELATIONSHIP {
+  int relationship_id PK
+  int party_id_primary FK
+  int party_id_secondary FK
+  string relationship_type
+  datetime valid_from
+  datetime valid_to
+  string notes
+}
+
+WAREHOUSE ||--o{ ZONE : "contains"
+ZONE ||--o{ AISLE : "has"
+AISLE ||--o{ RACK : "contains"
+RACK ||--o{ SHELF : "has"
+WAREHOUSE ||--|| LOCATION : "located at"
+WAREHOUSE ||--o{ STORAGE_REQUEST : "receives"
+WAREHOUSE ||--o{ EMPLOYEE_WAREHOUSE : "staffed_by"
+PARTY ||--o{ EMPLOYEE_WAREHOUSE : "assigned_to"
+STORAGE_RECORD }o--|| SHELF : "occupies"
+STORAGE_RECORD }o--|| PARTY : "for"
+STORAGE_REQUEST }o--|| PARTY : "requested_by"
+STORAGE_REQUEST }o--|| PARTY : "decided_by"
+STORAGE_REQUEST ||--o{ STORAGE_RECORD : "results_in"
+STORAGE_REQUEST ||--o{ STORAGE_RESERVATION : "reserves"
+STORAGE_RESERVATION }o--|| SHELF : "on"
+STORAGE_RESERVATION }o--|| PARTY : "for"
+PARTY ||--o{ PARTY_ROLE : "has"
+ROLE ||--o{ PARTY_ROLE : "assigned"
+STORAGE_RECORD ||--o{ CARGO_EVENT_HISTORY : "has_event"
+CARGO_EVENT_TYPE ||--o{ CARGO_EVENT_HISTORY : "categorizes"
+PARTY ||--o{ CARGO_EVENT_HISTORY : "performed"
+STORAGE_RECORD ||--o{ PAYMENT : "billed"
+PAYMENT }o--|| PARTY : "for"
+PARTY ||--o{ ADDRESS : "has"
+PARTY ||--o{ PARTY_CONTACT : "has"
+PARTY ||--o{ PARTY_RELATIONSHIP : "is_primary_in"
+PARTY ||--o{ PARTY_RELATIONSHIP : is_secondary_in

@@ -8,5 +8,7 @@
     "strict": true,
     "resolveJsonModule": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "drizzle", "drizzle.config.ts"]
 }

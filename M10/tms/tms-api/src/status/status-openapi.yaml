@@ -1,0 +1,53 @@
+# Status entity – paths and schemas
+paths:
+  /:
+    get:
+      summary: Server status
+      description: Returns a plain-text message with server start time and uptime.
+      operationId: getServerStatus
+      tags:
+        - Status
+      responses:
+        "200":
+          description: Server status (plain text)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Server up and running since 2026-03-14 20:51:29.291 UTC. Uptime: 0d 2h 22m 57s"
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns a JSON object indicating the service is healthy. Used by load balancers and monitoring.
+      operationId: getHealth
+      tags:
+        - Status
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                service: tms-api
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      description: Health check response body.
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          description: Health status (always "ok" when the service is running)
+          example: ok
+        service:
+          type: string
+          description: Service name (from SERVICE_NAME env or default tms-api)
+          example: tms-api

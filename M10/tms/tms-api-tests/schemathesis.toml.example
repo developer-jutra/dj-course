@@ -1,0 +1,17 @@
+# Example Schemathesis configuration.
+# Copy to schemathesis.toml and adjust as needed.
+
+# Base URL for API (override with API_BASE_URL env var in CI)
+# base-url = "http://localhost:3000"
+
+# Optional: custom headers (e.g. Bearer token)
+# [headers]
+# Authorization = "Bearer ${API_TOKEN}"
+
+# Disable output sanitization to see full values in curl snippets when debugging
+[output.sanitization]
+enabled = false
+
+# Hypothesis: limit examples per operation for faster feedback during dev
+# [generation]
+# max-examples = 100

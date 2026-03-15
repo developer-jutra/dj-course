@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: WMS API (Warehouse Management System)
+  description: |
+    API for warehouse management - employees, contractors, payments, storage event history.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Base API URL
+
+paths:
+  # --- Health ---
+  /health:
+    get:
+      summary: Service health check
+      description: Returns service status, uptime, version, and dependency status (PostgreSQL).
+      operationId: health
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is running correctly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Service unavailable (e.g. PostgreSQL connection error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  # --- Storage ---
+  /storage/{record_id}/events:
+    get:
+      summary: Storage record event history
+      description: Returns cargo event history for the given storage record.
+      operationId: getStorageEventHistory
+      tags:
+        - Storage
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          description: Storage record ID (storage_record_id)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of storage events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StorageEvent'
+
+  # --- Employees ---
+  /employees:
+    get:
+      summary: Employee list
+      description: Returns a list of all employees with their contact and role data.
+      operationId: getEmployees
+      tags:
+        - Employees
+      responses:
+        '200':
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeListItem'
+
+  /employees/{employee_id}:
+    get:
+      summary: Employee details
+      description: Returns details of a single employee.
+      operationId: getEmployee
+      tags:
+        - Employees
+      parameters:
+        - name: employee_id
+          in: path
+          required: true
+          description: Employee ID (party_id)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Employee data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeListItem'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # --- Warehouse ---
+  /warehouse/{warehouse_id}:
+    get:
+      summary: Warehouse employees
+      description: Returns a list of employees assigned to the given warehouse.
+      operationId: getWarehouseEmployees
+      tags:
+        - Warehouse
+      parameters:
+        - name: warehouse_id
+          in: path
+          required: true
+          description: Warehouse ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of warehouse employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeListItem'
+
+  # --- Contractors ---
+  /contractors:
+    get:
+      summary: Contractor list
+      description: Returns a list of contractors (companies) with basic data.
+      operationId: getContractors
+      tags:
+        - Contractors
+      responses:
+        '200':
+          description: List of contractors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractorSummary'
+        '500':
+          description: Data validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /contractors/{id}:
+    get:
+      summary: Contractor details
+      description: Returns full contractor data including addresses and representative employees.
+      operationId: getContractorDetails
+      tags:
+        - Contractors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contractor ID (party_id)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Contractor details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractorDetails'
+        '404':
+          description: Contractor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Data validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update contractor status
+      description: Updates contractor status (ACTIVE/INACTIVE).
+      operationId: updateContractorStatus
+      tags:
+        - Contractors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contractor ID (party_id)
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractorStatusUpdate'
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractorStatusUpdateResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contractor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # --- Payments ---
+  /payments:
+    get:
+      summary: Payment list
+      description: Returns a list of payments with optional filtering by status and party_id.
+      operationId: getPaymentsList
+      tags:
+        - Payments
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter by payment status
+          schema:
+            type: string
+        - name: party_id
+          in: query
+          required: false
+          description: Filter by party ID (contractor)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+
+components:
+  schemas:
+    # --- Health ---
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+        - uptime_seconds
+        - dependencies
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+          description: Overall service status
+        timestamp:
+          type: number
+          format: double
+          description: Unix timestamp
+        uptime_seconds:
+          type: integer
+          description: Service uptime in seconds
+        version:
+          type: string
+          description: Application version (e.g. from VERSION env variable)
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [UP, DOWN]
+          description: Dependency status (e.g. postgres)
+
+    # --- Storage ---
+    StorageEvent:
+      type: object
+      properties:
+        event_id:
+          type: integer
+          format: int64
+        storage_record_id:
+          type: integer
+          format: int64
+        event_type_id:
+          type: integer
+          format: int64
+        event_time:
+          type: string
+          format: date-time
+        party_id:
+          type: integer
+          format: int64
+        details:
+          type: object
+          nullable: true
+
+    # --- Employees ---
+    EmployeeListItem:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+          format: int64
+        employee_name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        hire_date:
+          type: string
+          format: date-time
+          nullable: true
+        roles:
+          type: string
+          description: Roles separated by commas
+
+    # --- Contractors (contracts) ---
+    ContractorStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    Contact:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+
+    ContractorSummary:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - contacts
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/ContractorStatus'
+        tax_id_number:
+          type: string
+          nullable: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+
+    AddressDetails:
+      type: object
+      properties:
+        address_id:
+          type: string
+          nullable: true
+        street_address:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        postal_code:
+          type: string
+          nullable: true
+        address_type:
+          type: string
+          nullable: true
+
+    EmployeeSummaryEmployeeData:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        job_title:
+          type: string
+          nullable: true
+
+    EmployeeSummary:
+      type: object
+      properties:
+        employee_id:
+          type: string
+          nullable: true
+        employee_name:
+          type: string
+          nullable: true
+        employee_data:
+          $ref: '#/components/schemas/EmployeeSummaryEmployeeData'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+          nullable: true
+
+    ContractorDetails:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - contacts
+        - addresses
+        - employees
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/ContractorStatus'
+        tax_id_number:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressDetails'
+        employees:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeSummary'
+
+    ContractorStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/ContractorStatus'
+
+    ContractorStatusUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Contractor 123 status updated successfully to ACTIVE"
+
+    # --- Payments ---
+    Payment:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+          format: int64
+        storage_record_id:
+          type: integer
+          format: int64
+          nullable: true
+        party_id:
+          type: integer
+          format: int64
+          nullable: true
+        amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        payment_date:
+          type: string
+          format: date-time
+          nullable: true
+        external_reference:
+          type: string
+          nullable: true
+
+    # --- Errors ---
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message

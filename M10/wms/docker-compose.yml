@@ -1,0 +1,66 @@
+services:
+  wms-postgres:
+    image: postgres:17-alpine
+    container_name: wms-postgres-container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strongpassword123}
+      POSTGRES_DB: ${POSTGRES_DB:-deliveroo}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - wms-postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - deliveroo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-deliveroo}"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  wms-api:
+    profiles:
+      - full
+    container_name: wms-api-container
+    build:
+      context: ./wms-api
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${PORT:-3001}
+      SERVICE_NAME: ${SERVICE_NAME:-wms-api}
+      POSTGRES_URL: postgresql+psycopg2://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-strongpassword123}@wms-postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-deliveroo}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "${PORT:-3001}:${PORT:-3001}"
+    networks:
+      - deliveroo-network
+    depends_on:
+      wms-postgres:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:9.4
+    container_name: pgadmin-container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-pgadmin_password}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    networks:
+      - deliveroo-network
+    depends_on:
+      - wms-postgres
+    restart: unless-stopped
+
+networks:
+  deliveroo-network:
+    driver: bridge
+
+volumes:
+  wms-postgres_data:
+  pgadmin_data:

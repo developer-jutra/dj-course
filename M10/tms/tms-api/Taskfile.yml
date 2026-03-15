@@ -1,0 +1,24 @@
+version: '3'
+
+tasks:
+  run-graphql-client:
+    desc: Run GraphQL client to verify connection with the server
+    cmds:
+      - npx tsx src/graphql/client.ts
+
+  run-trpc-client:
+    desc: Run tRPC client to verify connection with the server
+    cmds:
+      - npx tsx src/trpc/client.ts
+
+  run-grpc-server:
+    desc: Start the standalone gRPC server on port 50051
+    dotenv: ['.env']
+    cmds:
+      - npx tsx src/grpc/server.ts
+
+  run-grpc-client:
+    desc: Run gRPC client to verify connection with the gRPC server
+    dotenv: ['.env']
+    cmds:
+      - npx tsx src/grpc/client.ts

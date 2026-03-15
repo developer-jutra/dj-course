@@ -1,0 +1,375 @@
+# Customers entity – paths and schemas
+paths:
+  /customers:
+    get:
+      summary: List customers
+      description: Returns a paginated list of customers. Supports optional full-text search by first or last name.
+      operationId: getCustomers
+      tags:
+        - Customers
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PageParam'
+        - $ref: '../../contract/entry.yaml#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          description: Filter customers by first or last name prefix (case-insensitive)
+          required: false
+          schema:
+            type: string
+          example: an
+      responses:
+        '200':
+          description: Paginated list of customers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerListResponse'
+              example:
+                data:
+                  - id: 1
+                    first_name: Maida
+                    last_name: Dach
+                    email: forestraynor@bauch.io
+                    phone: '8082482608'
+                    customer_type: BUSINESS
+                    _links:
+                      orders: http://localhost:3000/transportation-orders?customer_id=1
+                  - id: 2
+                    first_name: Christelle
+                    last_name: Koepp
+                    email: jazminfadel@klein.io
+                    phone: '5768528684'
+                    customer_type: INDIVIDUAL
+                    _links:
+                      orders: http://localhost:3000/transportation-orders?customer_id=2
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 500
+                  totalPages: 25
+        '400':
+          $ref: '../../contract/entry.yaml#/components/responses/BadRequest'
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+  /customers/{id}:
+    get:
+      summary: Get customer by ID
+      description: Returns a single customer with their full details and a summary of associated transportation orders.
+      operationId: getCustomerById
+      tags:
+        - Customers
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      responses:
+        '200':
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDetail'
+              example:
+                id: 1
+                first_name: Maida
+                last_name: Dach
+                email: forestraynor@bauch.io
+                phone: '8082482608'
+                customer_type: BUSINESS
+                address: 75968 Villageshire, St. Louis, New Hampshire 86673
+                version: 1
+                orders:
+                  - id: 472
+                    order_number: '#00472'
+                    amount: 43.19
+                    status: DELIVERED
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+    patch:
+      summary: Update customer name
+      description: |
+        Partially updates a customer's first and/or last name. Uses optimistic locking – the request must include the current `version` value. If the resource was modified by another request since it was last read, a 409 conflict is returned.
+      operationId: patchCustomer
+      tags:
+        - Customers
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPatchInput'
+            example:
+              version: 1
+              first_name: Maida
+              last_name: Dach
+      responses:
+        '200':
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPatchResponse'
+              example:
+                id: 1
+                first_name: Maida Updated
+                last_name: Dach
+                version: 2
+        '400':
+          description: Request payload is missing required fields or contains invalid values (e.g. missing version, no name field provided).
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '409':
+          description: Version conflict – the customer was modified by another request. Fetch the latest version and retry.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Version conflict – resource was modified by another request. Fetch the latest version and retry.
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a customer
+      description: Permanently deletes a customer by their ID.
+      operationId: deleteCustomer
+      tags:
+        - Customers
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      responses:
+        '204':
+          description: Customer deleted successfully – no body returned.
+        '400':
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No customer exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Customer not found
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    CustomerListItem:
+      type: object
+      description: A single customer record as returned in list responses.
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer first name
+          example: Maida
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer last name
+          example: Dach
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Customer email address
+          example: forestraynor@bauch.io
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer phone number
+          example: '8082482608'
+        customer_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer classification (e.g. BUSINESS, INDIVIDUAL)
+          example: BUSINESS
+        _links:
+          type: object
+          description: Hypermedia links for related resources
+          properties:
+            orders:
+              type: string
+              description: URL to fetch transportation orders for this customer
+              example: http://localhost:3000/transportation-orders?customer_id=1
+    CustomerListResponse:
+      type: object
+      description: Paginated list of customers.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerListItem'
+        pagination:
+          $ref: '../../contract/entry.yaml#/components/schemas/Pagination'
+    CustomerOrderSummary:
+      type: object
+      description: Brief summary of a transportation order linked to a customer.
+      required:
+        - id
+        - order_number
+        - amount
+        - status
+      properties:
+        id:
+          type: integer
+          description: Order identifier
+          example: 472
+        order_number:
+          type: string
+          description: Human-readable order number
+          example: '#00472'
+        amount:
+          type: number
+          format: float
+          description: Order total amount
+          example: 43.19
+        status:
+          type: string
+          description: Current order status
+          example: DELIVERED
+    CustomerDetail:
+      type: object
+      description: Full customer record including all fields and associated orders summary.
+      required:
+        - id
+        - version
+        - orders
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer first name
+          example: Maida
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Customer last name
+          example: Dach
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Customer email address
+          example: forestraynor@bauch.io
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer phone number
+          example: '8082482608'
+        customer_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Customer classification (e.g. BUSINESS, INDIVIDUAL)
+          example: BUSINESS
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+          description: Customer address
+          example: 75968 Villageshire, St. Louis, New Hampshire 86673
+        version:
+          type: integer
+          description: Optimistic locking version counter – must be passed in PATCH requests
+          example: 1
+        orders:
+          type: array
+          description: Summary of transportation orders associated with this customer
+          items:
+            $ref: '#/components/schemas/CustomerOrderSummary'
+    CustomerPatchInput:
+      type: object
+      description: |
+        Payload for partially updating a customer's name. `version` (optimistic lock) is required. At least one of `first_name` or `last_name` must be provided.
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          description: Current version of the customer record (used for optimistic locking)
+          example: 1
+        first_name:
+          type: string
+          maxLength: 50
+          description: New first name (optional – provide to update)
+          example: Maida
+        last_name:
+          type: string
+          maxLength: 50
+          description: New last name (optional – provide to update)
+          example: Dach
+    CustomerPatchResponse:
+      type: object
+      description: Updated customer data returned after a successful PATCH.
+      required:
+        - id
+        - version
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          description: Updated first name
+          example: Maida Updated
+        last_name:
+          type: string
+          nullable: true
+          description: Updated last name
+          example: Dach
+        version:
+          type: integer
+          description: Incremented version number after the update
+          example: 2

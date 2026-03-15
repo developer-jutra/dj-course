@@ -1,0 +1,17 @@
+{
+  "name": "pact-contract-testing",
+  "version": "1.0.0",
+  "description": "PACT contract testing for TMS API",
+  "scripts": {
+    "test:consumer": "ts-node consumer/pact-test.ts",
+    "test:provider": "ts-node provider/verify-pact.ts",
+    "test": "npm run test:consumer && npm run test:provider"
+  },
+  "devDependencies": {
+    "@pact-foundation/pact": "^15.0.0",
+    "@pact-foundation/pact-cli": "^15.0.0",
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  }
+}

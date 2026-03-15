@@ -1,0 +1,114 @@
+# Notifications entity – paths and schemas
+paths:
+  /notifications:
+    get:
+      summary: List notifications by user
+      description: Returns a paginated list of notifications for the given user. Results are ordered by created_at descending.
+      operationId: getNotificationsByUserId
+      tags:
+        - Notifications
+      parameters:
+        - name: userId
+          in: query
+          description: User ID to fetch notifications for. Required.
+          required: true
+          schema:
+            type: string
+            pattern: '^[1-9]\d*$'
+          example: '1'
+        - $ref: '../../contract/entry.yaml#/components/parameters/PageParam'
+        - $ref: '../../contract/entry.yaml#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Paginated list of notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+              example:
+                data:
+                  - id: 115
+                    user_id: 1
+                    type: warning
+                    message: Low fuel alert for assigned truck
+                    created_at: "2026-03-13T19:10:40.000Z"
+                    is_read: false
+                  - id: 14
+                    user_id: 1
+                    type: warning
+                    message: Low fuel alert for assigned truck
+                    created_at: "2026-03-12T22:49:04.000Z"
+                    is_read: false
+                  - id: 77
+                    user_id: 1
+                    type: success
+                    message: Payment received successfully
+                    created_at: "2026-03-11T21:38:45.000Z"
+                    is_read: true
+                pagination:
+                  page: 1
+                  limit: 3
+                  total: 4
+                  totalPages: 2
+        "400":
+          description: The userId query parameter is missing or invalid (must be a positive integer).
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        "500":
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Notification:
+      type: object
+      description: A single notification as returned by the API.
+      required:
+        - id
+        - user_id
+        - type
+        - message
+        - created_at
+        - is_read
+      properties:
+        id:
+          type: integer
+          description: Unique notification identifier
+          example: 115
+        user_id:
+          type: integer
+          description: ID of the user who receives the notification
+          example: 1
+        type:
+          type: string
+          maxLength: 20
+          description: Notification type (e.g. warning, success)
+          example: warning
+        message:
+          type: string
+          description: Notification message content
+          example: Low fuel alert for assigned truck
+        created_at:
+          type: string
+          format: date-time
+          description: When the notification was created (ISO 8601)
+          example: "2026-03-13T19:10:40.000Z"
+        is_read:
+          type: boolean
+          description: Whether the notification has been read
+          example: false
+
+    NotificationListResponse:
+      type: object
+      description: Paginated list of notifications.
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        pagination:
+          $ref: '../../contract/entry.yaml#/components/schemas/Pagination'

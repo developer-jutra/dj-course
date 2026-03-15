@@ -1,0 +1,325 @@
+# Drivers entity – paths and schemas
+paths:
+  /drivers:
+    get:
+      summary: List drivers
+      description: Returns a list of all drivers (up to 100). No pagination.
+      operationId: getDrivers
+      tags:
+        - Drivers
+      responses:
+        "200":
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverListItem'
+              example:
+                - id: 1
+                  first_name: Matt
+                  last_name: Jerde
+                  email: celiawalker@swift.net
+                  phone: "4111234962"
+                  contract_type: CONTRACTOR
+                  status: ON_ROUTE
+                - id: 2
+                  first_name: Mekhi
+                  last_name: Konopelski
+                  email: karsonschaefer@franecki.info
+                  phone: "6392038976"
+                  contract_type: CONTRACTOR
+                  status: RESTING
+        "500":
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+    post:
+      summary: Create a driver
+      description: Creates a new driver record. All fields are optional.
+      operationId: createDriver
+      tags:
+        - Drivers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverCreateInput'
+            example:
+              first_name: Jan
+              last_name: Kowalski
+              email: jan.kowalski@example.com
+              phone: "1234567890"
+              contract_type: FULL_TIME
+              status: ACTIVE
+      responses:
+        "201":
+          description: Driver created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverListItem'
+              example:
+                id: 21
+                first_name: Jan
+                last_name: Kowalski
+                email: jan.kowalski@example.com
+                phone: "1234567890"
+                contract_type: FULL_TIME
+                status: ACTIVE
+        "400":
+          description: Request payload has an invalid structure or contains missing/invalid fields.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        "500":
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /drivers/{id}:
+    get:
+      summary: Get driver by ID
+      description: Returns a single driver with their associated driver licenses.
+      operationId: getDriverById
+      tags:
+        - Drivers
+      parameters:
+        - $ref: '../../contract/entry.yaml#/components/parameters/PathIdParam'
+      responses:
+        "200":
+          description: Driver found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverDetail'
+              example:
+                id: 1
+                first_name: Matt
+                last_name: Jerde
+                email: celiawalker@swift.net
+                phone: "4111234962"
+                contract_type: CONTRACTOR
+                status: ON_ROUTE
+                licenses:
+                  - id: 1
+                    document_number: CXX232105
+                    issue_date: "2020-08-30"
+                    expiry_date: "2027-09-21"
+                    status: active
+                    code: C
+                    name: Prawo jazdy kat. C
+                    description: Pojazdy ciężarowe powyżej 3,5t
+                  - id: 2
+                    document_number: C+E728699
+                    issue_date: "2023-01-07"
+                    expiry_date: "2028-01-07"
+                    status: active
+                    code: C+E
+                    name: Prawo jazdy kat. C+E
+                    description: Ciągnik siodłowy z naczepą
+        "404":
+          description: No driver exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Driver not found
+        "400":
+          description: The provided ID is not a valid positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        "500":
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    DriverListItem:
+      type: object
+      description: A single driver record as returned in list and create responses.
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: Unique driver identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Matt
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Jerde
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: celiawalker@swift.net
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: "4111234962"
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. CONTRACTOR, FULL_TIME)
+          example: CONTRACTOR
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status (e.g. ON_ROUTE, ACTIVE, RESTING)
+          example: ON_ROUTE
+
+    DriverLicense:
+      type: object
+      description: Driver license record with license type details (returned in driver detail).
+      properties:
+        id:
+          type: integer
+          description: License record identifier
+          example: 1
+        document_number:
+          type: string
+          nullable: true
+          description: License document number
+          example: CXX232105
+        issue_date:
+          type: string
+          format: date
+          nullable: true
+          description: License issue date (YYYY-MM-DD)
+          example: "2020-08-30"
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+          description: License expiry date (YYYY-MM-DD)
+          example: "2027-09-21"
+        status:
+          type: string
+          nullable: true
+          description: License status (e.g. active)
+          example: active
+        code:
+          type: string
+          nullable: true
+          description: License type code
+          example: C
+        name:
+          type: string
+          nullable: true
+          description: License type name
+          example: Prawo jazdy kat. C
+        description:
+          type: string
+          nullable: true
+          description: License type description
+          example: Pojazdy ciężarowe powyżej 3,5t
+
+    DriverDetail:
+      type: object
+      description: Full driver record including associated licenses (returned by GET /drivers/{id}).
+      required:
+        - id
+        - licenses
+      properties:
+        id:
+          type: integer
+          description: Unique driver identifier
+          example: 1
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Matt
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Jerde
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: celiawalker@swift.net
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: "4111234962"
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. CONTRACTOR, FULL_TIME)
+          example: CONTRACTOR
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status
+          example: ON_ROUTE
+        licenses:
+          type: array
+          description: Associated driver licenses with type details
+          items:
+            $ref: '#/components/schemas/DriverLicense'
+
+    DriverCreateInput:
+      type: object
+      description: Payload for creating a new driver. All fields are optional.
+      properties:
+        first_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver first name
+          example: Jan
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Driver last name
+          example: Kowalski
+        email:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Driver email address
+          example: jan.kowalski@example.com
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver phone number
+          example: "1234567890"
+        contract_type:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Contract type (e.g. FULL_TIME, CONTRACTOR)
+          example: FULL_TIME
+        status:
+          type: string
+          nullable: true
+          maxLength: 20
+          description: Driver status
+          example: ACTIVE

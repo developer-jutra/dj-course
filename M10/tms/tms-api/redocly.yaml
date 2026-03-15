@@ -1,0 +1,5 @@
+# Redocly configuration
+# https://redocly.com/docs/cli/configuration/
+# Uses minimal preset – TMS API has no auth; use 'recommended' for stricter checks.
+extends:
+  - minimal

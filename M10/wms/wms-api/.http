@@ -1,0 +1,81 @@
+@host = http://localhost:3001
+
+# example values
+@party_id = 1
+@storage_record_id = 1
+@employee_id = 60
+@contractor_id = 1
+@warehouse_id = 1
+
+### Health check
+GET {{host}}/health
+Accept: text/plain
+
+########################################################
+### Contractors
+########################################################
+
+### Get all contractors
+GET {{host}}/contractors
+Accept: application/json
+
+### Get contractor details
+GET {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+
+### Update contractor status
+PATCH {{host}}/contractors/{{contractor_id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "status": "INACTIVE"
+}
+
+########################################################
+### Payments
+########################################################
+
+### Get all pending payments
+GET {{host}}/payments?status=PENDING
+Accept: application/json
+
+### Get all paid payments
+GET {{host}}/payments?status=PAID
+Accept: application/json
+
+### Get all payments by party
+GET {{host}}/payments?party_id={{party_id}}
+Accept: application/json
+
+### Get pending payments by party
+GET {{host}}/payments?party_id={{party_id}}&status=PENDING
+Accept: application/json
+
+########################################################
+### Employees
+########################################################
+
+### Get all employees
+GET {{host}}/employees
+Accept: application/json
+
+### Get employee details
+GET {{host}}/employees/{{employee_id}}
+Accept: application/json
+
+########################################################
+### Warehouse
+########################################################
+
+### Get employees for warehouse
+GET {{host}}/warehouse/{{warehouse_id}}
+Accept: application/json
+
+########################################################
+### Storage
+########################################################
+
+### Storage event history for a storage record
+GET {{host}}/storage/{{storage_record_id}}/events
+Accept: application/json

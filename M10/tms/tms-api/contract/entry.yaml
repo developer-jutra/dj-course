@@ -1,0 +1,121 @@
+openapi: 3.0.3
+info:
+  title: TMS API
+  description: Transportation Management System API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local environment
+tags:
+  - name: Customers
+    description: Operations for managing customer records
+  - name: Drivers
+    description: Driver records and license management
+  - name: Vehicles
+    description: CRUD operations for vehicle records
+  - name: TransportationOrders
+    description: Transportation order records and filtering
+  - name: Notifications
+    description: User notifications
+  - name: Status
+    description: Server status and health checks
+paths:
+  /customers:
+    $ref: '../src/customers/customers-openapi.yaml#/paths/~1customers'
+  /customers/{id}:
+    $ref: '../src/customers/customers-openapi.yaml#/paths/~1customers~1{id}'
+  /vehicles:
+    $ref: '../src/vehicles/vehicles-openapi.yaml#/paths/~1vehicles'
+  /vehicles/{id}:
+    $ref: '../src/vehicles/vehicles-openapi.yaml#/paths/~1vehicles~1{id}'
+  /drivers:
+    $ref: '../src/drivers/drivers-openapi.yaml#/paths/~1drivers'
+  /drivers/{id}:
+    $ref: '../src/drivers/drivers-openapi.yaml#/paths/~1drivers~1{id}'
+  /transportation-orders:
+    $ref: '../src/transportation-orders/transportation-orders-openapi.yaml#/paths/~1transportation-orders'
+  /transportation-orders/{id}/driver:
+    $ref: '../src/transportation-orders/transportation-orders-openapi.yaml#/paths/~1transportation-orders~1{id}~1driver'
+  /notifications:
+    $ref: '../src/notifications/notifications-openapi.yaml#/paths/~1notifications'
+  /:
+    $ref: '../src/status/status-openapi.yaml#/paths/~1'
+  /health:
+    $ref: '../src/status/status-openapi.yaml#/paths/~1health'
+components:
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (1-based)
+      required: false
+      schema:
+        type: string
+        default: '1'
+      example: '1'
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page (max 100)
+      required: false
+      schema:
+        type: string
+        default: '20'
+      example: '20'
+    PathIdParam:
+      name: id
+      in: path
+      description: Numeric resource identifier
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    BadRequest:
+      description: The request contains unknown or invalid query parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: An unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    Pagination:
+      type: object
+      description: Pagination metadata attached to list responses.
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          description: Current page number (1-based)
+          example: 1
+        limit:
+          type: integer
+          description: Number of items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of records across all pages
+          example: 50
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 3
+    ErrorResponse:
+      type: object
+      description: Standard error envelope returned on 4xx / 5xx responses.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
+          example: Vehicle not found

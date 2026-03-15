@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Whenever working with Angular code files, please stick to these rules:
+
+1. Use the new `inject` function instead of constructor injection.
+See docs https://angular.dev/api/core/inject#usage-notes
+
+2. Whenever storing any data, avoid properties on components and services, etc. Favor Angular native signals instead. After refactoring properties into signals, make sure that all the occurrences where you use the new signal are actually invoked because signal is a function and something that used to be a property didn't have to be called, but after refactoring into a signal, it needs to be called. So make sure that you do that in templates, but also in TypeScript code.
+See docs https://angular.dev/guide/signals
+
+3. When communicating between components, the parent-child relationship, avoid the old `@Input` and `@Output` directives and use the new signal-based input and output signal functions instead.
+See docs: https://angular.dev/guide/components/inputs
+
+4. When creating Angular templates, please use the new Angular control flow (such as `@if(condition){ block }`, `@for (item of items; track item.id) { block }`) instead of the old directive such as `*ngIf`, `*ngFor`, and so on.
+See docs: https://angular.dev/guide/templates/control-flow
+
+5. Never use arrow functions inside Angular templates as the framework cannot support these. You need to work on data structures on the component class side.
