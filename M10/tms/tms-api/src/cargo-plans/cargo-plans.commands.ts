@@ -1,4 +1,4 @@
-import type { CargoType, CargoRequirements } from './cargo/cargo.types';
+import type { CargoType } from './cargo/cargo.types';
 import type { Weight } from '../shared/weight';
 
 export interface CreateLoadPlanCommand {
@@ -9,7 +9,6 @@ export interface AddCargoCommand {
   loadPlanId: string;
   palletType: string;
   cargoType: CargoType;
-  requirements: CargoRequirements;
   weight: Weight;
   cargoHeightMm: number;
 }

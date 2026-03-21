@@ -11,12 +11,14 @@ export { CargoLoadPlanStatus } from './cargo-load-plans/cargo-load-plan.types';
 
 // Value Objects
 export { PalletSpec, type Material } from './pallets/pallet-spec';
+export { UnknownPalletTypeError } from './pallets/pallet-spec.errors';
 export {
   type TrailerCapabilities,
   type TrailerSpec,
   type PalletLoadableTrailerSpec,
   isPalletLoadable,
-  TrailerFactory
+  TrailerFactory,
+  UnknownTrailerTypeError,
 } from './trailers';
 
 // Entities
@@ -30,7 +32,8 @@ export { CargoLoadPlan } from './cargo-load-plans/cargo-load-plan';
 
 // Repository
 export type { CargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
-export { SqlCargoLoadPlanRepository, InMemoryCargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
+export { SqlCargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
+export { InMemoryCargoLoadPlanRepository } from './cargo-load-plans/in-memory/cargo-load-plan.in-memory-repository';
 
 // Commands
 export {
@@ -41,9 +44,4 @@ export {
 } from './cargo-plans.commands';
 
 // Application Service
-export {
-  CargoPlansService,
-  LoadPlanNotFoundError,
-  UnknownTrailerTypeError,
-  UnknownPalletTypeError,
-} from './cargo-plans-service';
+export { CargoPlansService, LoadPlanNotFoundError } from './cargo-plans-service';

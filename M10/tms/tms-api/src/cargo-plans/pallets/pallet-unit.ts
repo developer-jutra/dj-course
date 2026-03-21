@@ -1,8 +1,14 @@
-import { randomUUID } from 'crypto';
 import { CargoType } from '../cargo/cargo.types';
 import { CargoRequirements } from '../cargo/cargo.types';
 import { PalletSpec } from './pallet-spec';
 import { Weight } from '../../shared/weight';
+import { UUID } from '../../shared/uuid';
+import { ok, fail, type Result } from '../../shared/result';
+import {
+  PalletWeightExceedsCapacityError,
+  PalletCargoTypeNotAllowedError,
+  type PalletDomainError,
+} from './pallet-spec.errors';
 
 /**
  * Domain Entity representing a physical pallet with cargo.
@@ -16,12 +22,18 @@ export class PalletUnit {
     requirements: CargoRequirements,
     weight: Weight,
     cargoHeightMm: number,
-  ): PalletUnit {
-    return new PalletUnit(randomUUID(), spec, cargoType, requirements, weight, cargoHeightMm);
+  ): Result<PalletUnit, PalletDomainError> {
+    if (!spec.allowedCargoTypes.includes(cargoType)) {
+      return fail(new PalletCargoTypeNotAllowedError(cargoType, spec.label));
+    }
+    if (weight.valueInKg > spec.maxLoadCapacity.valueInKg) {
+      return fail(new PalletWeightExceedsCapacityError(weight.valueInKg, spec.maxLoadCapacity.valueInKg, spec.label));
+    }
+    return ok(new PalletUnit(UUID.newUUID<'CargoUnit'>(), spec, cargoType, requirements, weight, cargoHeightMm));
   }
 
   constructor(
-    public readonly id: string,
+    public readonly id: UUID<'CargoUnit'>,
     public readonly spec: PalletSpec,
     public readonly cargoType: CargoType,
     public readonly requirements: CargoRequirements,

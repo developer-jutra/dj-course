@@ -1,17 +1,27 @@
 export type WeightUnit = 'KG' | 'TONNE' | 'LB';
 
 interface UnitDefinition {
-  readonly factorToKg: number; // Base unit: Kilogram
+  readonly factorToKg: number;
   readonly symbol: string;
 }
 
 const UNITS: Record<WeightUnit, UnitDefinition> = {
   KG:    { factorToKg: 1,           symbol: 'kg' },
   TONNE: { factorToKg: 1000,        symbol: 't'  },
-  LB:    { factorToKg: 0.45359237,  symbol: 'lb' }, // International avoirdupois pound
+  LB:    { factorToKg: 0.45359237,  symbol: 'lb' },
 };
 
 export class Weight {
+  static readonly allowedUnits: WeightUnit[] = Object.keys(UNITS) as WeightUnit[];
+
+  static isUnit(raw: unknown): raw is WeightUnit {
+    return typeof raw === 'string' && Object.keys(UNITS).includes(raw);
+  }
+
+  static parseUnit(raw: unknown): WeightUnit {
+    return Weight.isUnit(raw) ? raw : 'KG';
+  }
+
   private constructor(
     private readonly amount: number,
     private readonly unit: WeightUnit

@@ -8,6 +8,7 @@ import { PalletUnit } from './pallet-unit';
 import { PalletSpec } from './pallet-spec';
 import { CargoType } from '../cargo/cargo.types';
 import { Weight } from '../../shared/weight';
+import { UUID } from '../../shared/uuid';
 
 type PalletSpecKey = 'EPAL1' | 'H1' | 'CP1' | 'Industrial' | 'Half';
 
@@ -56,7 +57,7 @@ When(
   function (this: PalletUnitWorld, id: string, cargoTypeStr: string, weightKg: number, cargoHeightMm: number) {
     assert(this.palletSpec);
     const cargoType = parseCargoType(cargoTypeStr);
-    this.lastUnit = new PalletUnit(id, this.palletSpec!, cargoType, {
+    this.lastUnit = new PalletUnit(UUID.from<'CargoUnit'>(id), this.palletSpec!, cargoType, {
       isTemperatureControlled: false,
       requiresSideLoading: false,
       isBulk: false,
@@ -71,7 +72,7 @@ When(
     assert(this.palletSpec);
     try {
       const cargoType = parseCargoType(cargoTypeStr);
-      this.lastUnit = new PalletUnit(id, this.palletSpec!, cargoType, {
+      this.lastUnit = new PalletUnit(UUID.from<'CargoUnit'>(id), this.palletSpec!, cargoType, {
         isTemperatureControlled: false,
         requiresSideLoading: false,
         isBulk: false,

@@ -1,0 +1,89 @@
+---
+description: Conventions for writing domain aggregates in this project
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Domain Aggregates
+
+## State
+
+- All fields are `private` with underscore prefix (`_status`, `_assignedUnits`).
+- Expose read-only state via `getSnapshot()`, never via public fields.
+
+## Public commands
+
+- Return `Result<void, DomainError>` – never throw for expected business rule violations.
+- Follow the pattern: guard → compute candidate state → validate → mutate.
+
+```typescript
+// ✅ GOOD
+public addPalletUnit(unit, ldmProvider): Result<void, DomainError> {
+  const guardResult = this.ensurePlanNotFinalized();
+  if (!guardResult.success) return guardResult;
+
+  const candidateUnits = [...this._assignedUnits, unit];
+  const newLdm = ldmProvider(candidateUnits, this._trailer);
+  const integrityResult = this.ensureLoadIntegrity(candidateUnits, this._trailer, newLdm);
+  if (!integrityResult.success) return integrityResult;
+
+  this._assignedUnits = candidateUnits;   // mutate only after all checks pass
+  this._currentLdm = newLdm;
+  return ok(undefined);
+}
+```
+
+## `ensure___` methods – consistency guards
+
+- Name every guard method `ensure<WhatIsEnforced>` (e.g. `ensurePlanNotFinalized`, `ensureWeightCapacityNotExceeded`).
+- **One rule per method** – each `ensure___` checks exactly one invariant and returns early.
+- Return `Result<void, SpecificError>` – use the most specific error type, not the union.
+- Never mutate state inside an `ensure___` method.
+
+```typescript
+// ✅ GOOD – single responsibility
+private ensureWeightCapacityNotExceeded(
+  units: PalletUnit[],
+  trailer: PalletLoadableTrailerSpec
+): Result<void, WeightCapacityExceededError> {
+  const totalKg = units.reduce((sum, u) => sum + u.weight.valueInKg, 0);
+  if (totalKg > trailer.maxWeightCapacity.valueInKg) {
+    return fail(new WeightCapacityExceededError(totalKg, trailer.maxWeightCapacity.valueInKg));
+  }
+  return ok(undefined);
+}
+
+// ❌ BAD – mixing two rules in one method
+private ensureCapacities(...): Result<void, DomainError> {
+  if (weight > max) return fail(...);
+  if (ldm > maxLdm) return fail(...);  // extract to ensureLdmCapacityNotExceeded
+}
+```
+
+- Orchestrate multiple guards in a dedicated `ensure<GroupName>` method (e.g. `ensureLoadIntegrity`):
+
+```typescript
+private ensureLoadIntegrity(units, trailer, ldm): Result<void, DomainError> {
+  if (units.length === 0) return ok(undefined);
+
+  const weightResult = this.ensureWeightCapacityNotExceeded(units, trailer);
+  if (!weightResult.success) return weightResult;
+
+  const ldmResult = this.ensureLdmCapacityNotExceeded(ldm, trailer);
+  if (!ldmResult.success) return ldmResult;
+
+  // ...more guards
+  return ok(undefined);
+}
+```
+
+## Errors
+
+- Plain classes with `readonly kind = 'XxxError' as const` (discriminated union, no `instanceof`).
+- Collect all errors in `*.errors.ts` and export the union type as `<Aggregate>DomainError`.
+- Constructor arguments carry the context needed to build `message` (actual vs. allowed values).
+
+## Reconstruction invariants
+
+- Call `ensureLoadIntegrity` (or equivalent) in the constructor when rebuilding from persistence.
+- **Throw** (don't return `Result`) on constructor integrity failure – corrupt DB state is unexpected.

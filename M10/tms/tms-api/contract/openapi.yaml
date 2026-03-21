@@ -703,6 +703,7 @@ paths:
         - CargoPlans
       parameters:
         - $ref: '#/components/parameters/LoadPlanIdParam'
+        - $ref: '#/components/parameters/WeightUnitParam'
       responses:
         '200':
           description: Load plan found
@@ -713,6 +714,7 @@ paths:
               example:
                 id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
                 status: DRAFT
+                weightUnit: KG
                 trailer:
                   type: standard-curtainside
                   canCarryPallets: true
@@ -725,13 +727,14 @@ paths:
                     supportsSideLoading: true
                     hasHighSecurityLock: false
                     isBulkReady: false
+                version: 3
                 currentLdm: 2.4
-                plannedWeightKg: 600
+                plannedWeight: 600
                 units:
                   - id: b2c3d4e5-f6a7-8901-bcde-f12345678901
                     palletLabel: EPAL 1
                     cargoType: FOOD
-                    weightKg: 600
+                    weight: 600
                     totalHeightMm: 1400
                     requirements:
                       isTemperatureControlled: false
@@ -766,11 +769,6 @@ paths:
             example:
               palletType: epal1
               cargoType: FOOD
-              requirements:
-                isTemperatureControlled: false
-                requiresSideLoading: false
-                isBulk: false
-                highSecurityRequired: false
               weightKg: 600
               cargoHeightMm: 1200
       responses:
@@ -965,6 +963,13 @@ components:
         type: string
         format: uuid
       example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    WeightUnitParam:
+      name: weightUnit
+      in: query
+      description: Unit in which weight values are expressed in the response. Defaults to KG.
+      required: false
+      schema:
+        $ref: '#/components/schemas/WeightUnit'
   responses:
     BadRequest:
       description: The request contains unknown or invalid query parameters.
@@ -1665,6 +1670,14 @@ components:
           format: uuid
           description: UUID of the created load plan
           example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    WeightUnit:
+      type: string
+      description: Unit of weight measurement
+      enum:
+        - KG
+        - TONNE
+        - LB
+      default: KG
     CargoLoadPlanStatus:
       type: string
       description: Current status of the load plan
@@ -1772,7 +1785,7 @@ components:
         - id
         - palletLabel
         - cargoType
-        - weightKg
+        - weight
         - totalHeightMm
         - requirements
       properties:
@@ -1787,9 +1800,9 @@ components:
           example: EPAL 1
         cargoType:
           $ref: '#/components/schemas/CargoType'
-        weightKg:
+        weight:
           type: number
-          description: Weight of the cargo on this pallet in kilograms
+          description: Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent LoadPlanResponse
           minimum: 0
           exclusiveMinimum: true
           example: 600
@@ -1799,6 +1812,10 @@ components:
           minimum: 0
           exclusiveMinimum: true
           example: 1400
+        description:
+          type: string
+          nullable: true
+          description: Human-readable product description (e.g. "FOOD – warzywa")
         requirements:
           $ref: '#/components/schemas/CargoRequirementsInput'
     LoadPlanResponse:
@@ -1807,9 +1824,11 @@ components:
       required:
         - id
         - status
+        - version
+        - weightUnit
         - trailer
         - currentLdm
-        - plannedWeightKg
+        - plannedWeight
         - units
       properties:
         id:
@@ -1819,6 +1838,13 @@ components:
           example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
         status:
           $ref: '#/components/schemas/CargoLoadPlanStatus'
+        version:
+          type: integer
+          description: Optimistic concurrency version of the load plan
+          minimum: 0
+          example: 3
+        weightUnit:
+          $ref: '#/components/schemas/WeightUnit'
         trailer:
           $ref: '#/components/schemas/TrailerReadModel'
         currentLdm:
@@ -1826,9 +1852,9 @@ components:
           description: Currently used loading metres
           minimum: 0
           example: 2.4
-        plannedWeightKg:
+        plannedWeight:
           type: number
-          description: Total weight of all assigned cargo units in kilograms
+          description: Total weight of all assigned cargo units, expressed in the unit given by weightUnit
           minimum: 0
           example: 600
         units:
@@ -1852,7 +1878,6 @@ components:
       required:
         - palletType
         - cargoType
-        - requirements
         - weightKg
         - cargoHeightMm
       properties:
@@ -1860,8 +1885,6 @@ components:
           $ref: '#/components/schemas/PalletType'
         cargoType:
           $ref: '#/components/schemas/CargoType'
-        requirements:
-          $ref: '#/components/schemas/CargoRequirementsInput'
         weightKg:
           type: number
           description: Weight of the cargo in kilograms

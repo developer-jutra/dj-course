@@ -19,6 +19,12 @@ export type CargoType = "FOOD" | "CHEMICAL" | "ELECTRONICS" | "ADR" | "GENERAL";
 /** Current status of the load plan */
 export type CargoLoadPlanStatus = "DRAFT" | "FINALIZED";
 
+/**
+ * Unit of weight measurement
+ * @default "KG"
+ */
+export type WeightUnit = "KG" | "TONNE" | "LB";
+
 /** Supported trailer types */
 export type TrailerType = "standard-curtainside" | "mega" | "reefer";
 
@@ -736,9 +742,6 @@ export interface CargoRequirementsInput {
   highSecurityRequired: boolean;
 }
 
-/** Unit of weight measurement */
-export type WeightUnit = "KG" | "TONNE" | "LB";
-
 /** A single pallet unit assigned to a load plan. */
 export interface CargoUnitResponse {
   /**
@@ -768,6 +771,8 @@ export interface CargoUnitResponse {
    * @example 1400
    */
   totalHeightMm: number;
+  /** Human-readable product description (e.g. "FOOD – warzywa") */
+  description?: string | null;
   /** Special handling requirements for a cargo unit. */
   requirements: CargoRequirementsInput;
 }
@@ -782,7 +787,13 @@ export interface LoadPlanResponse {
   id: string;
   /** Current status of the load plan */
   status: CargoLoadPlanStatus;
-  /** Unit in which weight values are expressed in the response */
+  /**
+   * Optimistic concurrency version of the load plan
+   * @min 0
+   * @example 3
+   */
+  version: number;
+  /** Unit of weight measurement */
   weightUnit: WeightUnit;
   /** Details of the trailer assigned to the load plan. */
   trailer: TrailerReadModel;
@@ -808,8 +819,6 @@ export interface AddCargoInput {
   palletType: PalletType;
   /** Type of cargo being transported */
   cargoType: CargoType;
-  /** Special handling requirements for a cargo unit. */
-  requirements: CargoRequirementsInput;
   /**
    * Weight of the cargo in kilograms
    * @min 0

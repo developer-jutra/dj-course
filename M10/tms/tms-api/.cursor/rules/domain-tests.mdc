@@ -1,0 +1,49 @@
+---
+description: Domain testing rules – cucumber/gherkin specs for domain objects
+globs: src/**/*.ts
+alwaysApply: true
+---
+
+# Domain Testing Rules
+
+## After every domain change – run cucumber tests
+
+```bash
+npm run test:cucumber
+```
+
+Run this from `tms-api/` after any modification to a value object, entity, or aggregate.
+
+## Spec placement
+
+Spec files live **next to the implementation file**, not in a separate `tests/` folder.
+
+```
+src/cargo-plans/cargo-load-plans/
+  cargo-load-plan.ts           ← implementation
+  cargo-load-plan.feature      ← gherkin scenarios
+  cargo-load-plan.steps.ts     ← step definitions
+
+src/cargo-plans/pallets/
+  pallet-spec.ts
+  pallet-spec.feature
+  pallet-spec.steps.ts
+```
+
+## Coverage requirement
+
+Every domain class with behaviour must have a `.feature` + `.steps.ts` pair:
+
+| Domain concept | Needs cucumber spec? |
+|---|---|
+| Value object with validation/logic | ✅ |
+| Entity with state transitions | ✅ |
+| Aggregate with invariants | ✅ |
+| Pure data/DTO with no logic | ❌ |
+
+## Scenario scope
+
+Scenarios must cover:
+- Happy path (valid state transitions)
+- All domain invariants / guard conditions → expect the exact error message thrown
+- Capacity / constraint boundaries

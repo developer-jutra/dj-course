@@ -1,0 +1,62 @@
+---
+description: Separation of Repository and Queries in the application layer
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Repository vs Queries – separacja stron zapisu i odczytu
+
+## Zasada
+
+- **Repository** (`*.repository.ts`) – wyłącznie dla **agregatu** (zapis + odczyt potrzebny do wykonania komendy).
+- **Queries** (`*.queries.ts`) – wyłącznie dla **read modelu** (odczyt danych do prezentacji / API response).
+
+Żadna z tych warstw nie zastępuje drugiej.
+
+## Serwis aplikacyjny
+
+Serwis przyjmuje obie zależności i odpowiednio je rozdziela:
+
+```typescript
+// ✅ GOOD
+export class CargoPlansService {
+  constructor(
+    private readonly repository: CargoLoadPlanRepository, // komendy → agregat
+    private readonly queries: CargoLoadPlanQueries,        // zapytania → read model
+  ) {}
+
+  // Komenda – ładuje agregat z repozytorium
+  async addCargoToPlan(command: AddCargoCommand): Promise<Result<void, CargoPlanServiceError>> {
+    const planResult = await this.loadAggregate(command.loadPlanId);
+    // ...
+  }
+
+  // Zapytanie – deleguje do queries, NIE do repozytorium
+  async findPlan(id: string, weightUnit?: WeightUnit): Promise<CargoLoadPlanReadModel | null> {
+    return this.queries.findPlan(id, weightUnit);
+  }
+
+  private async loadAggregate(id: string): Promise<Result<CargoLoadPlan, CargoPlanServiceError>> {
+    const plan = await this.repository.findById(id);
+    if (!plan) return fail(new LoadPlanNotFoundError(id));
+    return ok(plan);
+  }
+}
+
+// ❌ BAD – serwis używa repozytorium do odczytu read modelu
+async findPlan(id: string): Promise<CargoLoadPlanReadModel | null> {
+  return this.repository.findById(id); // repository zwraca agregat, nie read model
+}
+```
+
+## Routes – tylko przez serwis
+
+Route handlery wywołują **wyłącznie serwis** – nie importują `queries` bezpośrednio:
+
+```typescript
+// ✅ GOOD
+const readModel = await service.findPlan(req.params.id, weightUnit);
+
+// ❌ BAD – route bypasses service layer
+const readModel = await queries.getById(req.params.id, weightUnit);
+```

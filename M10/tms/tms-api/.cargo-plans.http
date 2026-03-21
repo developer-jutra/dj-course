@@ -1,0 +1,192 @@
+@baseUrl = http://localhost:3000
+@planIdFood = 11111111-1111-4111-a111-111111111101
+@planIdChemical = 22222222-2222-4222-a222-222222222202
+@planIdElectronics = 33333333-3333-4333-a333-333333333303
+@planIdGeneral = 44444444-4444-4444-a444-444444444404
+@planIdDangerousGoods = 55555555-5555-4555-a555-555555555505
+
+### Plan z żywnością (FOOD) – Reefer, jednostki jednorodne
+GET {{baseUrl}}/cargo-plans/{{planIdFood}}
+Accept: application/json
+
+### Plan z chemią (CHEMICAL) – standard-curtainside, jednostki jednorodne
+GET {{baseUrl}}/cargo-plans/{{planIdChemical}}
+Accept: application/json
+
+### Plan z elektroniką (ELECTRONICS) – Mega Trailer, jednostki jednorodne
+GET {{baseUrl}}/cargo-plans/{{planIdElectronics}}
+Accept: application/json
+
+### Plan z towarem ogólnym (GENERAL) – Mega, jednostki jednorodne
+GET {{baseUrl}}/cargo-plans/{{planIdGeneral}}
+Accept: application/json
+
+### Plan z towarem niebezpiecznym ADR – Reefer, jednostki jednorodne
+GET {{baseUrl}}/cargo-plans/{{planIdDangerousGoods}}
+Accept: application/json
+
+### Opcjonalnie: weightUnit (domyślnie KG)
+GET {{baseUrl}}/cargo-plans/{{planIdFood}}?weightUnit=LB
+Accept: application/json
+
+# ADD CARGO – walidacja reguł domenowych
+# Uruchom 1–2 przed testami (tworzą plany DRAFT), potem 3–12 w kolejności.
+# Wymagania cargo są teraz auto-derywowane z cargoType – nie trzeba ich wysyłać w payloadzie.
+# Mapa: FOOD→isTemperatureControlled, ELECTRONICS+ADR→highSecurityRequired, reszta→brak specjalnych wymagań.
+
+
+
+
+### 1. (EXPECTED SUCCESS) Create plan standard-curtainside – dla testów CHEMICAL, overweight, capabilities
+# @name createPlanStandard
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{ "trailerType": "standard-curtainside" }
+
+### 2. (EXPECTED SUCCESS) Create plan reefer – dla testów FOOD+CHEMICAL coloading, too tall
+# @name createPlanReefer
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{ "trailerType": "reefer" }
+
+
+
+
+### 3. (EXPECTED SUCCESS) Dodaj CHEMICAL do planu z CHEMICAL (jednorodny, standard-curtainside)
+# Wymaga: wcześniej uruchomione 1, plan ma 0 jednostek – dodajemy pierwszą
+POST {{baseUrl}}/cargo-plans/{{createPlanStandard.id}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "cp1",
+  "cargoType": "CHEMICAL",
+  "weightKg": 500,
+  "cargoHeightMm": 1200
+}
+
+### 4. (EXPECTED SUCCESS) Dodaj drugą paletę CHEMICAL do planu z CHEMICAL
+POST {{baseUrl}}/cargo-plans/{{createPlanStandard.id}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "cp3",
+  "cargoType": "CHEMICAL",
+  "weightKg": 600,
+  "cargoHeightMm": 1000
+}
+
+### 5. (EXPECTED SUCCESS) Dodaj FOOD do Reefer (pierwsza jednostka, przed testem coloading)
+# FOOD auto-derywuje isTemperatureControlled: true → Reefer ma hasClimateControl: true → OK
+POST {{baseUrl}}/cargo-plans/{{createPlanReefer.id}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "h1",
+  "cargoType": "FOOD",
+  "weightKg": 400,
+  "cargoHeightMm": 1200
+}
+
+### 6. (EXPECTED FAIL) – Coloading: CHEMICAL do planu z FOOD (FOOD + CHEMICAL/ADR zabronione)
+POST {{baseUrl}}/cargo-plans/{{createPlanReefer.id}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "cp1",
+  "cargoType": "CHEMICAL",
+  "weightKg": 500,
+  "cargoHeightMm": 1200
+}
+
+### 7. (EXPECTED FAIL) – Nadwaga: paleta przekracza pojemność naczepy (standard 24t, Reefer 22t)
+# Tworzymy nowy plan i dodajemy jedną gigantyczną paletę – epal1 max 4000kg per pallet
+# Zamiast tego: dodaj 6×4000kg = 24t, potem 7. paleta → 28t > 24t
+# Wymaga osobnego planu z 6 paletami. Użyjemy createPlanOverweight – najpierw go dodaj.
+# @name createPlanOverweight
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{ "trailerType": "standard-curtainside" }
+
+### 8a–8f. (EXPECTED FAIL) Dodaj 6 palet po 4000kg (epal1 max) = 24t dokładnie
+# @name addOverweight1
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 8b
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 8c
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 8d
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 8e
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 8f
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 9. (EXPECTED FAIL) – Nadwaga: 7. paleta → 28t > max 24t
+POST {{baseUrl}}/cargo-plans/{{createPlanOverweight.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":4000,"cargoHeightMm":1000}
+
+### 10. (EXPECTED FAIL) – Paleta za wysoka dla Reefer (2600mm). EPAL1: 144 + 2500 = 2644mm > 2600mm
+# @name createPlanTall
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{ "trailerType": "reefer" }
+
+### 11. (EXPECTED FAIL) – cargoHeightMm 2500 → totalHeight 2644 > 2600
+POST {{baseUrl}}/cargo-plans/{{createPlanTall.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":500,"cargoHeightMm":2500}
+
+### 12. (EXPECTED FAIL) – Trailer bez klimatyzacji: FOOD wymaga isTemperatureControlled, standard-curtainside nie ma
+# @name createPlanNoClimate
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{ "trailerType": "standard-curtainside" }
+
+### 13. (EXPECTED FAIL) – FOOD auto-derywuje isTemperatureControlled: true → standard-curtainside nie ma hasClimateControl
+POST {{baseUrl}}/cargo-plans/{{createPlanNoClimate.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"h1","cargoType":"FOOD","weightKg":400,"cargoHeightMm":1200}
+
+### 14. (EXPECTED FAIL) – highSecurityRequired: ADR/ELECTRONICS auto-derywuje highSecurityRequired: true → standard-curtainside nie ma hasHighSecurityLock
+POST {{baseUrl}}/cargo-plans/{{createPlanStandard.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"cp1","cargoType":"ADR","weightKg":500,"cargoHeightMm":1200}
+
+### 15. (EXPECTED FAIL) – Plan już sfinalizowany (11111111 = FOOD, FINALIZED)
+POST {{baseUrl}}/cargo-plans/{{planIdFood}}/cargo
+Content-Type: application/json
+
+{"palletType":"h1","cargoType":"FOOD","weightKg":400,"cargoHeightMm":1200}

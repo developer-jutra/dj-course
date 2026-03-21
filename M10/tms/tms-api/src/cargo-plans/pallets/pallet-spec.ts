@@ -1,14 +1,8 @@
 import { CargoType } from '../cargo/cargo.types';
 import { Weight } from '../../shared/weight';
+import { UnknownPalletTypeError } from './pallet-spec.errors';
 
 export type Material = 'Wood' | 'Plastic' | 'Metal' | 'HDPE';
-
-export class UnknownPalletTypeError extends Error {
-  constructor(type: string, allowed: string[]) {
-    super(`Unknown pallet type: '${type}'. Allowed: ${allowed.join(', ')}`);
-    this.name = 'UnknownPalletTypeError';
-  }
-}
 
 const REGISTRY: Record<string, () => PalletSpec> = {
   'epal1': () => PalletSpec.epal1(),
@@ -27,6 +21,12 @@ export class PalletSpec {
     const factory = REGISTRY[type];
     if (!factory) throw new UnknownPalletTypeError(type, Object.keys(REGISTRY));
     return factory();
+  }
+
+  static toTypeKey(spec: PalletSpec): string {
+    const entry = Object.entries(REGISTRY).find(([, factory]) => factory().label === spec.label);
+    if (!entry) throw new UnknownPalletTypeError(spec.label, Object.keys(REGISTRY));
+    return entry[0];
   }
 
   static allowedTypes(): string[] {

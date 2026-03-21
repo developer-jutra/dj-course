@@ -68,6 +68,7 @@ paths:
                     supportsSideLoading: true
                     hasHighSecurityLock: false
                     isBulkReady: false
+                version: 3
                 currentLdm: 2.4
                 plannedWeight: 600
                 units:
@@ -110,11 +111,6 @@ paths:
             example:
               palletType: epal1
               cargoType: FOOD
-              requirements:
-                isTemperatureControlled: false
-                requiresSideLoading: false
-                isBulk: false
-                highSecurityRequired: false
               weightKg: 600
               cargoHeightMm: 1200
       responses:
@@ -431,6 +427,10 @@ components:
           minimum: 0
           exclusiveMinimum: true
           example: 1400
+        description:
+          type: string
+          nullable: true
+          description: Human-readable product description (e.g. "FOOD – warzywa")
         requirements:
           $ref: '#/components/schemas/CargoRequirementsInput'
 
@@ -440,6 +440,7 @@ components:
       required:
         - id
         - status
+        - version
         - weightUnit
         - trailer
         - currentLdm
@@ -453,6 +454,11 @@ components:
           example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
         status:
           $ref: '#/components/schemas/CargoLoadPlanStatus'
+        version:
+          type: integer
+          description: Optimistic concurrency version of the load plan
+          minimum: 0
+          example: 3
         weightUnit:
           $ref: '#/components/schemas/WeightUnit'
         trailer:
@@ -500,7 +506,6 @@ components:
       required:
         - palletType
         - cargoType
-        - requirements
         - weightKg
         - cargoHeightMm
       properties:
@@ -508,8 +513,6 @@ components:
           $ref: '#/components/schemas/PalletType'
         cargoType:
           $ref: '#/components/schemas/CargoType'
-        requirements:
-          $ref: '#/components/schemas/CargoRequirementsInput'
         weightKg:
           type: number
           description: Weight of the cargo in kilograms

@@ -1,13 +1,9 @@
 import type { PalletLoadableTrailerSpec } from './trailer-spec';
 import type { TrailerSpec } from './trailer-spec';
 import { Weight } from '../../shared/weight';
+import { UnknownTrailerTypeError } from './trailer-factory.errors';
 
-export class UnknownTrailerTypeError extends Error {
-  constructor(type: string, allowed: string[]) {
-    super(`Unknown trailer type: '${type}'. Allowed: ${allowed.join(', ')}`);
-    this.name = 'UnknownTrailerTypeError';
-  }
-}
+export { UnknownTrailerTypeError } from './trailer-factory.errors';
 
 const REGISTRY: Record<string, () => PalletLoadableTrailerSpec> = {
   'standard-curtainside': () => TrailerFactory.standardCurtainside(),
@@ -20,6 +16,12 @@ export class TrailerFactory {
     const factory = REGISTRY[type];
     if (!factory) throw new UnknownTrailerTypeError(type, Object.keys(REGISTRY));
     return factory();
+  }
+
+  static toTypeKey(trailer: PalletLoadableTrailerSpec): string {
+    const entry = Object.entries(REGISTRY).find(([, factory]) => factory().type === trailer.type);
+    if (!entry) throw new UnknownTrailerTypeError(trailer.type, Object.keys(REGISTRY));
+    return entry[0];
   }
 
   static allowedTypes(): string[] {

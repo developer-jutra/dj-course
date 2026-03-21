@@ -1,10 +1,9 @@
 version: '3'
 
 vars:
-  # The main application package
   APP_PKG: ./cmd/tms-data-generator
-  # The output binary path
   BINARY: bin/tms-data-generator
+  POSTGRES_INIT: ../postgres/init-scripts
 
 tasks:
   build:
@@ -17,16 +16,29 @@ tasks:
       - go build -o {{.BINARY}} {{.APP_PKG}}
 
   run:
-    desc: Run the compiled application binary
+    desc: Build binary and generate all SQL files (public + cargo_plans schemas)
     cmds:
       - ./{{.BINARY}}
     deps:
       - build
 
   run-go:
-    desc: Generate the SQL file using go run
+    desc: Generate all SQL files using go run (no binary)
     cmds:
       - go run {{.APP_PKG}}
+
+  sync:
+    desc: Copy latest generated SQL files to postgres/init-scripts
+    cmds:
+      - cp output/tms-latest.sql {{.POSTGRES_INIT}}/tms-latest.sql
+      - cp output/tms-cargo-plans-latest.sql {{.POSTGRES_INIT}}/tms-cargo-plans-latest.sql
+      - echo "Synced output/ → {{.POSTGRES_INIT}}/"
+
+  generate-and-sync:
+    desc: Generate all SQL files and sync to postgres/init-scripts
+    cmds:
+      - task: run
+      - task: sync
 
   clean:
     desc: Clean up build artifacts and generated files
@@ -34,6 +46,6 @@ tasks:
       - rm -rf bin output
 
   default:
-    desc: Build and run the generator
+    desc: Build and run the generator (all schemas)
     cmds:
       - task: run

@@ -2,31 +2,17 @@ import { Request, Response } from 'express';
 import express from 'express';
 
 import logger from '../logger';
-import { InMemoryCargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
-import {
-  CargoPlansService,
-  LoadPlanNotFoundError,
-  UnknownTrailerTypeError,
-  UnknownPalletTypeError,
-} from './cargo-plans-service';
+import { service } from './fake-dependency-injection';
+import { LoadPlanNotFoundError, type CargoPlanServiceError } from './cargo-plans-service';
+import { OptimisticLockError } from '../shared/optimistic-lock-error';
 import { TrailerFactory } from './trailers';
+import { PalletSpec } from './pallets/pallet-spec';
 import { CargoPlans } from '../types/CargoPlansRoute';
 import { ErrorResponse } from '../types/data-contracts';
 import { parseCargoType } from './cargo/cargo.types';
-import { toCargoLoadPlanReadModel } from './cargo-load-plans/cargo-load-plan.readmodel';
-import { Weight, type WeightUnit } from '../shared/weight';
+import { Weight } from '../shared/weight';
 
 const router = express.Router();
-const service = new CargoPlansService(new InMemoryCargoLoadPlanRepository());
-
-const ALLOWED_WEIGHT_UNITS: WeightUnit[] = ['KG', 'TONNE', 'LB'];
-
-function parseWeightUnit(raw: unknown): WeightUnit {
-  if (typeof raw === 'string' && ALLOWED_WEIGHT_UNITS.includes(raw as WeightUnit)) {
-    return raw as WeightUnit;
-  }
-  return 'KG';
-}
 
 // ── POST / — Create a new load plan ────────────────────────────────────────
 
@@ -40,10 +26,10 @@ router.post('/', async (
   res: Response<CargoPlans.CreateLoadPlan.ResponseBody | ErrorResponse>,
 ) => {
   const { trailerType } = req.body;
-  if (!trailerType || typeof trailerType !== 'string') {
+  if (!trailerType || !TrailerFactory.allowedTypes().includes(trailerType)) {
     return res
       .status(400)
-      .json({ error: `trailerType is required. Allowed: ${TrailerFactory.allowedTypes().join(', ')}` });
+      .json({ error: `Unknown trailerType: '${trailerType}'. Allowed: ${TrailerFactory.allowedTypes().join(', ')}` });
   }
 
   const result = await service.createLoadPlan({ trailerType });
@@ -66,12 +52,13 @@ router.get('/:id', async (
   >,
   res: Response<CargoPlans.GetLoadPlan.ResponseBody | ErrorResponse>,
 ) => {
-  const weightUnit = parseWeightUnit(req.query.weightUnit);
-  const result = await service.getLoadPlan(req.params.id);
-  if (!result.success) {
-    return handleResultError(res, result.error, 'Failed to fetch load plan');
+  const weightUnit = Weight.parseUnit(req.query.weightUnit);
+  const readModel = await service.findPlan(req.params.id, weightUnit);
+  if (!readModel) {
+    logger.warn('Failed to fetch load plan', { plan_id: req.params.id });
+    return res.status(404).json({ error: `Load plan '${req.params.id}' not found` });
   }
-  res.json(toCargoLoadPlanReadModel(result.value, weightUnit));
+  res.json(readModel);
 });
 
 // ── POST /:id/cargo — Add cargo to plan ─────────────────────────────────────
@@ -85,7 +72,12 @@ router.post('/:id/cargo', async (
   >,
   res: Response<CargoPlans.AddCargoToLoadPlan.ResponseBody | ErrorResponse>,
 ) => {
-  const { palletType, cargoType: rawCargoType, requirements, weightKg, cargoHeightMm } = req.body;
+  const { palletType, cargoType: rawCargoType, weightKg, cargoHeightMm } = req.body;
+  if (!palletType || !PalletSpec.allowedTypes().includes(palletType)) {
+    return res
+      .status(400)
+      .json({ error: `Unknown palletType: '${palletType}'. Allowed: ${PalletSpec.allowedTypes().join(', ')}` });
+  }
   const cargoType = parseCargoType(rawCargoType);
   if (!cargoType) {
     return res.status(400).json({ error: `Unknown cargoType: ${rawCargoType}` });
@@ -94,7 +86,6 @@ router.post('/:id/cargo', async (
     loadPlanId: req.params.id,
     palletType,
     cargoType,
-    requirements,
     weight: Weight.from(weightKg, 'KG'),
     cargoHeightMm,
   });
@@ -139,10 +130,10 @@ router.put('/:id/trailer', async (
   res: Response<CargoPlans.ChangeTrailerType.ResponseBody | ErrorResponse>,
 ) => {
   const { trailerType } = req.body;
-  if (!trailerType || typeof trailerType !== 'string') {
+  if (!trailerType || !TrailerFactory.allowedTypes().includes(trailerType)) {
     return res
       .status(400)
-      .json({ error: `trailerType is required. Allowed: ${TrailerFactory.allowedTypes().join(', ')}` });
+      .json({ error: `Unknown trailerType: '${trailerType}'. Allowed: ${TrailerFactory.allowedTypes().join(', ')}` });
   }
 
   const result = await service.changeTrailerType({
@@ -179,20 +170,48 @@ router.post('/:id/finalize', async (
 
 function handleResultError(
   res: Response,
-  err: unknown,
+  err: CargoPlanServiceError,
   context: string
 ): Response<ErrorResponse> {
-  const error = err as Error;
-  if (err instanceof LoadPlanNotFoundError) {
-    logger.warn(context, { error: error.message });
-    return res.status(404).json({ error: error.message });
+  if (err instanceof OptimisticLockError) {
+    logger.warn(context, { error: err.message });
+    return res.status(409).json({ error: err.message });
   }
-  if (err instanceof UnknownTrailerTypeError || err instanceof UnknownPalletTypeError) {
-    logger.warn(context, { error: error.message });
-    return res.status(400).json({ error: error.message });
+  switch (err.kind) {
+    case 'LoadPlanNotFoundError':
+      logger.warn(context, { error: err.message });
+      return res.status(404).json({ error: err.message });
+    case 'PlanAlreadyFinalizedError':
+      logger.warn(context, { error: err.message });
+      return res.status(409).json({ error: err.message });
+    case 'EmptyPlanError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'WeightCapacityExceededError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'LdmCapacityExceededError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'CargoTooTallForTrailerError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'TrailerCapabilityMismatchError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'IncompatibleCargoColoadingError':
+      logger.warn(context, { error: err.message });
+      return res.status(409).json({ error: err.message });
+    case 'CargoUnitNotFoundError':
+      logger.warn(context, { error: err.message });
+      return res.status(404).json({ error: err.message });
+    case 'PalletWeightExceedsCapacityError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
+    case 'PalletCargoTypeNotAllowedError':
+      logger.warn(context, { error: err.message });
+      return res.status(422).json({ error: err.message });
   }
-  logger.warn(context, { error: error.message });
-  return res.status(400).json({ error: error.message });
 }
 
 export default router;

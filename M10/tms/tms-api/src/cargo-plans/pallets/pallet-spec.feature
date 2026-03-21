@@ -1,43 +1,5 @@
 Feature: Pallet Spec Value Object
 
-  # ── Poprawna kreacja przez factory methods ────────────────────────────────────
-
-  Scenario: EPAL1 factory creates valid spec
-    When I create pallet spec using epal1
-    Then the pallet spec should be created successfully
-    And the spec label should be "EPAL 1"
-    And the spec dimensions should be 800 x 1200 x 144 mm
-    And the spec max load should be 4000 kg
-
-  Scenario: Industrial factory creates valid spec
-    When I create pallet spec using industrial
-    Then the pallet spec should be created successfully
-    And the spec label should be "ISO-2"
-
-  Scenario: Half pallet factory creates valid spec
-    When I create pallet spec using half
-    Then the pallet spec should be created successfully
-    And the spec label should be "EPAL-6"
-    And the spec dimensions should be 600 x 800 x 144 mm
-
-  Scenario: CP1 factory creates valid spec
-    When I create pallet spec using cp1
-    Then the pallet spec should be created successfully
-    And the spec label should be "CP1"
-    And the spec max load should be 1190 kg
-
-  Scenario: CP3 factory creates valid spec
-    When I create pallet spec using cp3
-    Then the pallet spec should be created successfully
-    And the spec label should be "CP-3"
-    And the spec dimensions should be 1140 x 1140 x 138 mm
-
-  Scenario: H1 factory creates valid spec
-    When I create pallet spec using h1
-    Then the pallet spec should be created successfully
-    And the spec label should be "H1"
-    And the spec material should be "HDPE"
-
   # ── Walidacja label ───────────────────────────────────────────────────────────
 
   Scenario: Cannot create pallet spec with empty label

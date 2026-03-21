@@ -1,17 +1,19 @@
-import { randomUUID } from 'crypto';
+import { UUID } from '../shared/uuid';
 import { ok, fail, type Result } from '../shared/result';
-import { CargoLoadPlan } from './cargo-load-plans/cargo-load-plan';
+import { CargoLoadPlan, type CargoLoadPlanDomainError } from './cargo-load-plans/cargo-load-plan';
 import type { PalletUnit } from './pallets/pallet-unit';
 import { LdmCalculator } from './ldm/ldm-calculator';
-import { TrailerFactory, UnknownTrailerTypeError, type PalletLoadableTrailerSpec } from './trailers';
-import { UnknownPalletTypeError } from './pallets/pallet-spec';
+import { TrailerFactory, type PalletLoadableTrailerSpec } from './trailers';
 import type { CargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
+import type { CargoLoadPlanQueries, CargoLoadPlanReadModel } from './cargo-load-plans/cargo-load-plan.queries';
+import { OptimisticLockError } from '../shared/optimistic-lock-error';
 import type {
   CreateLoadPlanCommand,
   AddCargoCommand,
   RemoveCargoCommand,
   ChangeTrailerCommand,
 } from './cargo-plans.commands';
+import type { WeightUnit } from '../shared/weight';
 
 // ── Interface ───────────────────────────────────────────────────────────────
 
@@ -31,26 +33,24 @@ interface CargoPlansApplicationService {
   // Oznaczenie planu jako gotowy / zablokowanie dalszych zmian
   finalizeLoadPlan(loadPlanId: string): Promise<Result<void, CargoPlanServiceError>>;
 
-  // Pobranie planu załadunkowego
-  getLoadPlan(id: string): Promise<Result<CargoLoadPlan, CargoPlanServiceError>>;
+  // Odczyt stanu planu (read-side, nie dotyka agregatu)
+  findPlan(id: string, weightUnit?: WeightUnit): Promise<CargoLoadPlanReadModel | null>;
 }
 
 // ── Errors ──────────────────────────────────────────────────────────────────
 
-export class LoadPlanNotFoundError extends Error {
-  constructor(id: string) {
-    super(`Load plan '${id}' not found`);
-    this.name = 'LoadPlanNotFoundError';
+export class LoadPlanNotFoundError {
+  readonly kind = 'LoadPlanNotFoundError' as const;
+  readonly message: string;
+  constructor(readonly id: string) {
+    this.message = `Load plan '${id}' not found`;
   }
 }
 
-export { UnknownTrailerTypeError, UnknownPalletTypeError };
-
 export type CargoPlanServiceError =
   | LoadPlanNotFoundError
-  | UnknownTrailerTypeError
-  | UnknownPalletTypeError
-  | Error;
+  | CargoLoadPlanDomainError
+  | OptimisticLockError;
 
 // ── Implementation ──────────────────────────────────────────────────────────
 
@@ -58,87 +58,96 @@ export class CargoPlansService implements CargoPlansApplicationService {
   private readonly ldmProvider = (units: PalletUnit[], trailer: PalletLoadableTrailerSpec) =>
     LdmCalculator.calculate(units, trailer);
 
-  constructor(private readonly repository: CargoLoadPlanRepository) {}
+  constructor(
+    private readonly repository: CargoLoadPlanRepository,
+    private readonly queries: CargoLoadPlanQueries,
+  ) {}
 
   async createLoadPlan(command: CreateLoadPlanCommand): Promise<Result<string, CargoPlanServiceError>> {
+    const trailer = TrailerFactory.fromType(command.trailerType);
+    const id = UUID.newUUID<'CargoLoadPlan'>();
+    const plan = new CargoLoadPlan(id, trailer, 0);
     try {
-      const trailer = TrailerFactory.fromType(command.trailerType);
-      const id = randomUUID();
-      const plan = new CargoLoadPlan(id, trailer, 0);
       await this.repository.save(plan);
-      return ok(id);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
+    return ok(id);
   }
 
   async addCargoToPlan(command: AddCargoCommand): Promise<Result<void, CargoPlanServiceError>> {
-    const planResult = await this.findPlan(command.loadPlanId);
+    const planResult = await this.findLoadPlan(command.loadPlanId);
     if (!planResult.success) return planResult;
 
+    const domainResult = planResult.value.addCargo(command, this.ldmProvider);
+    if (!domainResult.success) return domainResult;
+
     try {
-      planResult.value.addCargo(command, this.ldmProvider);
       await this.repository.save(planResult.value);
-      return ok(undefined);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
+    return ok(undefined);
   }
 
   async removeCargoFromPlan(command: RemoveCargoCommand): Promise<Result<void, CargoPlanServiceError>> {
-    const planResult = await this.findPlan(command.loadPlanId);
+    const planResult = await this.findLoadPlan(command.loadPlanId);
     if (!planResult.success) return planResult;
 
+    const domainResult = planResult.value.removePalletUnit(command.unitId, this.ldmProvider);
+    if (!domainResult.success) return domainResult;
+
     try {
-      planResult.value.removePalletUnit(command.unitId, this.ldmProvider);
       await this.repository.save(planResult.value);
-      return ok(undefined);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
+    return ok(undefined);
   }
 
   async changeTrailerType(command: ChangeTrailerCommand): Promise<Result<void, CargoPlanServiceError>> {
-    const planResult = await this.findPlan(command.loadPlanId);
+    const planResult = await this.findLoadPlan(command.loadPlanId);
     if (!planResult.success) return planResult;
 
+    const newTrailer = TrailerFactory.fromType(command.trailerType);
+    const domainResult = planResult.value.replaceTrailer(newTrailer, this.ldmProvider);
+    if (!domainResult.success) return domainResult;
+
     try {
-      const newTrailer = TrailerFactory.fromType(command.trailerType);
-      planResult.value.replaceTrailer(newTrailer, this.ldmProvider);
       await this.repository.save(planResult.value);
-      return ok(undefined);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
+    return ok(undefined);
   }
 
   async finalizeLoadPlan(loadPlanId: string): Promise<Result<void, CargoPlanServiceError>> {
-    const planResult = await this.findPlan(loadPlanId);
+    const planResult = await this.findLoadPlan(loadPlanId);
     if (!planResult.success) return planResult;
 
+    const domainResult = planResult.value.finalize();
+    if (!domainResult.success) return domainResult;
+
     try {
-      planResult.value.finalize();
       await this.repository.save(planResult.value);
-      return ok(undefined);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
+    return ok(undefined);
   }
 
-  async getLoadPlan(id: string): Promise<Result<CargoLoadPlan, CargoPlanServiceError>> {
-    return this.findPlan(id);
+  async findPlan(id: string, weightUnit?: WeightUnit): Promise<CargoLoadPlanReadModel | null> {
+    return this.queries.findPlan(id, weightUnit);
   }
 
-  private async findPlan(id: string): Promise<Result<CargoLoadPlan, CargoPlanServiceError>> {
+  private async findLoadPlan(id: string): Promise<Result<CargoLoadPlan, CargoPlanServiceError>> {
     const plan = await this.repository.findById(id);
     if (!plan) return fail(new LoadPlanNotFoundError(id));
     return ok(plan);
   }
 
-  private normalizeError(e: unknown): CargoPlanServiceError {
-    if (e instanceof LoadPlanNotFoundError || e instanceof UnknownTrailerTypeError || e instanceof UnknownPalletTypeError) {
-      return e;
-    }
-    return e instanceof Error ? e : new Error(String(e));
+  private normalizeError(e: unknown): OptimisticLockError {
+    if (e instanceof OptimisticLockError) return e;
+    throw e;
   }
 }
