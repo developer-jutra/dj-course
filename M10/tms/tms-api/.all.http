@@ -216,3 +216,90 @@ DELETE {{vehiclesUrl}}/{{vehicleId}}
 
 ### Delete missing vehicle – should return 404
 DELETE {{vehiclesUrl}}/{{missingVehicleId}}
+
+
+###
+# Cargo Plans
+###
+
+@cargoPlansUrl = {{baseUrl}}/cargo-plans
+
+### Create a new load plan (standard curtainside)
+POST {{cargoPlansUrl}}
+Content-Type: application/json
+
+{
+  "trailerType": "standard-curtainside"
+}
+
+### Create a new load plan (reefer)
+POST {{cargoPlansUrl}}
+Content-Type: application/json
+
+{
+  "trailerType": "reefer"
+}
+
+### Get load plan by ID (paste a real ID from create response)
+@planId = PASTE_PLAN_ID_HERE
+GET {{cargoPlansUrl}}/{{planId}}
+
+### Add cargo – EPAL1 pallet with food
+POST {{cargoPlansUrl}}/{{planId}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "epal1",
+  "cargoType": "FOOD",
+  "requirements": {
+    "isTemperatureControlled": true,
+    "requiresSideLoading": false,
+    "isBulk": false,
+    "highSecurityRequired": false
+  },
+  "weightKg": 500,
+  "cargoHeightMm": 1500
+}
+
+### Add cargo – industrial pallet with electronics
+POST {{cargoPlansUrl}}/{{planId}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "industrial",
+  "cargoType": "ELECTRONICS",
+  "requirements": {
+    "isTemperatureControlled": false,
+    "requiresSideLoading": false,
+    "isBulk": false,
+    "highSecurityRequired": false
+  },
+  "weightKg": 800,
+  "cargoHeightMm": 1200
+}
+
+### Remove cargo unit from plan (paste a real unitId from GET response)
+@unitId = PASTE_UNIT_ID_HERE
+DELETE {{cargoPlansUrl}}/{{planId}}/cargo/{{unitId}}
+
+### Change trailer type to mega
+PUT {{cargoPlansUrl}}/{{planId}}/trailer
+Content-Type: application/json
+
+{
+  "trailerType": "mega"
+}
+
+### Finalize load plan
+POST {{cargoPlansUrl}}/{{planId}}/finalize
+
+### Get non-existing plan – should return 404
+GET {{cargoPlansUrl}}/non-existing-id
+
+### Add cargo with invalid body – should return 400
+POST {{cargoPlansUrl}}/{{planId}}/cargo
+Content-Type: application/json
+
+{
+  "palletType": "epal1"
+}

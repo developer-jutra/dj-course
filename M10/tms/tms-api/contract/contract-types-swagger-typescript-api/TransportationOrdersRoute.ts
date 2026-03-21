@@ -20,6 +20,7 @@ export namespace TransportationOrders {
    * @summary List transportation orders
    * @request GET:/transportation-orders
    * @response `200` `(TransportationOrder)[]` List of transportation orders
+   * @response `400` `ErrorResponse`
    * @response `500` `ErrorResponse`
    */
   export namespace GetTransportationOrders {

@@ -59,6 +59,7 @@ export namespace Drivers {
    * @summary Get driver by ID
    * @request GET:/drivers/{id}
    * @response `200` `DriverDetail` Driver found
+   * @response `400` `ErrorResponse` The provided ID is not a valid positive integer.
    * @response `404` `ErrorResponse` No driver exists with the given ID.
    * @response `500` `ErrorResponse`
    */

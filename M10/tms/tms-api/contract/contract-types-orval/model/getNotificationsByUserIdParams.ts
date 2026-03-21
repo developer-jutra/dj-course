@@ -11,18 +11,15 @@ import type { PageParamParameter } from './pageParamParameter';
 export type GetNotificationsByUserIdParams = {
 /**
  * User ID to fetch notifications for. Required.
- * @minimum 1
+ * @pattern ^[1-9]\d*$
  */
-userId: number;
+userId: string;
 /**
  * Page number (1-based)
- * @minimum 1
  */
 page?: PageParamParameter;
 /**
  * Number of items per page (max 100)
- * @minimum 1
- * @maximum 100
  */
 limit?: LimitParamParameter;
 };

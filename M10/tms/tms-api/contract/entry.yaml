@@ -17,6 +17,8 @@ tags:
     description: Transportation order records and filtering
   - name: Notifications
     description: User notifications
+  - name: CargoPlans
+    description: Cargo load plan management – create, assign cargo, change trailer, finalize
   - name: Status
     description: Server status and health checks
 paths:
@@ -38,6 +40,18 @@ paths:
     $ref: '../src/transportation-orders/transportation-orders-openapi.yaml#/paths/~1transportation-orders~1{id}~1driver'
   /notifications:
     $ref: '../src/notifications/notifications-openapi.yaml#/paths/~1notifications'
+  /cargo-plans:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans'
+  /cargo-plans/{id}:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans~1{id}'
+  /cargo-plans/{id}/cargo:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans~1{id}~1cargo'
+  /cargo-plans/{id}/cargo/{unitId}:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans~1{id}~1cargo~1{unitId}'
+  /cargo-plans/{id}/trailer:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans~1{id}~1trailer'
+  /cargo-plans/{id}/finalize:
+    $ref: '../src/cargo-plans/cargo-plans-openapi.yaml#/paths/~1cargo-plans~1{id}~1finalize'
   /:
     $ref: '../src/status/status-openapi.yaml#/paths/~1'
   /health:

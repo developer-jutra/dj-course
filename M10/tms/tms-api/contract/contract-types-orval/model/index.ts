@@ -7,6 +7,16 @@
  */
 
 export * from './_customerListItemLinks';
+export * from './addCargoInput';
+export * from './assignDriverInput';
+export * from './badRequestResponse';
+export * from './cargoLoadPlanStatus';
+export * from './cargoRequirementsInput';
+export * from './cargoType';
+export * from './cargoUnitResponse';
+export * from './changeTrailerInput';
+export * from './createLoadPlanInput';
+export * from './createLoadPlanResponse';
 export * from './customerDetail';
 export * from './customerListItem';
 export * from './customerListResponse';
@@ -25,10 +35,15 @@ export * from './getVehiclesParams';
 export * from './healthResponse';
 export * from './internalServerErrorResponse';
 export * from './limitParamParameter';
+export * from './loadPlanResponse';
 export * from './notification';
 export * from './notificationListResponse';
 export * from './pageParamParameter';
 export * from './pagination';
+export * from './palletType';
+export * from './trailerCapabilities';
+export * from './trailerReadModel';
+export * from './trailerType';
 export * from './transportationOrder';
 export * from './vehicle';
 export * from './vehicleCreateInput';

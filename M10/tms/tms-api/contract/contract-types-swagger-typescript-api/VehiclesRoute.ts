@@ -25,6 +25,7 @@ export namespace Vehicles {
    * @summary List vehicles
    * @request GET:/vehicles
    * @response `200` `VehicleListResponse` Paginated list of vehicles
+   * @response `400` `ErrorResponse`
    * @response `500` `ErrorResponse`
    */
   export namespace GetVehicles {
@@ -32,19 +33,16 @@ export namespace Vehicles {
     export type RequestQuery = {
       /**
        * Page number (1-based)
-       * @min 1
-       * @default 1
-       * @example 1
+       * @default "1"
+       * @example "1"
        */
-      page?: number;
+      page?: string;
       /**
        * Number of items per page (max 100)
-       * @min 1
-       * @max 100
-       * @default 20
-       * @example 20
+       * @default "20"
+       * @example "20"
        */
-      limit?: number;
+      limit?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -126,6 +124,7 @@ export namespace Vehicles {
    * @summary Delete a vehicle
    * @request DELETE:/vehicles/{id}
    * @response `204` `void` Vehicle deleted successfully – no body returned.
+   * @response `400` `ErrorResponse` The provided ID is not a valid positive integer.
    * @response `404` `ErrorResponse` No vehicle exists with the given ID.
    * @response `500` `ErrorResponse`
    */

@@ -28,25 +28,22 @@ export namespace Notifications {
     export type RequestQuery = {
       /**
        * User ID to fetch notifications for. Required.
-       * @min 1
-       * @example 1
+       * @pattern ^[1-9]\d*$
+       * @example "1"
        */
-      userId: number;
+      userId: string;
       /**
        * Page number (1-based)
-       * @min 1
-       * @default 1
-       * @example 1
+       * @default "1"
+       * @example "1"
        */
-      page?: number;
+      page?: string;
       /**
        * Number of items per page (max 100)
-       * @min 1
-       * @max 100
-       * @default 20
-       * @example 20
+       * @default "20"
+       * @example "20"
        */
-      limit?: number;
+      limit?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};

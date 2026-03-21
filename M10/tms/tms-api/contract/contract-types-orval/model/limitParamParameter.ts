@@ -9,4 +9,4 @@
 /**
  * Number of items per page (max 100)
  */
-export type LimitParamParameter = number;
+export type LimitParamParameter = string;

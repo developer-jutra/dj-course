@@ -11,13 +11,10 @@ import type { PageParamParameter } from './pageParamParameter';
 export type GetVehiclesParams = {
 /**
  * Page number (1-based)
- * @minimum 1
  */
 page?: PageParamParameter;
 /**
  * Number of items per page (max 100)
- * @minimum 1
- * @maximum 100
  */
 limit?: LimitParamParameter;
 };

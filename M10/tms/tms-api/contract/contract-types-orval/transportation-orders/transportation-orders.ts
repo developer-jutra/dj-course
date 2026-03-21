@@ -13,6 +13,7 @@ import type {
 } from 'axios';
 
 import type {
+  AssignDriverInput,
   GetTransportationOrdersParams,
   TransportationOrder
 } from '../model';
@@ -34,5 +35,19 @@ const getTransportationOrders = (
         params: {...params, ...options?.params},}
     );
   }
-return {getTransportationOrders}};
+/**
+ * Assigns an existing driver to the specified transportation order. Replaces any previously assigned driver. The operation is idempotent.
+ * @summary Assign a driver to a transportation order
+ */
+const assignDriverToOrder = (
+    id: number,
+    assignDriverInput: AssignDriverInput, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<void>> => {
+    return axiosInstance.put(
+      `/transportation-orders/${id}/driver`,
+      assignDriverInput,options
+    );
+  }
+return {getTransportationOrders,assignDriverToOrder}};
 export type GetTransportationOrdersResult = AxiosResponse<TransportationOrder[]>
+export type AssignDriverToOrderResult = AxiosResponse<void>

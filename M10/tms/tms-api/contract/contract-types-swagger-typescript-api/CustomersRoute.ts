@@ -25,6 +25,7 @@ export namespace Customers {
    * @summary List customers
    * @request GET:/customers
    * @response `200` `CustomerListResponse` Paginated list of customers
+   * @response `400` `ErrorResponse`
    * @response `500` `ErrorResponse`
    */
   export namespace GetCustomers {
@@ -32,19 +33,16 @@ export namespace Customers {
     export type RequestQuery = {
       /**
        * Page number (1-based)
-       * @min 1
-       * @default 1
-       * @example 1
+       * @default "1"
+       * @example "1"
        */
-      page?: number;
+      page?: string;
       /**
        * Number of items per page (max 100)
-       * @min 1
-       * @max 100
-       * @default 20
-       * @example 20
+       * @default "20"
+       * @example "20"
        */
-      limit?: number;
+      limit?: string;
       /**
        * Filter customers by first or last name prefix (case-insensitive)
        * @example "an"
@@ -63,6 +61,7 @@ export namespace Customers {
    * @summary Get customer by ID
    * @request GET:/customers/{id}
    * @response `200` `CustomerDetail` Customer found
+   * @response `400` `ErrorResponse` The provided ID is not a valid positive integer.
    * @response `404` `ErrorResponse` No customer exists with the given ID.
    * @response `500` `ErrorResponse`
    */
@@ -113,6 +112,7 @@ export namespace Customers {
    * @summary Delete a customer
    * @request DELETE:/customers/{id}
    * @response `204` `void` Customer deleted successfully – no body returned.
+   * @response `400` `ErrorResponse` The provided ID is not a valid positive integer.
    * @response `404` `ErrorResponse` No customer exists with the given ID.
    * @response `500` `ErrorResponse`
    */

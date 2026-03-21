@@ -169,6 +169,73 @@ const Notification = z
 const NotificationListResponse = z
   .object({ data: z.array(Notification), pagination: Pagination })
   .passthrough();
+const TrailerType = z.enum(["standard-curtainside", "mega", "reefer"]);
+const CreateLoadPlanInput = z
+  .object({ trailerType: TrailerType })
+  .passthrough();
+const CreateLoadPlanResponse = z
+  .object({ id: z.string().uuid() })
+  .passthrough();
+const CargoLoadPlanStatus = z.enum(["DRAFT", "FINALIZED"]);
+const TrailerCapabilities = z
+  .object({
+    hasClimateControl: z.boolean(),
+    supportsSideLoading: z.boolean(),
+    hasHighSecurityLock: z.boolean(),
+    isBulkReady: z.boolean(),
+  })
+  .passthrough();
+const TrailerReadModel = z
+  .object({
+    type: TrailerType,
+    canCarryPallets: z.boolean(),
+    maxWeightCapacityKg: z.number(),
+    widthMm: z.number().int(),
+    heightMm: z.number().int(),
+    maxLdm: z.number(),
+    capabilities: TrailerCapabilities,
+  })
+  .passthrough();
+const CargoType = z.enum(["FOOD", "CHEMICAL", "ELECTRONICS", "ADR", "GENERAL"]);
+const CargoRequirementsInput = z
+  .object({
+    isTemperatureControlled: z.boolean(),
+    requiresSideLoading: z.boolean(),
+    isBulk: z.boolean(),
+    highSecurityRequired: z.boolean(),
+  })
+  .passthrough();
+const CargoUnitResponse = z
+  .object({
+    id: z.string().uuid(),
+    palletLabel: z.string(),
+    cargoType: CargoType,
+    weightKg: z.number().gt(0),
+    totalHeightMm: z.number().int().gt(0),
+    requirements: CargoRequirementsInput,
+  })
+  .passthrough();
+const LoadPlanResponse = z
+  .object({
+    id: z.string().uuid(),
+    status: CargoLoadPlanStatus,
+    trailer: TrailerReadModel,
+    currentLdm: z.number().gte(0),
+    plannedWeightKg: z.number().gte(0),
+    units: z.array(CargoUnitResponse),
+  })
+  .passthrough();
+const PalletType = z.enum(["epal1", "industrial", "half", "cp1", "cp3", "h1"]);
+const AddCargoInput = z
+  .object({
+    palletType: PalletType,
+    cargoType: CargoType,
+    requirements: CargoRequirementsInput,
+    weightKg: z.number().gt(0),
+    cargoHeightMm: z.number().int().gt(0),
+  })
+  .passthrough();
+const ChangeTrailerInput = z.object({ trailerType: TrailerType }).passthrough();
 const HealthResponse = z
   .object({ status: z.string(), service: z.string() })
   .passthrough();
@@ -194,10 +261,44 @@ export const schemas = {
   AssignDriverInput,
   Notification,
   NotificationListResponse,
+  TrailerType,
+  CreateLoadPlanInput,
+  CreateLoadPlanResponse,
+  CargoLoadPlanStatus,
+  TrailerCapabilities,
+  TrailerReadModel,
+  CargoType,
+  CargoRequirementsInput,
+  CargoUnitResponse,
+  LoadPlanResponse,
+  PalletType,
+  AddCargoInput,
+  ChangeTrailerInput,
   HealthResponse,
 };
 
 export const endpointParams = {
+  createLoadPlan: {
+    body: CreateLoadPlanInput,
+  },
+  getLoadPlan: {
+    id: z.string().uuid(),
+  },
+  addCargoToLoadPlan: {
+    body: AddCargoInput,
+    id: z.string().uuid(),
+  },
+  removeCargoFromLoadPlan: {
+    id: z.string().uuid(),
+    unitId: z.string().uuid(),
+  },
+  finalizeLoadPlan: {
+    id: z.string().uuid(),
+  },
+  changeTrailerType: {
+    body: ChangeTrailerInput,
+    id: z.string().uuid(),
+  },
   getCustomers: {
     page: z.string().optional().default("1"),
     limit: z.string().optional().default("20"),
@@ -252,6 +353,12 @@ export const endpointParams = {
 
 export const queryParams = {
   getServerStatus: z.object({}).strict(),
+  createLoadPlan: z.object({}).strict(),
+  getLoadPlan: z.object({}).strict(),
+  addCargoToLoadPlan: z.object({}).strict(),
+  removeCargoFromLoadPlan: z.object({}).strict(),
+  finalizeLoadPlan: z.object({}).strict(),
+  changeTrailerType: z.object({}).strict(),
   getCustomers: z
     .object({
       page: z.string().optional().default("1"),

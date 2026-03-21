@@ -9,4 +9,4 @@
 /**
  * Page number (1-based)
  */
-export type PageParamParameter = number;
+export type PageParamParameter = string;

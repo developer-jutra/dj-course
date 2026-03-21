@@ -1,0 +1,533 @@
+# Cargo Load Plans – paths and schemas
+paths:
+  /cargo-plans:
+    post:
+      summary: Create a load plan
+      description: Creates a new cargo load plan for a given trailer type.
+      operationId: createLoadPlan
+      tags:
+        - CargoPlans
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoadPlanInput'
+            example:
+              trailerType: standard-curtainside
+      responses:
+        '201':
+          description: Load plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLoadPlanResponse'
+              example:
+                id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        '400':
+          description: Missing or invalid trailerType.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "trailerType is required. Allowed: standard-curtainside, mega, reefer"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /cargo-plans/{id}:
+    get:
+      summary: Get load plan details
+      description: Returns the full state of a load plan including assigned cargo units.
+      operationId: getLoadPlan
+      tags:
+        - CargoPlans
+      parameters:
+        - $ref: '#/components/parameters/LoadPlanIdParam'
+        - $ref: '#/components/parameters/WeightUnitParam'
+      responses:
+        '200':
+          description: Load plan found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadPlanResponse'
+              example:
+                id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                status: DRAFT
+                weightUnit: KG
+                trailer:
+                  type: standard-curtainside
+                  canCarryPallets: true
+                  maxWeightCapacityKg: 24000
+                  widthMm: 2400
+                  heightMm: 2700
+                  maxLdm: 13.6
+                  capabilities:
+                    hasClimateControl: false
+                    supportsSideLoading: true
+                    hasHighSecurityLock: false
+                    isBulkReady: false
+                currentLdm: 2.4
+                plannedWeight: 600
+                units:
+                  - id: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                    palletLabel: EPAL 1
+                    cargoType: FOOD
+                    weight: 600
+                    totalHeightMm: 1400
+                    requirements:
+                      isTemperatureControlled: false
+                      requiresSideLoading: false
+                      isBulk: false
+                      highSecurityRequired: false
+        '404':
+          description: No load plan exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "Load plan 'a1b2c3d4-...' not found"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /cargo-plans/{id}/cargo:
+    post:
+      summary: Add cargo to a load plan
+      description: Adds a pallet unit with cargo to an existing draft load plan.
+      operationId: addCargoToLoadPlan
+      tags:
+        - CargoPlans
+      parameters:
+        - $ref: '#/components/parameters/LoadPlanIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCargoInput'
+            example:
+              palletType: epal1
+              cargoType: FOOD
+              requirements:
+                isTemperatureControlled: false
+                requiresSideLoading: false
+                isBulk: false
+                highSecurityRequired: false
+              weightKg: 600
+              cargoHeightMm: 1200
+      responses:
+        '204':
+          description: Cargo added successfully – no body returned.
+        '400':
+          description: Invalid request payload or business rule violation (e.g. weight/LDM exceeded, incompatible cargo).
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No load plan exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "Load plan 'a1b2c3d4-...' not found"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /cargo-plans/{id}/cargo/{unitId}:
+    delete:
+      summary: Remove cargo from a load plan
+      description: Removes a specific pallet unit from a draft load plan by its unit ID.
+      operationId: removeCargoFromLoadPlan
+      tags:
+        - CargoPlans
+      parameters:
+        - $ref: '#/components/parameters/LoadPlanIdParam'
+        - name: unitId
+          in: path
+          description: UUID of the pallet unit to remove
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: b2c3d4e5-f6a7-8901-bcde-f12345678901
+      responses:
+        '204':
+          description: Cargo removed successfully – no body returned.
+        '400':
+          description: Unit not found in the plan or plan is finalized.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+        '404':
+          description: No load plan exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "Load plan 'a1b2c3d4-...' not found"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /cargo-plans/{id}/trailer:
+    put:
+      summary: Change trailer type
+      description: Replaces the trailer on a draft load plan. All currently assigned cargo units are re-validated against the new trailer's capabilities and capacity.
+      operationId: changeTrailerType
+      tags:
+        - CargoPlans
+      parameters:
+        - $ref: '#/components/parameters/LoadPlanIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeTrailerInput'
+            example:
+              trailerType: reefer
+      responses:
+        '204':
+          description: Trailer type changed successfully – no body returned.
+        '400':
+          description: Invalid trailerType or re-validation of existing cargo failed.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "trailerType is required. Allowed: standard-curtainside, mega, reefer"
+        '404':
+          description: No load plan exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "Load plan 'a1b2c3d4-...' not found"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+  /cargo-plans/{id}/finalize:
+    post:
+      summary: Finalize a load plan
+      description: Marks the load plan as FINALIZED. A finalized plan cannot be modified. The plan must have at least one cargo unit and must not exceed trailer capacity.
+      operationId: finalizeLoadPlan
+      tags:
+        - CargoPlans
+      parameters:
+        - $ref: '#/components/parameters/LoadPlanIdParam'
+      responses:
+        '204':
+          description: Load plan finalized successfully – no body returned.
+        '400':
+          description: Plan cannot be finalized (empty plan or capacity exceeded).
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: Cannot finalize empty plan.
+        '404':
+          description: No load plan exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '../../contract/entry.yaml#/components/schemas/ErrorResponse'
+              example:
+                error: "Load plan 'a1b2c3d4-...' not found"
+        '500':
+          $ref: '../../contract/entry.yaml#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    LoadPlanIdParam:
+      name: id
+      in: path
+      description: UUID of the load plan
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+    WeightUnitParam:
+      name: weightUnit
+      in: query
+      description: Unit in which weight values are expressed in the response. Defaults to KG.
+      required: false
+      schema:
+        $ref: '#/components/schemas/WeightUnit'
+
+  schemas:
+    WeightUnit:
+      type: string
+      description: Unit of weight measurement
+      enum:
+        - KG
+        - TONNE
+        - LB
+      default: KG
+    TrailerType:
+      type: string
+      description: Supported trailer types
+      enum:
+        - standard-curtainside
+        - mega
+        - reefer
+
+    PalletType:
+      type: string
+      description: Supported pallet types
+      enum:
+        - epal1
+        - industrial
+        - half
+        - cp1
+        - cp3
+        - h1
+
+    CargoType:
+      type: string
+      description: Type of cargo being transported
+      enum:
+        - FOOD
+        - CHEMICAL
+        - ELECTRONICS
+        - ADR
+        - GENERAL
+
+    CargoLoadPlanStatus:
+      type: string
+      description: Current status of the load plan
+      enum:
+        - DRAFT
+        - FINALIZED
+
+    CargoRequirementsInput:
+      type: object
+      description: Special handling requirements for a cargo unit.
+      required:
+        - isTemperatureControlled
+        - requiresSideLoading
+        - isBulk
+        - highSecurityRequired
+      properties:
+        isTemperatureControlled:
+          type: boolean
+          description: Cargo requires a refrigerated trailer
+          example: false
+        requiresSideLoading:
+          type: boolean
+          description: Cargo must be loaded from the side
+          example: false
+        isBulk:
+          type: boolean
+          description: Cargo is bulk (requires bulk-ready trailer)
+          example: false
+        highSecurityRequired:
+          type: boolean
+          description: Cargo requires high-security locking
+          example: false
+
+    TrailerCapabilities:
+      type: object
+      description: Capabilities of the assigned trailer.
+      required:
+        - hasClimateControl
+        - supportsSideLoading
+        - hasHighSecurityLock
+        - isBulkReady
+      properties:
+        hasClimateControl:
+          type: boolean
+          description: Trailer has temperature/climate control
+          example: false
+        supportsSideLoading:
+          type: boolean
+          description: Trailer supports side loading
+          example: true
+        hasHighSecurityLock:
+          type: boolean
+          description: Trailer has high-security locking
+          example: false
+        isBulkReady:
+          type: boolean
+          description: Trailer supports bulk cargo
+          example: false
+
+    TrailerReadModel:
+      type: object
+      description: Details of the trailer assigned to the load plan.
+      required:
+        - type
+        - canCarryPallets
+        - maxWeightCapacityKg
+        - widthMm
+        - heightMm
+        - maxLdm
+        - capabilities
+      properties:
+        type:
+          $ref: '#/components/schemas/TrailerType'
+        canCarryPallets:
+          type: boolean
+          example: true
+        maxWeightCapacityKg:
+          type: number
+          description: Maximum weight capacity in kilograms
+          example: 24000
+        widthMm:
+          type: integer
+          description: Internal trailer width in millimetres
+          example: 2400
+        heightMm:
+          type: integer
+          description: Internal trailer height in millimetres
+          example: 2700
+        maxLdm:
+          type: number
+          description: Maximum loading metres (LDM)
+          example: 13.6
+        capabilities:
+          $ref: '#/components/schemas/TrailerCapabilities'
+
+    CargoUnitResponse:
+      type: object
+      description: A single pallet unit assigned to a load plan.
+      required:
+        - id
+        - palletLabel
+        - cargoType
+        - weight
+        - totalHeightMm
+        - requirements
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the pallet unit
+          example: b2c3d4e5-f6a7-8901-bcde-f12345678901
+        palletLabel:
+          type: string
+          description: Human-readable label of the pallet spec (e.g. "EPAL 1")
+          example: EPAL 1
+        cargoType:
+          $ref: '#/components/schemas/CargoType'
+        weight:
+          type: number
+          description: Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent LoadPlanResponse
+          minimum: 0
+          exclusiveMinimum: true
+          example: 600
+        totalHeightMm:
+          type: integer
+          description: Total height of pallet + cargo in millimetres
+          minimum: 0
+          exclusiveMinimum: true
+          example: 1400
+        requirements:
+          $ref: '#/components/schemas/CargoRequirementsInput'
+
+    LoadPlanResponse:
+      type: object
+      description: Full state of a cargo load plan.
+      required:
+        - id
+        - status
+        - weightUnit
+        - trailer
+        - currentLdm
+        - plannedWeight
+        - units
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the load plan
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        status:
+          $ref: '#/components/schemas/CargoLoadPlanStatus'
+        weightUnit:
+          $ref: '#/components/schemas/WeightUnit'
+        trailer:
+          $ref: '#/components/schemas/TrailerReadModel'
+        currentLdm:
+          type: number
+          description: Currently used loading metres
+          minimum: 0
+          example: 2.4
+        plannedWeight:
+          type: number
+          description: Total weight of all assigned cargo units, expressed in the unit given by weightUnit
+          minimum: 0
+          example: 600
+        units:
+          type: array
+          description: Cargo units assigned to this plan
+          items:
+            $ref: '#/components/schemas/CargoUnitResponse'
+
+    CreateLoadPlanInput:
+      type: object
+      description: Payload for creating a new load plan.
+      required:
+        - trailerType
+      properties:
+        trailerType:
+          $ref: '#/components/schemas/TrailerType'
+
+    CreateLoadPlanResponse:
+      type: object
+      description: Identifier of the newly created load plan.
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID of the created load plan
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+    AddCargoInput:
+      type: object
+      description: Payload for adding a cargo unit to a load plan.
+      required:
+        - palletType
+        - cargoType
+        - requirements
+        - weightKg
+        - cargoHeightMm
+      properties:
+        palletType:
+          $ref: '#/components/schemas/PalletType'
+        cargoType:
+          $ref: '#/components/schemas/CargoType'
+        requirements:
+          $ref: '#/components/schemas/CargoRequirementsInput'
+        weightKg:
+          type: number
+          description: Weight of the cargo in kilograms
+          minimum: 0
+          exclusiveMinimum: true
+          example: 600
+        cargoHeightMm:
+          type: integer
+          description: Height of the cargo (without pallet) in millimetres
+          minimum: 0
+          exclusiveMinimum: true
+          example: 1200
+
+    ChangeTrailerInput:
+      type: object
+      description: Payload for changing the trailer type on a load plan.
+      required:
+        - trailerType
+      properties:
+        trailerType:
+          $ref: '#/components/schemas/TrailerType'

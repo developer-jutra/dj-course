@@ -20,6 +20,11 @@ export interface TransportationOrder {
   /** ID of the customer who placed the order */
   customer_id: number;
   /**
+   * ID of the driver assigned to this order. Null when no driver has been assigned yet.
+   * @nullable
+   */
+  driver_id?: number | null;
+  /**
    * Order status (e.g. DELIVERED, PENDING)
    * @maxLength 20
    */

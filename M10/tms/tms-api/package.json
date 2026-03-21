@@ -20,7 +20,8 @@
     "contract:lint": "npx @redocly/cli lint contract/entry.yaml",
     "contract:validate": "npx @redocly/cli lint contract/openapi.yaml",
     "contract:validate:minimal": "npx @redocly/cli lint --extends minimal contract/openapi.yaml",
-    "contract:serve": "nodemon --watch contract --watch src -e yaml -i contract/openapi.yaml --exec \"node scripts/serve-contract.js\""
+    "contract:serve": "nodemon --watch contract --watch src -e yaml -i contract/openapi.yaml --exec \"node scripts/serve-contract.js\"",
+    "test:cucumber": "cucumber-js"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.0.31",
@@ -42,6 +43,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.7.0",
     "@redocly/cli": "^2.21.0",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",

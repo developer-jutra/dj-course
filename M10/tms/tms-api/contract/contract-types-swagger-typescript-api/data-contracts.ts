@@ -10,6 +10,18 @@
  * ---------------------------------------------------------------
  */
 
+/** Supported pallet types */
+export type PalletType = "epal1" | "industrial" | "half" | "cp1" | "cp3" | "h1";
+
+/** Type of cargo being transported */
+export type CargoType = "FOOD" | "CHEMICAL" | "ELECTRONICS" | "ADR" | "GENERAL";
+
+/** Current status of the load plan */
+export type CargoLoadPlanStatus = "DRAFT" | "FINALIZED";
+
+/** Supported trailer types */
+export type TrailerType = "standard-curtainside" | "mega" | "reefer";
+
 /** Pagination metadata attached to list responses. */
 export interface Pagination {
   /**
@@ -628,6 +640,196 @@ export interface NotificationListResponse {
   data: Notification[];
   /** Pagination metadata attached to list responses. */
   pagination: Pagination;
+}
+
+/** Payload for creating a new load plan. */
+export interface CreateLoadPlanInput {
+  /** Supported trailer types */
+  trailerType: TrailerType;
+}
+
+/** Identifier of the newly created load plan. */
+export interface CreateLoadPlanResponse {
+  /**
+   * UUID of the created load plan
+   * @format uuid
+   * @example "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+   */
+  id: string;
+}
+
+/** Capabilities of the assigned trailer. */
+export interface TrailerCapabilities {
+  /**
+   * Trailer has temperature/climate control
+   * @example false
+   */
+  hasClimateControl: boolean;
+  /**
+   * Trailer supports side loading
+   * @example true
+   */
+  supportsSideLoading: boolean;
+  /**
+   * Trailer has high-security locking
+   * @example false
+   */
+  hasHighSecurityLock: boolean;
+  /**
+   * Trailer supports bulk cargo
+   * @example false
+   */
+  isBulkReady: boolean;
+}
+
+/** Details of the trailer assigned to the load plan. */
+export interface TrailerReadModel {
+  /** Supported trailer types */
+  type: TrailerType;
+  /** @example true */
+  canCarryPallets: boolean;
+  /**
+   * Maximum weight capacity in kilograms
+   * @example 24000
+   */
+  maxWeightCapacityKg: number;
+  /**
+   * Internal trailer width in millimetres
+   * @example 2400
+   */
+  widthMm: number;
+  /**
+   * Internal trailer height in millimetres
+   * @example 2700
+   */
+  heightMm: number;
+  /**
+   * Maximum loading metres (LDM)
+   * @example 13.6
+   */
+  maxLdm: number;
+  /** Capabilities of the assigned trailer. */
+  capabilities: TrailerCapabilities;
+}
+
+/** Special handling requirements for a cargo unit. */
+export interface CargoRequirementsInput {
+  /**
+   * Cargo requires a refrigerated trailer
+   * @example false
+   */
+  isTemperatureControlled: boolean;
+  /**
+   * Cargo must be loaded from the side
+   * @example false
+   */
+  requiresSideLoading: boolean;
+  /**
+   * Cargo is bulk (requires bulk-ready trailer)
+   * @example false
+   */
+  isBulk: boolean;
+  /**
+   * Cargo requires high-security locking
+   * @example false
+   */
+  highSecurityRequired: boolean;
+}
+
+/** Unit of weight measurement */
+export type WeightUnit = "KG" | "TONNE" | "LB";
+
+/** A single pallet unit assigned to a load plan. */
+export interface CargoUnitResponse {
+  /**
+   * Unique identifier of the pallet unit
+   * @format uuid
+   * @example "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+   */
+  id: string;
+  /**
+   * Human-readable label of the pallet spec (e.g. "EPAL 1")
+   * @example "EPAL 1"
+   */
+  palletLabel: string;
+  /** Type of cargo being transported */
+  cargoType: CargoType;
+  /**
+   * Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent LoadPlanResponse
+   * @min 0
+   * @exclusiveMin true
+   * @example 600
+   */
+  weight: number;
+  /**
+   * Total height of pallet + cargo in millimetres
+   * @min 0
+   * @exclusiveMin true
+   * @example 1400
+   */
+  totalHeightMm: number;
+  /** Special handling requirements for a cargo unit. */
+  requirements: CargoRequirementsInput;
+}
+
+/** Full state of a cargo load plan. */
+export interface LoadPlanResponse {
+  /**
+   * Unique identifier of the load plan
+   * @format uuid
+   * @example "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+   */
+  id: string;
+  /** Current status of the load plan */
+  status: CargoLoadPlanStatus;
+  /** Unit in which weight values are expressed in the response */
+  weightUnit: WeightUnit;
+  /** Details of the trailer assigned to the load plan. */
+  trailer: TrailerReadModel;
+  /**
+   * Currently used loading metres
+   * @min 0
+   * @example 2.4
+   */
+  currentLdm: number;
+  /**
+   * Total weight of all assigned cargo units, expressed in the unit given by weightUnit
+   * @min 0
+   * @example 600
+   */
+  plannedWeight: number;
+  /** Cargo units assigned to this plan */
+  units: CargoUnitResponse[];
+}
+
+/** Payload for adding a cargo unit to a load plan. */
+export interface AddCargoInput {
+  /** Supported pallet types */
+  palletType: PalletType;
+  /** Type of cargo being transported */
+  cargoType: CargoType;
+  /** Special handling requirements for a cargo unit. */
+  requirements: CargoRequirementsInput;
+  /**
+   * Weight of the cargo in kilograms
+   * @min 0
+   * @exclusiveMin true
+   * @example 600
+   */
+  weightKg: number;
+  /**
+   * Height of the cargo (without pallet) in millimetres
+   * @min 0
+   * @exclusiveMin true
+   * @example 1200
+   */
+  cargoHeightMm: number;
+}
+
+/** Payload for changing the trailer type on a load plan. */
+export interface ChangeTrailerInput {
+  /** Supported trailer types */
+  trailerType: TrailerType;
 }
 
 /** Health check response body. */

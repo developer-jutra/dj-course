@@ -168,6 +168,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/transportation-orders/{id}/driver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Assign a driver to a transportation order
+         * @description Assigns an existing driver to the specified transportation order. Replaces any previously assigned driver. The operation is idempotent.
+         */
+        put: operations["assignDriverToOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications": {
         parameters: {
             query?: never;
@@ -182,6 +202,126 @@ export interface paths {
         get: operations["getNotificationsByUserId"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a load plan
+         * @description Creates a new cargo load plan for a given trailer type.
+         */
+        post: operations["createLoadPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get load plan details
+         * @description Returns the full state of a load plan including assigned cargo units.
+         */
+        get: operations["getLoadPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans/{id}/cargo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add cargo to a load plan
+         * @description Adds a pallet unit with cargo to an existing draft load plan.
+         */
+        post: operations["addCargoToLoadPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans/{id}/cargo/{unitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove cargo from a load plan
+         * @description Removes a specific pallet unit from a draft load plan by its unit ID.
+         */
+        delete: operations["removeCargoFromLoadPlan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans/{id}/trailer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change trailer type
+         * @description Replaces the trailer on a draft load plan. All currently assigned cargo units are re-validated against the new trailer's capabilities and capacity.
+         */
+        put: operations["changeTrailerType"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cargo-plans/{id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finalize a load plan
+         * @description Marks the load plan as FINALIZED. A finalized plan cannot be modified. The plan must have at least one cargo unit and must not exceed trailer capacity.
+         */
+        post: operations["finalizeLoadPlan"];
         delete?: never;
         options?: never;
         head?: never;
@@ -674,6 +814,11 @@ export interface components {
              */
             customer_id: number;
             /**
+             * @description ID of the driver assigned to this order. Null when no driver has been assigned yet.
+             * @example 7
+             */
+            driver_id?: number | null;
+            /**
              * @description Order status (e.g. DELIVERED, PENDING)
              * @example DELIVERED
              */
@@ -726,6 +871,14 @@ export interface components {
              */
             tracking_number?: string | null;
         };
+        /** @description Payload for assigning a driver to a transportation order. */
+        AssignDriverInput: {
+            /**
+             * @description ID of the driver to assign to the order.
+             * @example 7
+             */
+            driver_id: number;
+        };
         /** @description A single notification as returned by the API. */
         Notification: {
             /**
@@ -765,6 +918,181 @@ export interface components {
             data: components["schemas"]["Notification"][];
             pagination: components["schemas"]["Pagination"];
         };
+        /**
+         * @description Supported trailer types
+         * @enum {string}
+         */
+        TrailerType: "standard-curtainside" | "mega" | "reefer";
+        /** @description Payload for creating a new load plan. */
+        CreateLoadPlanInput: {
+            trailerType: components["schemas"]["TrailerType"];
+        };
+        /** @description Identifier of the newly created load plan. */
+        CreateLoadPlanResponse: {
+            /**
+             * Format: uuid
+             * @description UUID of the created load plan
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            id: string;
+        };
+        /**
+         * @description Current status of the load plan
+         * @enum {string}
+         */
+        CargoLoadPlanStatus: "DRAFT" | "FINALIZED";
+        /** @description Capabilities of the assigned trailer. */
+        TrailerCapabilities: {
+            /**
+             * @description Trailer has temperature/climate control
+             * @example false
+             */
+            hasClimateControl: boolean;
+            /**
+             * @description Trailer supports side loading
+             * @example true
+             */
+            supportsSideLoading: boolean;
+            /**
+             * @description Trailer has high-security locking
+             * @example false
+             */
+            hasHighSecurityLock: boolean;
+            /**
+             * @description Trailer supports bulk cargo
+             * @example false
+             */
+            isBulkReady: boolean;
+        };
+        /** @description Details of the trailer assigned to the load plan. */
+        TrailerReadModel: {
+            type: components["schemas"]["TrailerType"];
+            /** @example true */
+            canCarryPallets: boolean;
+            /**
+             * @description Maximum weight capacity in kilograms
+             * @example 24000
+             */
+            maxWeightCapacityKg: number;
+            /**
+             * @description Internal trailer width in millimetres
+             * @example 2400
+             */
+            widthMm: number;
+            /**
+             * @description Internal trailer height in millimetres
+             * @example 2700
+             */
+            heightMm: number;
+            /**
+             * @description Maximum loading metres (LDM)
+             * @example 13.6
+             */
+            maxLdm: number;
+            capabilities: components["schemas"]["TrailerCapabilities"];
+        };
+        /**
+         * @description Type of cargo being transported
+         * @enum {string}
+         */
+        CargoType: "FOOD" | "CHEMICAL" | "ELECTRONICS" | "ADR" | "GENERAL";
+        /** @description Special handling requirements for a cargo unit. */
+        CargoRequirementsInput: {
+            /**
+             * @description Cargo requires a refrigerated trailer
+             * @example false
+             */
+            isTemperatureControlled: boolean;
+            /**
+             * @description Cargo must be loaded from the side
+             * @example false
+             */
+            requiresSideLoading: boolean;
+            /**
+             * @description Cargo is bulk (requires bulk-ready trailer)
+             * @example false
+             */
+            isBulk: boolean;
+            /**
+             * @description Cargo requires high-security locking
+             * @example false
+             */
+            highSecurityRequired: boolean;
+        };
+        /** @description A single pallet unit assigned to a load plan. */
+        CargoUnitResponse: {
+            /**
+             * Format: uuid
+             * @description Unique identifier of the pallet unit
+             * @example b2c3d4e5-f6a7-8901-bcde-f12345678901
+             */
+            id: string;
+            /**
+             * @description Human-readable label of the pallet spec (e.g. "EPAL 1")
+             * @example EPAL 1
+             */
+            palletLabel: string;
+            cargoType: components["schemas"]["CargoType"];
+            /**
+             * @description Weight of the cargo on this pallet in kilograms
+             * @example 600
+             */
+            weightKg: number;
+            /**
+             * @description Total height of pallet + cargo in millimetres
+             * @example 1400
+             */
+            totalHeightMm: number;
+            requirements: components["schemas"]["CargoRequirementsInput"];
+        };
+        /** @description Full state of a cargo load plan. */
+        LoadPlanResponse: {
+            /**
+             * Format: uuid
+             * @description Unique identifier of the load plan
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            id: string;
+            status: components["schemas"]["CargoLoadPlanStatus"];
+            trailer: components["schemas"]["TrailerReadModel"];
+            /**
+             * @description Currently used loading metres
+             * @example 2.4
+             */
+            currentLdm: number;
+            /**
+             * @description Total weight of all assigned cargo units in kilograms
+             * @example 600
+             */
+            plannedWeightKg: number;
+            /** @description Cargo units assigned to this plan */
+            units: components["schemas"]["CargoUnitResponse"][];
+        };
+        /**
+         * @description Supported pallet types
+         * @enum {string}
+         */
+        PalletType: "epal1" | "industrial" | "half" | "cp1" | "cp3" | "h1";
+        /** @description Payload for adding a cargo unit to a load plan. */
+        AddCargoInput: {
+            palletType: components["schemas"]["PalletType"];
+            cargoType: components["schemas"]["CargoType"];
+            requirements: components["schemas"]["CargoRequirementsInput"];
+            /**
+             * @description Weight of the cargo in kilograms
+             * @example 600
+             */
+            weightKg: number;
+            /**
+             * @description Height of the cargo (without pallet) in millimetres
+             * @example 1200
+             */
+            cargoHeightMm: number;
+        };
+        /** @description Payload for changing the trailer type on a load plan. */
+        ChangeTrailerInput: {
+            trailerType: components["schemas"]["TrailerType"];
+        };
         /** @description Health check response body. */
         HealthResponse: {
             /**
@@ -780,6 +1108,15 @@ export interface components {
         };
     };
     responses: {
+        /** @description The request contains unknown or invalid query parameters. */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description An unexpected server-side error occurred. */
         InternalServerError: {
             headers: {
@@ -795,17 +1132,22 @@ export interface components {
          * @description Page number (1-based)
          * @example 1
          */
-        PageParam: number;
+        PageParam: string;
         /**
          * @description Number of items per page (max 100)
          * @example 20
          */
-        LimitParam: number;
+        LimitParam: string;
         /**
          * @description Numeric resource identifier
          * @example 1
          */
         PathIdParam: number;
+        /**
+         * @description UUID of the load plan
+         * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+         */
+        LoadPlanIdParam: string;
     };
     requestBodies: never;
     headers: never;
@@ -881,6 +1223,7 @@ export interface operations {
                     "application/json": components["schemas"]["CustomerListResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -928,6 +1271,15 @@ export interface operations {
                     "application/json": components["schemas"]["CustomerDetail"];
                 };
             };
+            /** @description The provided ID is not a valid positive integer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description No customer exists with the given ID. */
             404: {
                 headers: {
@@ -966,6 +1318,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description The provided ID is not a valid positive integer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
             /** @description No customer exists with the given ID. */
             404: {
@@ -1122,6 +1483,7 @@ export interface operations {
                     "application/json": components["schemas"]["VehicleListResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -1328,6 +1690,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description The provided ID is not a valid positive integer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description No vehicle exists with the given ID. */
             404: {
                 headers: {
@@ -1500,6 +1871,15 @@ export interface operations {
                     "application/json": components["schemas"]["DriverDetail"];
                 };
             };
+            /** @description The provided ID is not a valid positive integer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description No driver exists with the given ID. */
             404: {
                 headers: {
@@ -1560,6 +1940,69 @@ export interface operations {
                     "application/json": components["schemas"]["TransportationOrder"][];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    assignDriverToOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Numeric resource identifier
+                 * @example 1
+                 */
+                id: components["parameters"]["PathIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "driver_id": 7
+                 *     }
+                 */
+                "application/json": components["schemas"]["AssignDriverInput"];
+            };
+        };
+        responses: {
+            /** @description Driver assigned successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request payload has an invalid structure or contains missing/invalid fields. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "driver_id is required and must be a positive integer"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Transportation order or driver with the given ID does not exist. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Transportation order not found"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -1570,7 +2013,7 @@ export interface operations {
                  * @description User ID to fetch notifications for. Required.
                  * @example 1
                  */
-                userId: number;
+                userId: string;
                 /**
                  * @description Page number (1-based)
                  * @example 1
@@ -1639,6 +2082,367 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    createLoadPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "trailerType": "standard-curtainside"
+                 *     }
+                 */
+                "application/json": components["schemas"]["CreateLoadPlanInput"];
+            };
+        };
+        responses: {
+            /** @description Load plan created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["CreateLoadPlanResponse"];
+                };
+            };
+            /** @description Missing or invalid trailerType. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "trailerType is required. Allowed: standard-curtainside, mega, reefer"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getLoadPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description UUID of the load plan
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: components["parameters"]["LoadPlanIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Load plan found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                     *       "status": "DRAFT",
+                     *       "trailer": {
+                     *         "type": "standard-curtainside",
+                     *         "canCarryPallets": true,
+                     *         "maxWeightCapacityKg": 24000,
+                     *         "widthMm": 2400,
+                     *         "heightMm": 2700,
+                     *         "maxLdm": 13.6,
+                     *         "capabilities": {
+                     *           "hasClimateControl": false,
+                     *           "supportsSideLoading": true,
+                     *           "hasHighSecurityLock": false,
+                     *           "isBulkReady": false
+                     *         }
+                     *       },
+                     *       "currentLdm": 2.4,
+                     *       "plannedWeightKg": 600,
+                     *       "units": [
+                     *         {
+                     *           "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                     *           "palletLabel": "EPAL 1",
+                     *           "cargoType": "FOOD",
+                     *           "weightKg": 600,
+                     *           "totalHeightMm": 1400,
+                     *           "requirements": {
+                     *             "isTemperatureControlled": false,
+                     *             "requiresSideLoading": false,
+                     *             "isBulk": false,
+                     *             "highSecurityRequired": false
+                     *           }
+                     *         }
+                     *       ]
+                     *     }
+                     */
+                    "application/json": components["schemas"]["LoadPlanResponse"];
+                };
+            };
+            /** @description No load plan exists with the given ID. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Load plan 'a1b2c3d4-...' not found"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    addCargoToLoadPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description UUID of the load plan
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: components["parameters"]["LoadPlanIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "palletType": "epal1",
+                 *       "cargoType": "FOOD",
+                 *       "requirements": {
+                 *         "isTemperatureControlled": false,
+                 *         "requiresSideLoading": false,
+                 *         "isBulk": false,
+                 *         "highSecurityRequired": false
+                 *       },
+                 *       "weightKg": 600,
+                 *       "cargoHeightMm": 1200
+                 *     }
+                 */
+                "application/json": components["schemas"]["AddCargoInput"];
+            };
+        };
+        responses: {
+            /** @description Cargo added successfully – no body returned. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request payload or business rule violation (e.g. weight/LDM exceeded, incompatible cargo). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No load plan exists with the given ID. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Load plan 'a1b2c3d4-...' not found"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    removeCargoFromLoadPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description UUID of the load plan
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: components["parameters"]["LoadPlanIdParam"];
+                /**
+                 * @description UUID of the pallet unit to remove
+                 * @example b2c3d4e5-f6a7-8901-bcde-f12345678901
+                 */
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cargo removed successfully – no body returned. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unit not found in the plan or plan is finalized. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No load plan exists with the given ID. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Load plan 'a1b2c3d4-...' not found"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    changeTrailerType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description UUID of the load plan
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: components["parameters"]["LoadPlanIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "trailerType": "reefer"
+                 *     }
+                 */
+                "application/json": components["schemas"]["ChangeTrailerInput"];
+            };
+        };
+        responses: {
+            /** @description Trailer type changed successfully – no body returned. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid trailerType or re-validation of existing cargo failed. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "trailerType is required. Allowed: standard-curtainside, mega, reefer"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No load plan exists with the given ID. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Load plan 'a1b2c3d4-...' not found"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    finalizeLoadPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description UUID of the load plan
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: components["parameters"]["LoadPlanIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Load plan finalized successfully – no body returned. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Plan cannot be finalized (empty plan or capacity exceeded). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Cannot finalize empty plan."
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No load plan exists with the given ID. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": "Load plan 'a1b2c3d4-...' not found"
+                     *     }
+                     */
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
