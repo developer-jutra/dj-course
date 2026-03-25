@@ -4,6 +4,13 @@
 @planIdElectronics = 33333333-3333-4333-a333-333333333303
 @planIdGeneral = 44444444-4444-4444-a444-444444444404
 @planIdDangerousGoods = 55555555-5555-4555-a555-555555555505
+@planIdChemicalDraft = 66666666-6666-4666-a666-666666666606
+@planIdGeneralDraftMega = 77777777-7777-4777-a777-777777777707
+@planIdAdrDraftReefer = 88888888-8888-4888-a888-888888888808
+@unitIdFoodFinalizedFirst = 11111111-1111-4111-a111-000000000001
+@unitIdChemicalDraftFirst = 66666666-6666-4666-a666-000000000001
+@planIdNotExist = 00000000-dead-4bee-f000-000000000000
+@unitIdNotExist = 00000000-dead-4bee-f000-000000000001
 
 ### Plan z żywnością (FOOD) – Reefer, jednostki jednorodne
 GET {{baseUrl}}/cargo-plans/{{planIdFood}}
@@ -52,7 +59,9 @@ Content-Type: application/json
 { "trailerType": "reefer" }
 
 
-
+### Plan 
+GET {{baseUrl}}/cargo-plans/{{createPlanStandard.id}}
+Accept: application/json
 
 ### 3. (EXPECTED SUCCESS) Dodaj CHEMICAL do planu z CHEMICAL (jednorodny, standard-curtainside)
 # Wymaga: wcześniej uruchomione 1, plan ma 0 jednostek – dodajemy pierwszą
@@ -190,3 +199,106 @@ POST {{baseUrl}}/cargo-plans/{{planIdFood}}/cargo
 Content-Type: application/json
 
 {"palletType":"h1","cargoType":"FOOD","weightKg":400,"cargoHeightMm":1200}
+
+
+
+# REMOVE CARGO – DELETE /cargo-plans/{id}/cargo/{unitId}
+# Usuwa konkretną paletę z planu wg jej UUID. Plan musi być w statusie DRAFT.
+# Dane z seed: planIdChemicalDraft (66666666, standard-curtainside, DRAFT), unitIdChemicalDraftFirst
+
+### 16. (EXPECTED SUCCESS) Usuń jednostkę CHEMICAL z planu DRAFT
+DELETE {{baseUrl}}/cargo-plans/{{planIdChemicalDraft}}/cargo/{{unitIdChemicalDraftFirst}}
+
+### 17. (EXPECTED FAIL) – Plan nie istnieje (404)
+DELETE {{baseUrl}}/cargo-plans/{{planIdNotExist}}/cargo/{{unitIdChemicalDraftFirst}}
+
+### 18. (EXPECTED FAIL) – Jednostka o podanym ID nie należy do planu (400)
+DELETE {{baseUrl}}/cargo-plans/{{planIdChemicalDraft}}/cargo/{{unitIdNotExist}}
+
+### 19. (EXPECTED FAIL) – Plan jest już sfinalizowany, usuwanie zabronione (400)
+# planIdFood = 11111111 (FINALIZED), unitIdFoodFinalizedFirst to jedna z jego palet
+DELETE {{baseUrl}}/cargo-plans/{{planIdFood}}/cargo/{{unitIdFoodFinalizedFirst}}
+
+
+
+
+
+# CHANGE TRAILER – PUT /cargo-plans/{id}/trailer
+# Podmienia naczepę w planie DRAFT. Po zmianie wszystkie przypisane jednostki są
+# re-walidowane pod kątem możliwości nowej naczepy i jej pojemności.
+# Dane z seed: planIdGeneralDraftMega (77777777, mega, DRAFT) i planIdAdrDraftReefer (88888888, reefer, DRAFT)
+
+### 20. (EXPECTED SUCCESS) Zmień naczepę z mega na standard-curtainside (GENERAL – brak specjalnych wymagań)
+PUT {{baseUrl}}/cargo-plans/{{planIdGeneralDraftMega}}/trailer
+Content-Type: application/json
+
+{"trailerType": "standard-curtainside"}
+
+### 21. (EXPECTED FAIL) – Nieprawidłowy typ naczepy (400)
+PUT {{baseUrl}}/cargo-plans/{{planIdGeneralDraftMega}}/trailer
+Content-Type: application/json
+
+{"trailerType": "flatbed"}
+
+### 22. (EXPECTED FAIL) – Re-walidacja: ładunek ADR wymaga highSecurityLock, standard-curtainside go nie ma (400)
+# planIdAdrDraftReefer (88888888, reefer, DRAFT) ma palety ADR (highSecurityRequired=true)
+# standard-curtainside ma hasHighSecurityLock: false → re-walidacja odrzuca
+PUT {{baseUrl}}/cargo-plans/{{planIdAdrDraftReefer}}/trailer
+Content-Type: application/json
+
+{"trailerType": "standard-curtainside"}
+
+### 23. (EXPECTED FAIL) – Plan nie istnieje (404)
+PUT {{baseUrl}}/cargo-plans/{{planIdNotExist}}/trailer
+Content-Type: application/json
+
+{"trailerType": "mega"}
+
+### 24. (EXPECTED FAIL) – Plan sfinalizowany, zmiana naczepy zabroniona (400)
+# planIdChemical = 22222222 (FINALIZED)
+PUT {{baseUrl}}/cargo-plans/{{planIdChemical}}/trailer
+Content-Type: application/json
+
+{"trailerType": "mega"}
+
+
+
+# FINALIZE – POST /cargo-plans/{id}/finalize
+# Oznacza plan jako FINALIZED – blokuje dalsze modyfikacje.
+# Warunek: plan musi mieć co najmniej jedną jednostkę i nie może przekraczać pojemności.
+
+### 25. (setup) Utwórz plan do finalizacji
+# @name createPlanToFinalize
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{"trailerType": "mega"}
+
+### 26. (setup) Dodaj jednostkę do planu przed finalizacją
+POST {{baseUrl}}/cargo-plans/{{createPlanToFinalize.id}}/cargo
+Content-Type: application/json
+
+{"palletType":"epal1","cargoType":"GENERAL","weightKg":500,"cargoHeightMm":1000}
+
+### 27. (EXPECTED SUCCESS) Finalizuj plan z ładunkiem – status zmienia się na FINALIZED
+POST {{baseUrl}}/cargo-plans/{{createPlanToFinalize.id}}/finalize
+
+
+
+
+
+### 28. (setup) Utwórz pusty plan do testu błędu finalizacji
+# @name createEmptyPlanToFinalize
+POST {{baseUrl}}/cargo-plans
+Content-Type: application/json
+
+{"trailerType": "standard-curtainside"}
+
+### 29. (EXPECTED FAIL) – Nie można sfinalizować pustego planu (brak jednostek) (400)
+POST {{baseUrl}}/cargo-plans/{{createEmptyPlanToFinalize.id}}/finalize
+
+### 30. (EXPECTED FAIL) – Plan już sfinalizowany, powtórna finalizacja zabroniona (400)
+POST {{baseUrl}}/cargo-plans/{{createPlanToFinalize.id}}/finalize
+
+### 31. (EXPECTED FAIL) – Plan nie istnieje (404)
+POST {{baseUrl}}/cargo-plans/{{planIdNotExist}}/finalize

@@ -1,6 +1,7 @@
 import { pool } from '../../database';
 import { OptimisticLockError } from '../../shared/optimistic-lock-error';
 import { UUID } from '../../shared/uuid';
+import type { CargoLoadPlanReadModel, PalletUnitReadModel } from '../../types/data-contracts';
 import { CargoLoadPlan } from './cargo-load-plan';
 import { CargoLoadPlanStatus } from './cargo-load-plan.types';
 import { PalletUnit } from '../pallets/pallet-unit';
@@ -10,12 +11,40 @@ import { Weight } from '../../shared/weight';
 import type { PoolClient } from 'pg';
 
 export interface CargoLoadPlanRepository {
+  create(plan: CargoLoadPlan): Promise<void>;
   save(plan: CargoLoadPlan): Promise<void>;
   findById(id: string): Promise<CargoLoadPlan | null>;
   delete(id: string): Promise<void>;
 }
 
+/**
+ * What a SQL/in-memory query returns: contract types throughout, weights always in KG.
+ * Derived from the API contract – no domain objects.
+ */
+export type CargoLoadPlanDbRow =
+  Omit<CargoLoadPlanReadModel, 'weightUnit' | 'plannedWeight' | 'units'> & {
+    readonly units: ReadonlyArray<
+      Omit<PalletUnitReadModel, 'weight'> & {
+        readonly weightKg: number;
+        readonly description?: string | null;
+      }
+    >;
+  };
+
 export class SqlCargoLoadPlanRepository implements CargoLoadPlanRepository {
+  public async create(plan: CargoLoadPlan): Promise<void> {
+    const { id, trailer, status, currentLdm } = plan.getSnapshot();
+    const trailerTypeKey = TrailerFactory.toTypeKey(trailer);
+    await pool.query(
+      `INSERT INTO cargo_plans.cargo_load_plans (id, trailer_type, status, current_ldm, version)
+       VALUES ($1, $2, $3, $4, 1)`,
+      [id, trailerTypeKey, status, currentLdm],
+    );
+  }
+
+  // 🔥🔥🔥 save supports multiple operations for the plan:
+  // modifying properties of the plan (trailer type, status, current LDM)
+  // 🔥🔥🔥 adding or removing cargo units 🔥🔥🔥 (deep within the aggregate!)
   public async save(plan: CargoLoadPlan): Promise<void> {
     const { id, trailer, status, currentLdm, assignedUnits, version } = plan.getSnapshot();
     const trailerTypeKey = TrailerFactory.toTypeKey(trailer);
@@ -34,41 +63,44 @@ export class SqlCargoLoadPlanRepository implements CargoLoadPlanRepository {
         const { rowCount } = await client.query(
           `UPDATE cargo_plans.cargo_load_plans
            SET trailer_type = $1, status = $2, current_ldm = $3, version = version + 1
-           WHERE id = $4 AND version = $5`,
-          [trailerTypeKey, status, currentLdm, id, version],
+           WHERE id = $4 AND version = $5`, // 🔥🔥🔥 optimistic lock check
+          [trailerTypeKey, status, currentLdm, id, version], // 🔥🔥🔥 currentLDM - is derived from the all units dimensions (like a local cache), and is also transactionally consistent (within 1 row)
         );
-        if (rowCount === 0) {
-          const currentVersion = await this.fetchVersion(client, id);
-          await client.query('ROLLBACK');
+        if (rowCount === 0) { // 🔥🔥🔥 optimistic check failed
+          const currentVersion = await this.fetchVersion(client, id); // 🔥🔥🔥 no updates? VERSION MISMATCH!
+          await client.query('ROLLBACK'); // 🔥🔥🔥 rollback transaction
           throw new OptimisticLockError('CargoLoadPlan', id, version, currentVersion ?? -1);
         }
       }
 
+      // 🔥🔥🔥 EXTREMELY NAIVE BUT WORKS 😅
+      // 🔥🔥🔥 with high concurrency, we'd be doomed (TOO LONG TRANSACTIONS causing long blockades... maybe deadlocks?)
       await client.query(
         'DELETE FROM cargo_plans.cargo_load_plan_units WHERE load_plan_id = $1',
         [id],
       );
 
       for (const unit of assignedUnits) {
-        const palletTypeKey = PalletSpec.toTypeKey(unit.spec);
-        const cargoHeightMm = unit.totalHeightMm - unit.spec.height;
+        const { id: unitId, spec, cargoType, weight, requirements, totalHeightMm } = unit;
+        const palletTypeKey = PalletSpec.toTypeKey(spec);
+        const cargoHeightMm = totalHeightMm - spec.height;
         await client.query(
           `INSERT INTO cargo_plans.cargo_load_plan_units
              (id, load_plan_id, pallet_type, cargo_type, description, weight_kg, cargo_height_mm,
               is_temperature_controlled, requires_side_loading, is_bulk, high_security_required)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
           [
-            unit.id,
+            unitId,
             id,
             palletTypeKey,
-            unit.cargoType,
+            cargoType,
             null, // description – API-created units have none
-            unit.weight.valueInKg,
+            weight.valueInKg,
             cargoHeightMm,
-            unit.requirements.isTemperatureControlled,
-            unit.requirements.requiresSideLoading,
-            unit.requirements.isBulk,
-            unit.requirements.highSecurityRequired,
+            requirements.isTemperatureControlled,
+            requirements.requiresSideLoading,
+            requirements.isBulk,
+            requirements.highSecurityRequired,
           ],
         );
       }
@@ -105,7 +137,7 @@ export class SqlCargoLoadPlanRepository implements CargoLoadPlanRepository {
 
     const units: PalletUnit[] = unitRows.map(u => {
       const spec = PalletSpec.fromType(u.pallet_type);
-      return new PalletUnit(
+      return PalletUnit.rehydrate(
         UUID.from<'CargoUnit'>(u.id),
         spec,
         u.cargo_type,

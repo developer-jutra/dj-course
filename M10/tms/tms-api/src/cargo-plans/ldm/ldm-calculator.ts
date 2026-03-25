@@ -8,14 +8,14 @@ export class LdmCalculator {
   public static calculate(units: PalletUnit[], trailer: PalletLoadableTrailerSpec): number {
     if (units.length === 0) return 0;
 
-    const sortedUnits = [...units].sort((a, b) => b.spec.length - a.spec.length);
+    const sortedUnits = [...units].sort((a, b) => b.getSnapshot().spec.length - a.getSnapshot().spec.length);
     const rows: PalletUnit[][] = [[]];
 
     for (const unit of sortedUnits) {
       let placed = false;
       for (const row of rows) {
-        const rowWidth = row.reduce((sum, u) => sum + u.spec.width, 0);
-        if (rowWidth + unit.spec.width <= trailer.widthMm) {
+        const rowWidth = row.reduce((sum, u) => sum + u.getSnapshot().spec.width, 0);
+        if (rowWidth + unit.getSnapshot().spec.width <= trailer.widthMm) {
           row.push(unit);
           placed = true;
           break;
@@ -26,7 +26,7 @@ export class LdmCalculator {
 
     const totalLdmMm = rows.reduce((acc, row) => {
       if (row.length === 0) return acc;
-      const maxDepthInRow = Math.max(...row.map(u => u.spec.length));
+      const maxDepthInRow = Math.max(...row.map(u => u.getSnapshot().spec.length));
       return acc + maxDepthInRow;
     }, 0);
 

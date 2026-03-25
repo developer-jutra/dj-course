@@ -937,6 +937,12 @@ export interface components {
             id: string;
         };
         /**
+         * @description Unit of weight measurement
+         * @default KG
+         * @enum {string}
+         */
+        WeightUnit: "KG" | "TONNE" | "LB";
+        /**
          * @description Current status of the load plan
          * @enum {string}
          */
@@ -1020,7 +1026,7 @@ export interface components {
             highSecurityRequired: boolean;
         };
         /** @description A single pallet unit assigned to a load plan. */
-        CargoUnitResponse: {
+        PalletUnitReadModel: {
             /**
              * Format: uuid
              * @description Unique identifier of the pallet unit
@@ -1034,19 +1040,21 @@ export interface components {
             palletLabel: string;
             cargoType: components["schemas"]["CargoType"];
             /**
-             * @description Weight of the cargo on this pallet in kilograms
+             * @description Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent CargoLoadPlanReadModel
              * @example 600
              */
-            weightKg: number;
+            weight: number;
             /**
              * @description Total height of pallet + cargo in millimetres
              * @example 1400
              */
             totalHeightMm: number;
+            /** @description Human-readable product description (e.g. "FOOD – warzywa") */
+            description?: string | null;
             requirements: components["schemas"]["CargoRequirementsInput"];
         };
         /** @description Full state of a cargo load plan. */
-        LoadPlanResponse: {
+        CargoLoadPlanReadModel: {
             /**
              * Format: uuid
              * @description Unique identifier of the load plan
@@ -1054,6 +1062,12 @@ export interface components {
              */
             id: string;
             status: components["schemas"]["CargoLoadPlanStatus"];
+            /**
+             * @description Optimistic concurrency version of the load plan
+             * @example 3
+             */
+            version: number;
+            weightUnit: components["schemas"]["WeightUnit"];
             trailer: components["schemas"]["TrailerReadModel"];
             /**
              * @description Currently used loading metres
@@ -1061,12 +1075,12 @@ export interface components {
              */
             currentLdm: number;
             /**
-             * @description Total weight of all assigned cargo units in kilograms
+             * @description Total weight of all assigned cargo units, expressed in the unit given by weightUnit
              * @example 600
              */
-            plannedWeightKg: number;
+            plannedWeight: number;
             /** @description Cargo units assigned to this plan */
-            units: components["schemas"]["CargoUnitResponse"][];
+            units: components["schemas"]["PalletUnitReadModel"][];
         };
         /**
          * @description Supported pallet types
@@ -1077,7 +1091,6 @@ export interface components {
         AddCargoInput: {
             palletType: components["schemas"]["PalletType"];
             cargoType: components["schemas"]["CargoType"];
-            requirements: components["schemas"]["CargoRequirementsInput"];
             /**
              * @description Weight of the cargo in kilograms
              * @example 600
@@ -1148,6 +1161,8 @@ export interface components {
          * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
          */
         LoadPlanIdParam: string;
+        /** @description Unit in which weight values are expressed in the response. Defaults to KG. */
+        WeightUnitParam: components["schemas"]["WeightUnit"];
     };
     requestBodies: never;
     headers: never;
@@ -2139,7 +2154,10 @@ export interface operations {
     };
     getLoadPlan: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Unit in which weight values are expressed in the response. Defaults to KG. */
+                weightUnit?: components["parameters"]["WeightUnitParam"];
+            };
             header?: never;
             path: {
                 /**
@@ -2162,6 +2180,7 @@ export interface operations {
                      * @example {
                      *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                      *       "status": "DRAFT",
+                     *       "weightUnit": "KG",
                      *       "trailer": {
                      *         "type": "standard-curtainside",
                      *         "canCarryPallets": true,
@@ -2176,14 +2195,15 @@ export interface operations {
                      *           "isBulkReady": false
                      *         }
                      *       },
+                     *       "version": 3,
                      *       "currentLdm": 2.4,
-                     *       "plannedWeightKg": 600,
+                     *       "plannedWeight": 600,
                      *       "units": [
                      *         {
                      *           "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
                      *           "palletLabel": "EPAL 1",
                      *           "cargoType": "FOOD",
-                     *           "weightKg": 600,
+                     *           "weight": 600,
                      *           "totalHeightMm": 1400,
                      *           "requirements": {
                      *             "isTemperatureControlled": false,
@@ -2195,7 +2215,7 @@ export interface operations {
                      *       ]
                      *     }
                      */
-                    "application/json": components["schemas"]["LoadPlanResponse"];
+                    "application/json": components["schemas"]["CargoLoadPlanReadModel"];
                 };
             };
             /** @description No load plan exists with the given ID. */
@@ -2234,12 +2254,6 @@ export interface operations {
                  * @example {
                  *       "palletType": "epal1",
                  *       "cargoType": "FOOD",
-                 *       "requirements": {
-                 *         "isTemperatureControlled": false,
-                 *         "requiresSideLoading": false,
-                 *         "isBulk": false,
-                 *         "highSecurityRequired": false
-                 *       },
                  *       "weightKg": 600,
                  *       "cargoHeightMm": 1200
                  *     }

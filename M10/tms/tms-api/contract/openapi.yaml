@@ -710,7 +710,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoadPlanResponse'
+                $ref: '#/components/schemas/CargoLoadPlanReadModel'
               example:
                 id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
                 status: DRAFT
@@ -1778,7 +1778,7 @@ components:
           type: boolean
           description: Cargo requires high-security locking
           example: false
-    CargoUnitResponse:
+    PalletUnitReadModel:
       type: object
       description: A single pallet unit assigned to a load plan.
       required:
@@ -1802,7 +1802,7 @@ components:
           $ref: '#/components/schemas/CargoType'
         weight:
           type: number
-          description: Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent LoadPlanResponse
+          description: Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent CargoLoadPlanReadModel
           minimum: 0
           exclusiveMinimum: true
           example: 600
@@ -1818,7 +1818,7 @@ components:
           description: Human-readable product description (e.g. "FOOD – warzywa")
         requirements:
           $ref: '#/components/schemas/CargoRequirementsInput'
-    LoadPlanResponse:
+    CargoLoadPlanReadModel:
       type: object
       description: Full state of a cargo load plan.
       required:
@@ -1861,7 +1861,7 @@ components:
           type: array
           description: Cargo units assigned to this plan
           items:
-            $ref: '#/components/schemas/CargoUnitResponse'
+            $ref: '#/components/schemas/PalletUnitReadModel'
     PalletType:
       type: string
       description: Supported pallet types

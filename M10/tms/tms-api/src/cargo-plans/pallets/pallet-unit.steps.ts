@@ -8,7 +8,6 @@ import { PalletUnit } from './pallet-unit';
 import { PalletSpec } from './pallet-spec';
 import { CargoType } from '../cargo/cargo.types';
 import { Weight } from '../../shared/weight';
-import { UUID } from '../../shared/uuid';
 
 type PalletSpecKey = 'EPAL1' | 'H1' | 'CP1' | 'Industrial' | 'Half';
 
@@ -48,38 +47,42 @@ interface PalletUnitWorld {
   lastError?: Error;
 }
 
-Given('{word} pallet spec', function (this: PalletUnitWorld, specKey: PalletSpecKey) {
+Given(/^(EPAL1|H1|CP1|Industrial|Half) pallet spec$/, function (this: PalletUnitWorld, specKey: PalletSpecKey) {
   this.palletSpec = getPalletSpec(specKey);
 });
 
 When(
   'I create a pallet unit with id {string} cargo type {word} weight {int} kg cargo height {int} mm',
-  function (this: PalletUnitWorld, id: string, cargoTypeStr: string, weightKg: number, cargoHeightMm: number) {
+  function (this: PalletUnitWorld, _id: string, cargoTypeStr: string, weightKg: number, cargoHeightMm: number) {
     assert(this.palletSpec);
     const cargoType = parseCargoType(cargoTypeStr);
-    this.lastUnit = new PalletUnit(UUID.from<'CargoUnit'>(id), this.palletSpec!, cargoType, {
+    const result = PalletUnit.create(this.palletSpec!, cargoType, {
       isTemperatureControlled: false,
       requiresSideLoading: false,
       isBulk: false,
       highSecurityRequired: false,
     }, Weight.from(weightKg, 'KG'), cargoHeightMm);
+    if (result.success) {
+      this.lastUnit = result.value;
+    } else {
+      this.lastError = new Error(result.error.message);
+    }
   }
 );
 
 When(
   'I try to create a pallet unit with id {string} cargo type {word} weight {int} kg cargo height {int} mm',
-  function (this: PalletUnitWorld, id: string, cargoTypeStr: string, weightKg: number, cargoHeightMm: number) {
+  function (this: PalletUnitWorld, _id: string, cargoTypeStr: string, weightKg: number, cargoHeightMm: number) {
     assert(this.palletSpec);
-    try {
-      const cargoType = parseCargoType(cargoTypeStr);
-      this.lastUnit = new PalletUnit(UUID.from<'CargoUnit'>(id), this.palletSpec!, cargoType, {
-        isTemperatureControlled: false,
-        requiresSideLoading: false,
-        isBulk: false,
-        highSecurityRequired: false,
-      }, Weight.from(weightKg, 'KG'), cargoHeightMm);
-    } catch (e) {
-      this.lastError = e as Error;
+    const cargoType = parseCargoType(cargoTypeStr);
+    const result = PalletUnit.create(this.palletSpec!, cargoType, {
+      isTemperatureControlled: false,
+      requiresSideLoading: false,
+      isBulk: false,
+      highSecurityRequired: false,
+    }, Weight.from(weightKg, 'KG'), cargoHeightMm);
+    if (!result.success) {
+      this.lastError = new Error(result.error.message);
     }
   }
 );
@@ -91,9 +94,9 @@ Then('the pallet unit should be created successfully', function (this: PalletUni
 Then('total height should be {int} mm', function (this: PalletUnitWorld, expectedMm: number) {
   assert(this.lastUnit, 'Expected pallet unit to exist');
   assert.strictEqual(
-    this.lastUnit!.totalHeightMm,
+    this.lastUnit!.getSnapshot().totalHeightMm,
     expectedMm,
-    `Expected totalHeightMm=${expectedMm}, got ${this.lastUnit!.totalHeightMm}`
+    `Expected totalHeightMm=${expectedMm}, got ${this.lastUnit!.getSnapshot().totalHeightMm}`
   );
 });
 

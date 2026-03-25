@@ -12,10 +12,10 @@
 
 import {
   AddCargoInput,
+  CargoLoadPlanReadModel,
   ChangeTrailerInput,
   CreateLoadPlanInput,
   CreateLoadPlanResponse,
-  LoadPlanResponse,
   WeightUnit,
 } from "./data-contracts";
 
@@ -44,7 +44,7 @@ export namespace CargoPlans {
    * @name GetLoadPlan
    * @summary Get load plan details
    * @request GET:/cargo-plans/{id}
-   * @response `200` `LoadPlanResponse` Load plan found
+   * @response `200` `CargoLoadPlanReadModel` Load plan found
    * @response `404` `ErrorResponse` No load plan exists with the given ID.
    * @response `500` `ErrorResponse`
    */
@@ -63,7 +63,7 @@ export namespace CargoPlans {
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = LoadPlanResponse;
+    export type ResponseBody = CargoLoadPlanReadModel;
   }
 
   /**

@@ -11,7 +11,7 @@ import type { CargoType } from './cargoType';
 /**
  * A single pallet unit assigned to a load plan.
  */
-export interface CargoUnitResponse {
+export interface PalletUnitReadModel {
   /** Unique identifier of the pallet unit */
   id: string;
   /** Human-readable label of the pallet spec (e.g. "EPAL 1") */

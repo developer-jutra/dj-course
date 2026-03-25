@@ -3,7 +3,6 @@ import express from 'express';
 
 import logger from '../logger';
 import { service } from './fake-dependency-injection';
-import { LoadPlanNotFoundError, type CargoPlanServiceError } from './cargo-plans-service';
 import { OptimisticLockError } from '../shared/optimistic-lock-error';
 import { TrailerFactory } from './trailers';
 import { PalletSpec } from './pallets/pallet-spec';
@@ -11,6 +10,7 @@ import { CargoPlans } from '../types/CargoPlansRoute';
 import { ErrorResponse } from '../types/data-contracts';
 import { parseCargoType } from './cargo/cargo.types';
 import { Weight } from '../shared/weight';
+import { type CargoPlanServiceError } from './cargo-plans.errors';
 
 const router = express.Router();
 

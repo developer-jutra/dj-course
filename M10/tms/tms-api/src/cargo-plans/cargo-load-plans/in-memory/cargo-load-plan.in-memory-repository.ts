@@ -1,6 +1,6 @@
 import { CargoLoadPlan } from '../cargo-load-plan';
 import type { CargoLoadPlanRepository } from '../cargo-load-plan.repository';
-import type { CargoLoadPlanDbRow } from '../cargo-load-plan.queries';
+import type { CargoLoadPlanDbRow } from '../cargo-load-plan.repository';
 import type { InMemoryCargoLoadPlanReadStore } from './cargo-load-plan.in-memory-queries';
 import { toTrailerReadModel } from '../../trailers';
 import type {
@@ -16,14 +16,16 @@ function projectToRow(plan: CargoLoadPlan): CargoLoadPlanDbRow {
     trailer: toTrailerReadModel(trailer),
     currentLdm,
     version,
-    units: assignedUnits.map(u => ({
-      id: u.id,
-      palletLabel: u.spec.label,
-      cargoType: u.cargoType as unknown as ContractCargoType,
-      weightKg: u.weight.valueInKg,
-      totalHeightMm: u.totalHeightMm,
-      requirements: u.requirements,
-    })),
+    units: assignedUnits.map(({ id, spec, cargoType, weight, totalHeightMm, requirements }) => {
+      return {
+        id,
+        palletLabel: spec.label,
+        cargoType: cargoType as unknown as ContractCargoType,
+        weightKg: weight.valueInKg,
+        totalHeightMm,
+        requirements,
+      };
+    }),
   };
 }
 
@@ -32,9 +34,16 @@ export class InMemoryCargoLoadPlanRepository implements CargoLoadPlanRepository 
 
   constructor(private readonly readStore: InMemoryCargoLoadPlanReadStore) {}
 
+  public async create(plan: CargoLoadPlan): Promise<void> {
+    const id = plan.getSnapshot().id;
+    this.aggregateTable.set(id, plan);
+    this.readStore.set(id, projectToRow(plan));
+  }
+
   public async save(plan: CargoLoadPlan): Promise<void> {
-    this.aggregateTable.set(plan.id, plan);
-    this.readStore.set(plan.id, projectToRow(plan));
+    const id = plan.getSnapshot().id;
+    this.aggregateTable.set(id, plan);
+    this.readStore.set(id, projectToRow(plan));
   }
 
   public async findById(id: string): Promise<CargoLoadPlan | null> {

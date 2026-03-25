@@ -177,6 +177,7 @@ const CreateLoadPlanResponse = z
   .object({ id: z.string().uuid() })
   .passthrough();
 const CargoLoadPlanStatus = z.enum(["DRAFT", "FINALIZED"]);
+const WeightUnit = z.enum(["KG", "TONNE", "LB"]);
 const TrailerCapabilities = z
   .object({
     hasClimateControl: z.boolean(),
@@ -205,24 +206,27 @@ const CargoRequirementsInput = z
     highSecurityRequired: z.boolean(),
   })
   .passthrough();
-const CargoUnitResponse = z
+const PalletUnitReadModel = z
   .object({
     id: z.string().uuid(),
     palletLabel: z.string(),
     cargoType: CargoType,
-    weightKg: z.number().gt(0),
+    weight: z.number().gt(0),
     totalHeightMm: z.number().int().gt(0),
+    description: z.string().nullish(),
     requirements: CargoRequirementsInput,
   })
   .passthrough();
-const LoadPlanResponse = z
+const CargoLoadPlanReadModel = z
   .object({
     id: z.string().uuid(),
     status: CargoLoadPlanStatus,
+    version: z.number().int().gte(0),
+    weightUnit: WeightUnit.default("KG"),
     trailer: TrailerReadModel,
     currentLdm: z.number().gte(0),
-    plannedWeightKg: z.number().gte(0),
-    units: z.array(CargoUnitResponse),
+    plannedWeight: z.number().gte(0),
+    units: z.array(PalletUnitReadModel),
   })
   .passthrough();
 const PalletType = z.enum(["epal1", "industrial", "half", "cp1", "cp3", "h1"]);
@@ -230,7 +234,6 @@ const AddCargoInput = z
   .object({
     palletType: PalletType,
     cargoType: CargoType,
-    requirements: CargoRequirementsInput,
     weightKg: z.number().gt(0),
     cargoHeightMm: z.number().int().gt(0),
   })
@@ -265,12 +268,13 @@ export const schemas = {
   CreateLoadPlanInput,
   CreateLoadPlanResponse,
   CargoLoadPlanStatus,
+  WeightUnit,
   TrailerCapabilities,
   TrailerReadModel,
   CargoType,
   CargoRequirementsInput,
-  CargoUnitResponse,
-  LoadPlanResponse,
+  PalletUnitReadModel,
+  CargoLoadPlanReadModel,
   PalletType,
   AddCargoInput,
   ChangeTrailerInput,
@@ -283,6 +287,7 @@ export const endpointParams = {
   },
   getLoadPlan: {
     id: z.string().uuid(),
+    weightUnit: z.enum(["KG", "TONNE", "LB"]).optional().default("KG"),
   },
   addCargoToLoadPlan: {
     body: AddCargoInput,
@@ -354,7 +359,11 @@ export const endpointParams = {
 export const queryParams = {
   getServerStatus: z.object({}).strict(),
   createLoadPlan: z.object({}).strict(),
-  getLoadPlan: z.object({}).strict(),
+  getLoadPlan: z
+    .object({
+      weightUnit: z.enum(["KG", "TONNE", "LB"]).optional().default("KG"),
+    })
+    .strict(),
   addCargoToLoadPlan: z.object({}).strict(),
   removeCargoFromLoadPlan: z.object({}).strict(),
   finalizeLoadPlan: z.object({}).strict(),

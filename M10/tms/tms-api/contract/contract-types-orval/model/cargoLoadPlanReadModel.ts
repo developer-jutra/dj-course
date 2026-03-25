@@ -6,16 +6,23 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CargoLoadPlanStatus } from './cargoLoadPlanStatus';
-import type { CargoUnitResponse } from './cargoUnitResponse';
+import type { PalletUnitReadModel } from './palletUnitReadModel';
 import type { TrailerReadModel } from './trailerReadModel';
+import type { WeightUnit } from './weightUnit';
 
 /**
  * Full state of a cargo load plan.
  */
-export interface LoadPlanResponse {
+export interface CargoLoadPlanReadModel {
   /** Unique identifier of the load plan */
   id: string;
   status: CargoLoadPlanStatus;
+  /**
+   * Optimistic concurrency version of the load plan
+   * @minimum 0
+   */
+  version: number;
+  weightUnit: WeightUnit;
   trailer: TrailerReadModel;
   /**
    * Currently used loading metres
@@ -23,10 +30,10 @@ export interface LoadPlanResponse {
    */
   currentLdm: number;
   /**
-   * Total weight of all assigned cargo units in kilograms
+   * Total weight of all assigned cargo units, expressed in the unit given by weightUnit
    * @minimum 0
    */
-  plannedWeightKg: number;
+  plannedWeight: number;
   /** Cargo units assigned to this plan */
-  units: CargoUnitResponse[];
+  units: PalletUnitReadModel[];
 }

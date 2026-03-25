@@ -1,5 +1,5 @@
 import { SqlCargoLoadPlanRepository } from './cargo-load-plans/cargo-load-plan.repository';
-import { SqlCargoLoadPlanQueries } from './cargo-load-plans/cargo-load-plan.sql-queries';
+import { SqlCargoLoadPlanQueries } from './cargo-load-plans/cargo-load-plan.queries';
 import { CargoPlansService } from './cargo-plans-service';
 
 const repository = new SqlCargoLoadPlanRepository();

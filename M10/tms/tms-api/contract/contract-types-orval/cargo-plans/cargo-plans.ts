@@ -14,10 +14,11 @@ import type {
 
 import type {
   AddCargoInput,
+  CargoLoadPlanReadModel,
   ChangeTrailerInput,
   CreateLoadPlanInput,
   CreateLoadPlanResponse,
-  LoadPlanResponse
+  GetLoadPlanParams
 } from '../model';
 
 
@@ -41,10 +42,13 @@ const createLoadPlan = (
  * @summary Get load plan details
  */
 const getLoadPlan = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<LoadPlanResponse>> => {
+    id: string,
+    params?: GetLoadPlanParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<CargoLoadPlanReadModel>> => {
     return axiosInstance.get(
-      `/cargo-plans/${id}`,options
+      `/cargo-plans/${id}`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 /**
@@ -98,7 +102,7 @@ const finalizeLoadPlan = (
   }
 return {createLoadPlan,getLoadPlan,addCargoToLoadPlan,removeCargoFromLoadPlan,changeTrailerType,finalizeLoadPlan}};
 export type CreateLoadPlanResult = AxiosResponse<CreateLoadPlanResponse>
-export type GetLoadPlanResult = AxiosResponse<LoadPlanResponse>
+export type GetLoadPlanResult = AxiosResponse<CargoLoadPlanReadModel>
 export type AddCargoToLoadPlanResult = AxiosResponse<void>
 export type RemoveCargoFromLoadPlanResult = AxiosResponse<void>
 export type ChangeTrailerTypeResult = AxiosResponse<void>

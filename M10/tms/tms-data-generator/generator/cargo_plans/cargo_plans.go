@@ -31,31 +31,45 @@ var cargoDescriptors = map[CargoType][]string{
 }
 
 // GenerateCargoLoadPlans generates count cargo load plans.
-// First 5 plans use predefined IDs (Food, Chemical, Electronics, General, DangerousGoods).
+// First len(PredefinedPlans) plans use deterministic IDs, cargo types, trailers and statuses.
 // Each plan has homogeneous cargo (one type) – respects coloading rules.
-// Plans are ~2/3 FINALIZED, ~1/3 DRAFT.
+// Remaining plans are ~2/3 FINALIZED, ~1/3 DRAFT.
 func GenerateCargoLoadPlans(count int) []CargoLoadPlan {
 	plans := make([]CargoLoadPlan, 0, count)
-	predefinedOrder := []CargoType{Food, Chemical, Electronics, General, DangerousGoods}
 
 	for i := 0; i < count; i++ {
 		var planID string
 		var cargoType CargoType
 		var trailer trailerSpec
+		var status Status
+		var version int
 
-		if i < len(predefinedOrder) {
-			// Predefined plans: deterministic IDs for .http examples
-			cargoType = predefinedOrder[i]
-			planID = PredefinedPlanIDs[cargoType]
-			trailer = trailerForCargoDeterministic(cargoType, i)
+		if i < len(PredefinedPlans) {
+			pp := PredefinedPlans[i]
+			planID = pp.ID
+			cargoType = pp.CargoType
+			trailer = trailerSpecForType(pp.TrailerType)
+			status = pp.Status
+			if status == Draft {
+				version = 1 + rand.Intn(3)
+			} else {
+				version = 3 + rand.Intn(4)
+			}
 		} else {
 			planID = gofakeit.UUID()
 			cargoType = randomCargoType()
 			trailer = trailerForCargo(cargoType)
+			if i >= count*2/3 {
+				status = Draft
+				version = 1 + rand.Intn(3)
+			} else {
+				status = Finalized
+				version = 3 + rand.Intn(4)
+			}
 		}
 
 		unitCount := 2 + rand.Intn(5) // 2–6 units per plan
-		units := generateHomogeneousUnits(planID, trailer, cargoType, unitCount)
+		units := generateHomogeneousUnits(planID, trailer, cargoType, unitCount, PredefinedUnitIDs[planID])
 
 		totalLdm := 0.0
 		for _, u := range units {
@@ -81,13 +95,6 @@ func GenerateCargoLoadPlans(count int) []CargoLoadPlan {
 				}
 			}
 			totalLdm = math.Round(totalLdm*100) / 100
-		}
-
-		status := Finalized
-		version := 3 + rand.Intn(4)
-		if i >= count*2/3 {
-			status = Draft
-			version = 1 + rand.Intn(3)
 		}
 
 		createdAt, updatedAt := randomTimestamps()
@@ -120,20 +127,14 @@ func trailerForCargo(c CargoType) trailerSpec {
 	}
 }
 
-// trailerForCargoDeterministic picks trailer by index for predefined plans.
-func trailerForCargoDeterministic(c CargoType, index int) trailerSpec {
-	switch c {
-	case Food, DangerousGoods:
-		return trailerSpecs[2] // Reefer
-	case Chemical:
-		return trailerSpecs[0] // Standard
-	case Electronics:
-		return trailerSpecs[1] // Mega
-	case General:
-		return trailerSpecs[index % 2] // Standard or Mega
-	default:
-		return trailerSpecs[0]
+// trailerSpecForType returns the trailerSpec matching the given TrailerType.
+func trailerSpecForType(t TrailerType) trailerSpec {
+	for _, spec := range trailerSpecs {
+		if spec.Type == t {
+			return spec
+		}
 	}
+	return trailerSpecs[0]
 }
 
 func randomCargoType() CargoType {
@@ -156,7 +157,8 @@ func maxLdmForTrailer(t TrailerType) float64 {
 }
 
 // generateHomogeneousUnits creates units of a single cargo type (homogeneous load).
-func generateHomogeneousUnits(planID string, trailer trailerSpec, cargoType CargoType, count int) []CargoLoadPlanUnit {
+// predefinedIDs: if non-empty, the first len(predefinedIDs) units get those IDs instead of random UUIDs.
+func generateHomogeneousUnits(planID string, trailer trailerSpec, cargoType CargoType, count int, predefinedIDs []string) []CargoLoadPlanUnit {
 	pallets := palletsForCargoAndTrailer(trailer, cargoType)
 	if len(pallets) == 0 {
 		// Fallback: use first compatible pallet
@@ -206,8 +208,13 @@ func generateHomogeneousUnits(planID string, trailer trailerSpec, cargoType Carg
 			desc += " " + gofakeit.Word()
 		}
 
+		unitID := gofakeit.UUID()
+		if i < len(predefinedIDs) {
+			unitID = predefinedIDs[i]
+		}
+
 		units = append(units, CargoLoadPlanUnit{
-			ID:                      gofakeit.UUID(),
+			ID:                      unitID,
 			LoadPlanID:              planID,
 			PalletType:              pallet.Type,
 			CargoType:               cargoType,

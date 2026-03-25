@@ -1,5 +1,9 @@
 import type { WeightUnit } from '../../../shared/weight';
-import type { CargoLoadPlanQueries, CargoLoadPlanReadModel, CargoLoadPlanDbRow } from '../cargo-load-plan.queries';
+import type {
+  CargoLoadPlanDbRow,
+  CargoLoadPlanQueries,
+  CargoLoadPlanReadModel,
+} from '../cargo-load-plan.queries';
 import { toReadModel } from '../cargo-load-plan.queries';
 
 export class InMemoryCargoLoadPlanReadStore {

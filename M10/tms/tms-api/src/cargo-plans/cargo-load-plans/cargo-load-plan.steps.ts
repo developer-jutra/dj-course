@@ -1,20 +1,18 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import assert from 'assert';
 
-import { CargoLoadPlan } from './cargo-load-plan';
-import { PalletUnit } from '../pallets/pallet-unit';
-import { PalletSpec } from '../pallets/pallet-spec';
+import { CargoLoadPlan, type AddCargoData } from './cargo-load-plan';
 import { LdmCalculator } from '../ldm/ldm-calculator';
 import { TrailerFactory } from '../trailers';
 import { CargoType } from '../cargo/cargo.types';
 import { CargoLoadPlanStatus } from './cargo-load-plan.types';
+import type { PalletUnit } from '../pallets/pallet-unit';
 import type { PalletLoadableTrailerSpec } from '../trailers';
 import { Weight } from '../../shared/weight';
 import { UUID } from '../../shared/uuid';
 
 const ldmProvider = (u: PalletUnit[], t: PalletLoadableTrailerSpec) => LdmCalculator.calculate(u, t);
 
-// Minimal trailer specs for edge-case tests
 function trailerWithMaxWeight(maxWeightKg: number): PalletLoadableTrailerSpec {
   return {
     ...TrailerFactory.standardCurtainside(),
@@ -36,51 +34,9 @@ function trailerWithHeight(heightMm: number): PalletLoadableTrailerSpec {
   };
 }
 
-function createPalletUnit(
-  id: string,
-  spec: PalletSpec,
-  cargoType: CargoType,
-  weightKg: number,
-  cargoHeightMm: number,
-  requirements: { isTemperatureControlled?: boolean; requiresSideLoading?: boolean; isBulk?: boolean; highSecurityRequired?: boolean } = {}
-) {
-  return new PalletUnit(UUID.from<'CargoUnit'>(id), spec, cargoType, {
-    isTemperatureControlled: requirements.isTemperatureControlled ?? false,
-    requiresSideLoading: requirements.requiresSideLoading ?? false,
-    isBulk: requirements.isBulk ?? false,
-    highSecurityRequired: requirements.highSecurityRequired ?? false,
-  }, Weight.from(weightKg, 'KG'), cargoHeightMm);
-}
-
-function generalPallet(id: string, weightKg: number, cargoHeightMm = 100): PalletUnit {
-  return createPalletUnit(id, PalletSpec.epal1(), CargoType.GENERAL, weightKg, cargoHeightMm);
-}
-
-function foodPallet(id: string, weightKg: number, opts?: { temperatureControlled?: boolean }): PalletUnit {
-  return createPalletUnit(id, PalletSpec.h1(), CargoType.FOOD, weightKg, 100, {
-    isTemperatureControlled: opts?.temperatureControlled ?? false,
-  });
-}
-
-function dangerousGoodsPallet(id: string, weightKg: number): PalletUnit {
-  return createPalletUnit(id, PalletSpec.cp1(), CargoType.DANGEROUS_GOODS, weightKg, 100);
-}
-
-function chemicalPallet(id: string, weightKg: number): PalletUnit {
-  return createPalletUnit(id, PalletSpec.cp1(), CargoType.CHEMICAL, weightKg, 100);
-}
-
-/** Pallet with custom total height: totalHeightMm = spec.height + cargoHeightMm */
-function palletWithHeight(id: string, totalHeightMm: number, weightKg: number): PalletUnit {
-  const spec = PalletSpec.epal1();
-  const cargoHeightMm = totalHeightMm - spec.height;
-  return createPalletUnit(id, spec, CargoType.GENERAL, weightKg, cargoHeightMm);
-}
-
 interface CargoLoadPlanWorld {
   plan?: CargoLoadPlan;
   lastError?: { message: string };
-  lastUnit?: PalletUnit;
 }
 
 Given('an empty load plan with standard curtainside trailer', function (this: CargoLoadPlanWorld) {
@@ -125,14 +81,14 @@ Given('a load plan with trailer having max LDM {float} m', function (this: Cargo
 
 Given('the plan has a general cargo pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = generalPallet('unit-1', weight);
-  this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'epal1', cargoType: CargoType.GENERAL, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  this.plan.addCargoToPlan(data, ldmProvider);
 });
 
 Given('the plan has a food pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = foodPallet('unit-1', weight);
-  this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'h1', cargoType: CargoType.FOOD, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  this.plan.addCargoToPlan(data, ldmProvider);
 });
 
 Given('the plan is finalized', function (this: CargoLoadPlanWorld) {
@@ -153,21 +109,21 @@ When('I finalize the plan', function (this: CargoLoadPlanWorld) {
 
 When('I try to add a general cargo pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = generalPallet('unit-1', weight);
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'epal1', cargoType: CargoType.GENERAL, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
 When('I try to add another general cargo pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = generalPallet('unit-2', weight);
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'epal1', cargoType: CargoType.GENERAL, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
 When('I try to remove pallet unit with id {string}', function (this: CargoLoadPlanWorld, unitId: string) {
   assert(this.plan);
-  const result = this.plan.removePalletUnit(unitId, ldmProvider);
+  const result = this.plan.removeCargoFromPlan(unitId, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
@@ -179,35 +135,41 @@ When('I try to replace trailer with mega trailer', function (this: CargoLoadPlan
 
 When('I try to add a dangerous goods pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = dangerousGoodsPallet('unit-2', weight);
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'cp1', cargoType: CargoType.DANGEROUS_GOODS, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
 When('I try to add a chemical pallet unit with weight {int} kg', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = chemicalPallet('unit-2', weight);
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'cp1', cargoType: CargoType.CHEMICAL, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
 When('I try to add a food pallet unit with weight {int} kg and temperature control required', function (this: CargoLoadPlanWorld, weight: number) {
   assert(this.plan);
-  const unit = foodPallet('unit-1', weight, { temperatureControlled: true });
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const data: AddCargoData = { palletType: 'h1', cargoType: CargoType.FOOD, weight: Weight.from(weight, 'KG'), cargoHeightMm: 100 };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
 When('I try to add a general cargo pallet unit with total height {int} mm and weight {int} kg', function (this: CargoLoadPlanWorld, totalHeightMm: number, weightKg: number) {
   assert(this.plan);
-  const unit = palletWithHeight('unit-1', totalHeightMm, weightKg);
-  const result = this.plan.addPalletUnit(unit, ldmProvider);
+  const epal1BaseHeightMm = 144;
+  const data: AddCargoData = { palletType: 'epal1', cargoType: CargoType.GENERAL, weight: Weight.from(weightKg, 'KG'), cargoHeightMm: totalHeightMm - epal1BaseHeightMm };
+  const result = this.plan.addCargoToPlan(data, ldmProvider);
   if (!result.success) this.lastError = result.error;
 });
 
-Then('the plan status should be {word}', function (this: CargoLoadPlanWorld, status: string) {
+Then('the plan status should be FINALIZED', function (this: CargoLoadPlanWorld) {
   assert(this.plan);
-  assert.strictEqual(this.plan.getSnapshot().status, status as CargoLoadPlanStatus);
+  assert.strictEqual(this.plan.isFinalized(), true);
+});
+
+Then('the plan status should be DRAFT', function (this: CargoLoadPlanWorld) {
+  assert(this.plan);
+  assert.strictEqual(this.plan.isFinalized(), false);
 });
 
 Then('it should fail with {string}', function (this: CargoLoadPlanWorld, expectedSubstring: string) {

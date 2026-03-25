@@ -33,19 +33,29 @@ export class PalletSpec {
     return Object.keys(REGISTRY);
   }
 
-  constructor(
+  constructor( // (!) 🤨🤨🤨 "public readonly" all the things?!
     public readonly label: string,
     public readonly material: Material,
     public readonly allowedCargoTypes: CargoType[],
-    public readonly width: number,
-    public readonly length: number,
-    public readonly height: number, // Base height of the empty pallet
+    public readonly width: number, // (!) 🤨🤨🤨 making "width" remain a primitive (number) is risky (if we have `width` inside a domain model, then it has some domain meaning here, so there is some calculation related to it, and we can't explicitly see what operations are allowed)
+    public readonly length: number, // (!) 🤨🤨🤨 same
+    /** Base height of the empty pallet */
+    public readonly height: number, // (!) 🤨🤨🤨 same
     public readonly maxLoadCapacity: Weight
   ) {
     this.validate();
-    Object.freeze(this);
+    Object.freeze(this); // 🔥🔥🔥 immutability in runtime
   }
 
+  isCargoTypeAllowed(cargoType: CargoType): boolean {
+    return this.allowedCargoTypes.includes(cargoType);
+  }
+
+  isWeightExceeded(cargoWeight: Weight): boolean {
+    return cargoWeight.valueInKg > this.maxLoadCapacity.valueInKg;
+  }
+
+  // 🔥🔥🔥 technical validation
   private validate(): void {
     if (!this.label || this.label.trim().length === 0) {
       throw new Error('Label cannot be empty');

@@ -1,0 +1,8 @@
+{
+  "cucumber.glue": [
+    "tms-api/src/cargo-plans/**/*.steps.ts"
+  ],
+  "cucumber.features": [
+    "tms-api/src/cargo-plans/**/*.feature"
+  ]
+}

@@ -39,7 +39,7 @@ Feature: Cargo Load Plan Aggregate
   # ── Kompatybilność ładunków (Food vs Dangerous) ─────────────────────────────────
 
   Scenario: Cannot mix food with dangerous goods
-    Given a load plan with standard curtainside trailer
+    Given a load plan with refrigerated trailer
     And the plan has a food pallet unit with weight 300 kg
     When I try to add a dangerous goods pallet unit with weight 400 kg
     Then it should fail with "Incompatible cargo"

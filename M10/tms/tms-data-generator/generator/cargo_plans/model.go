@@ -75,14 +75,32 @@ var palletSpecs = []palletSpec{
 	{H1, []CargoType{Food}, 0.40, 5000, 160},
 }
 
-// Predefined plan IDs for .http examples – food, chemical, electronics, general.
-// These ensure deterministic IDs for API smoke tests.
-var PredefinedPlanIDs = map[CargoType]string{
-	Food:        "11111111-1111-4111-a111-111111111101",
-	Chemical:    "22222222-2222-4222-a222-222222222202",
-	Electronics: "33333333-3333-4333-a333-333333333303",
-	General:     "44444444-4444-4444-a444-444444444404",
-	DangerousGoods: "55555555-5555-4555-a555-555555555505",
+// PredefinedPlan holds static configuration for seeded plans used in .http test scenarios.
+type PredefinedPlan struct {
+	ID          string
+	CargoType   CargoType
+	TrailerType TrailerType
+	Status      Status
+}
+
+// PredefinedPlans lists seeded plans with deterministic IDs for API smoke tests.
+// Plans 0–4 are FINALIZED; plans 5–7 are DRAFT (used for mutation/deletion/trailer-change tests).
+var PredefinedPlans = []PredefinedPlan{
+	{"11111111-1111-4111-a111-111111111101", Food, Reefer, Finalized},
+	{"22222222-2222-4222-a222-222222222202", Chemical, StandardCurtainside, Finalized},
+	{"33333333-3333-4333-a333-333333333303", Electronics, Mega, Finalized},
+	{"44444444-4444-4444-a444-444444444404", General, Mega, Finalized},
+	{"55555555-5555-4555-a555-555555555505", DangerousGoods, Reefer, Finalized},
+	{"66666666-6666-4666-a666-666666666606", Chemical, StandardCurtainside, Draft},
+	{"77777777-7777-4777-a777-777777777707", General, Mega, Draft},
+	{"88888888-8888-4888-a888-888888888808", DangerousGoods, Reefer, Draft},
+}
+
+// PredefinedUnitIDs maps plan ID → ordered predefined unit IDs for first N pallets.
+// Ensures specific unit IDs exist in DB for DELETE /cargo endpoint tests.
+var PredefinedUnitIDs = map[string][]string{
+	"11111111-1111-4111-a111-111111111101": {"11111111-1111-4111-a111-000000000001"},
+	"66666666-6666-4666-a666-666666666606": {"66666666-6666-4666-a666-000000000001"},
 }
 
 // CargoLoadPlan represents a persisted aggregate row.

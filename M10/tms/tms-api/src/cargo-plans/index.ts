@@ -44,4 +44,5 @@ export {
 } from './cargo-plans.commands';
 
 // Application Service
-export { CargoPlansService, LoadPlanNotFoundError } from './cargo-plans-service';
+export { CargoPlansService } from './cargo-plans-service';
+export { LoadPlanNotFoundError } from './cargo-plans.errors';

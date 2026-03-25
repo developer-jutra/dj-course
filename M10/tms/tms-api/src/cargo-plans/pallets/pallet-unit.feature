@@ -1,6 +1,6 @@
 Feature: Pallet Unit Entity
 
-  # ── Poprawna kreacja z różnymi specyfikacjami ──────────────────────────────────
+  # Various scenarios for creating pallet units with different specs and cargo types
 
   Scenario: EPAL1 spec permits GENERAL cargo and computes correct total height
     Given EPAL1 pallet spec
@@ -65,7 +65,7 @@ Feature: Pallet Unit Entity
     When I try to create a pallet unit with id "pu-1" cargo type FOOD weight 300 kg cargo height 100 mm
     Then it should fail with "not allowed on"
 
-  # ── Walidacja wagi ─────────────────────────────────────────────────────────────
+  # Weight checks
 
   Scenario: EPAL1 spec rejects cargo weight exceeding max load capacity
     Given EPAL1 pallet spec

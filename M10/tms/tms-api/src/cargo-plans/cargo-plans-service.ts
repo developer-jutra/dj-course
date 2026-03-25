@@ -1,6 +1,6 @@
 import { UUID } from '../shared/uuid';
 import { ok, fail, type Result } from '../shared/result';
-import { CargoLoadPlan, type CargoLoadPlanDomainError } from './cargo-load-plans/cargo-load-plan';
+import { CargoLoadPlan } from './cargo-load-plans/cargo-load-plan';
 import type { PalletUnit } from './pallets/pallet-unit';
 import { LdmCalculator } from './ldm/ldm-calculator';
 import { TrailerFactory, type PalletLoadableTrailerSpec } from './trailers';
@@ -14,45 +14,27 @@ import type {
   ChangeTrailerCommand,
 } from './cargo-plans.commands';
 import type { WeightUnit } from '../shared/weight';
-
-// ── Interface ───────────────────────────────────────────────────────────────
+import { CargoPlanServiceError, LoadPlanNotFoundError } from './cargo-plans.errors';
 
 interface CargoPlansApplicationService {
-  // Tworzy nowy plan przejazdu dla konkretnej naczepy
+  /** Creates a new load plan for a specific trailer */
   createLoadPlan(command: CreateLoadPlanCommand): Promise<Result<string, CargoPlanServiceError>>;
 
-  // Główna operacja dodawania towaru
+  /** Main operation to add cargo */
   addCargoToPlan(command: AddCargoCommand): Promise<Result<void, CargoPlanServiceError>>;
 
-  // Usuwanie towaru (zwalnianie LDM/wagi)
+  /** Removes cargo (frees up LDM/weight) */
   removeCargoFromPlan(command: RemoveCargoCommand): Promise<Result<void, CargoPlanServiceError>>;
 
-  // Zmiana typu naczepy w trakcie planowania (wymaga re-walidacji wszystkich ładunków)
+  /** Changes trailer type during planning (requires re-validation of all loads) */
   changeTrailerType(command: ChangeTrailerCommand): Promise<Result<void, CargoPlanServiceError>>;
 
-  // Oznaczenie planu jako gotowy / zablokowanie dalszych zmian
+  /** Marks the plan as ready / locks further changes */
   finalizeLoadPlan(loadPlanId: string): Promise<Result<void, CargoPlanServiceError>>;
 
-  // Odczyt stanu planu (read-side, nie dotyka agregatu)
+  /** Reads plan state (read-side, does not involve the aggregate) */
   findPlan(id: string, weightUnit?: WeightUnit): Promise<CargoLoadPlanReadModel | null>;
 }
-
-// ── Errors ──────────────────────────────────────────────────────────────────
-
-export class LoadPlanNotFoundError {
-  readonly kind = 'LoadPlanNotFoundError' as const;
-  readonly message: string;
-  constructor(readonly id: string) {
-    this.message = `Load plan '${id}' not found`;
-  }
-}
-
-export type CargoPlanServiceError =
-  | LoadPlanNotFoundError
-  | CargoLoadPlanDomainError
-  | OptimisticLockError;
-
-// ── Implementation ──────────────────────────────────────────────────────────
 
 export class CargoPlansService implements CargoPlansApplicationService {
   private readonly ldmProvider = (units: PalletUnit[], trailer: PalletLoadableTrailerSpec) =>
@@ -68,7 +50,7 @@ export class CargoPlansService implements CargoPlansApplicationService {
     const id = UUID.newUUID<'CargoLoadPlan'>();
     const plan = new CargoLoadPlan(id, trailer, 0);
     try {
-      await this.repository.save(plan);
+      await this.repository.create(plan);
     } catch (e) {
       return fail(this.normalizeError(e));
     }
@@ -79,7 +61,7 @@ export class CargoPlansService implements CargoPlansApplicationService {
     const planResult = await this.findLoadPlan(command.loadPlanId);
     if (!planResult.success) return planResult;
 
-    const domainResult = planResult.value.addCargo(command, this.ldmProvider);
+    const domainResult = planResult.value.addCargoToPlan(command, this.ldmProvider);
     if (!domainResult.success) return domainResult;
 
     try {
@@ -94,7 +76,7 @@ export class CargoPlansService implements CargoPlansApplicationService {
     const planResult = await this.findLoadPlan(command.loadPlanId);
     if (!planResult.success) return planResult;
 
-    const domainResult = planResult.value.removePalletUnit(command.unitId, this.ldmProvider);
+    const domainResult = planResult.value.removeCargoFromPlan(command.unitId, this.ldmProvider);
     if (!domainResult.success) return domainResult;
 
     try {

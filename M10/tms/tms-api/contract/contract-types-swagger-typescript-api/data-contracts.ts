@@ -743,7 +743,7 @@ export interface CargoRequirementsInput {
 }
 
 /** A single pallet unit assigned to a load plan. */
-export interface CargoUnitResponse {
+export interface PalletUnitReadModel {
   /**
    * Unique identifier of the pallet unit
    * @format uuid
@@ -758,7 +758,7 @@ export interface CargoUnitResponse {
   /** Type of cargo being transported */
   cargoType: CargoType;
   /**
-   * Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent LoadPlanResponse
+   * Weight of the cargo on this pallet, expressed in the unit specified by the weightUnit field on the parent CargoLoadPlanReadModel
    * @min 0
    * @exclusiveMin true
    * @example 600
@@ -778,7 +778,7 @@ export interface CargoUnitResponse {
 }
 
 /** Full state of a cargo load plan. */
-export interface LoadPlanResponse {
+export interface CargoLoadPlanReadModel {
   /**
    * Unique identifier of the load plan
    * @format uuid
@@ -810,7 +810,7 @@ export interface LoadPlanResponse {
    */
   plannedWeight: number;
   /** Cargo units assigned to this plan */
-  units: CargoUnitResponse[];
+  units: PalletUnitReadModel[];
 }
 
 /** Payload for adding a cargo unit to a load plan. */

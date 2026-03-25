@@ -5,7 +5,6 @@
  * Transportation Management System API
  * OpenAPI spec version: 1.0.0
  */
-import type { CargoRequirementsInput } from './cargoRequirementsInput';
 import type { CargoType } from './cargoType';
 import type { PalletType } from './palletType';
 
@@ -15,7 +14,6 @@ import type { PalletType } from './palletType';
 export interface AddCargoInput {
   palletType: PalletType;
   cargoType: CargoType;
-  requirements: CargoRequirementsInput;
   /**
    * Weight of the cargo in kilograms
    * @exclusiveMinimum 0

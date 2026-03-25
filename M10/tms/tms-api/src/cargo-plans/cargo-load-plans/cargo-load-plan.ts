@@ -18,18 +18,6 @@ import {
   type CargoLoadPlanDomainError,
 } from './cargo-load-plan.errors';
 
-export type { CargoLoadPlanDomainError };
-export {
-  PlanAlreadyFinalizedError,
-  EmptyPlanError,
-  WeightCapacityExceededError,
-  LdmCapacityExceededError,
-  CargoTooTallForTrailerError,
-  TrailerCapabilityMismatchError,
-  IncompatibleCargoColoadingError,
-  CargoUnitNotFoundError,
-} from './cargo-load-plan.errors';
-
 export interface AddCargoData {
   palletType: string;
   cargoType: CargoType;
@@ -38,99 +26,88 @@ export interface AddCargoData {
 }
 
 export class CargoLoadPlan {
-  private _assignedUnits: PalletUnit[];
-  private _status: CargoLoadPlanStatus;
-  private _currentLdm: number;
-  private _version: number;
-
   constructor(
-    public readonly id: UUID<'CargoLoadPlan'>,
-    private _trailer: PalletLoadableTrailerSpec,
-    initialLdm: number, // Trust cached LDM from DB or calculated during command
-    assignedUnits: PalletUnit[] = [],
-    status: CargoLoadPlanStatus = CargoLoadPlanStatus.DRAFT,
-    version: number = 0
+    private readonly id: UUID<'CargoLoadPlan'>,
+    private trailer: PalletLoadableTrailerSpec,
+    private currentLdm: number,
+    private assignedUnits: PalletUnit[] = [],
+    private status: CargoLoadPlanStatus = CargoLoadPlanStatus.DRAFT,
+    private version: number = 0
   ) {
-    this._assignedUnits = [...assignedUnits];
-    this._status = status;
-    this._currentLdm = initialLdm;
-    this._version = version;
+    this.assignedUnits = [...assignedUnits];
 
-    // Validate invariants on reconstruction – throw because corrupt state from DB is unexpected
-    const integrityResult = this.ensureLoadIntegrity(this._assignedUnits, this._trailer, this._currentLdm);
+    // 🔥🔥🔥 Validate invariants on reconstruction – throw because corrupt state from DB is unexpected
+    const integrityResult = this.ensureLoadIntegrity(this.assignedUnits, this.trailer, this.currentLdm);
     if (!integrityResult.success) throw integrityResult.error;
   }
 
   public getSnapshot() {
     return {
       id: this.id,
-      trailer: this._trailer,
-      status: this._status,
-      currentLdm: this._currentLdm,
-      assignedUnits: Object.freeze([...this._assignedUnits]) as readonly PalletUnit[],
-      version: this._version,
+      trailer: this.trailer,
+      status: this.status,
+      currentLdm: this.currentLdm,
+      assignedUnits: Object.freeze(this.assignedUnits.map(u => u.getSnapshot())),
+      version: this.version,
     };
   }
 
-  public finalize(): Result<void, EmptyPlanError | LdmCapacityExceededError> {
-    if (this._assignedUnits.length === 0) return fail(new EmptyPlanError());
+  public finalize(): Result<void, PlanAlreadyFinalizedError | EmptyPlanError | LdmCapacityExceededError> {
+    const guardResult = this.ensurePlanNotFinalized();
+    if (!guardResult.success) return guardResult;
 
-    if (this._currentLdm > this._trailer.maxLdm) {
-      return fail(new LdmCapacityExceededError(this._currentLdm, this._trailer.maxLdm));
+    if (this.assignedUnits.length === 0) return fail(new EmptyPlanError());
+
+    if (this.currentLdm > this.trailer.maxLdm) {
+      return fail(new LdmCapacityExceededError(this.currentLdm, this.trailer.maxLdm));
     }
 
-    this._status = CargoLoadPlanStatus.FINALIZED;
+    this.status = CargoLoadPlanStatus.FINALIZED;
     return ok(undefined);
   }
 
-  public addCargo(
+  public addCargoToPlan(
     data: AddCargoData,
-    ldmProvider: (u: PalletUnit[], t: PalletLoadableTrailerSpec) => number
-  ): Result<void, CargoLoadPlanDomainError> {
-    // PalletSpec.fromType throws UnknownPalletTypeError for invalid types – intentionally not
-    // wrapped here; it propagates as an input-validation error to the application layer.
-    const spec = PalletSpec.fromType(data.palletType);
-    const requirements = requirementsFor(data.cargoType);
-    const unitResult = PalletUnit.create(spec, data.cargoType, requirements, data.weight, data.cargoHeightMm);
-    if (!unitResult.success) return fail(unitResult.error);
-    return this.addPalletUnit(unitResult.value, ldmProvider);
-  }
-
-  public addPalletUnit(
-    unit: PalletUnit,
+    // 🔥🔥🔥 strategy (not double dispatch)
     ldmProvider: (u: PalletUnit[], t: PalletLoadableTrailerSpec) => number
   ): Result<void, CargoLoadPlanDomainError> {
     const guardResult = this.ensurePlanNotFinalized();
     if (!guardResult.success) return guardResult;
 
-    const candidateUnits = [...this._assignedUnits, unit];
-    const newLdm = ldmProvider(candidateUnits, this._trailer);
-    const integrityResult = this.ensureLoadIntegrity(candidateUnits, this._trailer, newLdm);
+    const spec = PalletSpec.fromType(data.palletType);
+    const requirements = requirementsFor(data.cargoType);
+
+    const unitResult = PalletUnit.create(spec, data.cargoType, requirements, data.weight, data.cargoHeightMm);
+    if (!unitResult.success) return fail(unitResult.error);
+
+    const candidateUnits = [...this.assignedUnits, unitResult.value];
+    const newLdm = ldmProvider(candidateUnits, this.trailer);
+    const integrityResult = this.ensureLoadIntegrity(candidateUnits, this.trailer, newLdm);
     if (!integrityResult.success) return integrityResult;
 
-    this._assignedUnits = candidateUnits;
-    this._currentLdm = newLdm;
+    this.assignedUnits = candidateUnits;
+    this.currentLdm = newLdm;
     return ok(undefined);
   }
 
-  public removePalletUnit(
+  public removeCargoFromPlan(
     unitId: string,
     ldmProvider: (u: PalletUnit[], t: PalletLoadableTrailerSpec) => number
   ): Result<void, CargoLoadPlanDomainError> {
     const guardResult = this.ensurePlanNotFinalized();
     if (!guardResult.success) return guardResult;
 
-    const candidateUnits = this._assignedUnits.filter(u => u.id !== unitId);
-    if (candidateUnits.length === this._assignedUnits.length) {
+    const candidateUnits = this.assignedUnits.filter(u => u.getSnapshot().id !== unitId);
+    if (candidateUnits.length === this.assignedUnits.length) {
       return fail(new CargoUnitNotFoundError(unitId));
     }
 
-    const newLdm = ldmProvider(candidateUnits, this._trailer);
-    const integrityResult = this.ensureLoadIntegrity(candidateUnits, this._trailer, newLdm);
+    const newLdm = ldmProvider(candidateUnits, this.trailer);
+    const integrityResult = this.ensureLoadIntegrity(candidateUnits, this.trailer, newLdm);
     if (!integrityResult.success) return integrityResult;
 
-    this._assignedUnits = candidateUnits;
-    this._currentLdm = newLdm;
+    this.assignedUnits = candidateUnits;
+    this.currentLdm = newLdm;
     return ok(undefined);
   }
 
@@ -141,17 +118,21 @@ export class CargoLoadPlan {
     const guardResult = this.ensurePlanNotFinalized();
     if (!guardResult.success) return guardResult;
 
-    const newLdm = ldmProvider(this._assignedUnits, newTrailer);
-    const integrityResult = this.ensureLoadIntegrity(this._assignedUnits, newTrailer, newLdm);
+    const newLdm = ldmProvider(this.assignedUnits, newTrailer);
+    const integrityResult = this.ensureLoadIntegrity(this.assignedUnits, newTrailer, newLdm);
     if (!integrityResult.success) return integrityResult;
 
-    this._trailer = newTrailer;
-    this._currentLdm = newLdm;
+    this.trailer = newTrailer;
+    this.currentLdm = newLdm;
     return ok(undefined);
   }
 
+  public isFinalized(): boolean {
+    return this.status === CargoLoadPlanStatus.FINALIZED;
+  }
+
   private ensurePlanNotFinalized(): Result<void, PlanAlreadyFinalizedError> {
-    if (this._status === CargoLoadPlanStatus.FINALIZED) {
+    if (this.status === CargoLoadPlanStatus.FINALIZED) {
       return fail(new PlanAlreadyFinalizedError());
     }
     return ok(undefined);
@@ -188,7 +169,9 @@ export class CargoLoadPlan {
     units: PalletUnit[],
     trailer: PalletLoadableTrailerSpec
   ): Result<void, CargoLoadPlanDomainError> {
-    const totalWeightKg = units.reduce((sum, u) => sum + u.weight.valueInKg, 0);
+    // 🤨🤨🤨 so unit's weight is of type Weight (VO) but their sum totalWeightKg is a primitive (number)?
+    // (╯°□°)╯︵ ┻━┻ 
+    const totalWeightKg = units.reduce((sum, u) => sum + u.getSnapshot().weight.valueInKg, 0);
     if (totalWeightKg > trailer.maxWeightCapacity.valueInKg) {
       return fail(new WeightCapacityExceededError(totalWeightKg, trailer.maxWeightCapacity.valueInKg));
     }
@@ -209,8 +192,8 @@ export class CargoLoadPlan {
     unit: PalletUnit,
     trailer: PalletLoadableTrailerSpec
   ): Result<void, CargoTooTallForTrailerError> {
-    if (unit.totalHeightMm > trailer.heightMm) {
-      return fail(new CargoTooTallForTrailerError(unit.id, unit.totalHeightMm, trailer.type, trailer.heightMm));
+    if (unit.getSnapshot().totalHeightMm > trailer.heightMm) {
+      return fail(new CargoTooTallForTrailerError(unit.getSnapshot().id, unit.getSnapshot().totalHeightMm, trailer.type, trailer.heightMm));
     }
     return ok(undefined);
   }
@@ -219,7 +202,7 @@ export class CargoLoadPlan {
     unit: PalletUnit,
     trailer: PalletLoadableTrailerSpec
   ): Result<void, TrailerCapabilityMismatchError> {
-    const { requirements: req } = unit;
+    const { requirements: req } = unit.getSnapshot();
     const { capabilities: cap } = trailer;
 
     if (req.isTemperatureControlled && !cap.hasClimateControl) {
@@ -242,9 +225,9 @@ export class CargoLoadPlan {
     units: PalletUnit[]
   ): Result<void, IncompatibleCargoColoadingError> {
     const hasDangerous = units.some(
-      u => u.cargoType === CargoType.CHEMICAL || u.cargoType === CargoType.DANGEROUS_GOODS
+      u => u.getSnapshot().cargoType === CargoType.CHEMICAL || u.getSnapshot().cargoType === CargoType.DANGEROUS_GOODS
     );
-    const hasFood = units.some(u => u.cargoType === CargoType.FOOD);
+    const hasFood = units.some(u => u.getSnapshot().cargoType === CargoType.FOOD);
 
     if (hasFood && hasDangerous) {
       return fail(new IncompatibleCargoColoadingError());

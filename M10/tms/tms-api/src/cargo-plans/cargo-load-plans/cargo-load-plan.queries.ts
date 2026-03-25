@@ -1,23 +1,13 @@
+import { pool } from '../../database';
 import type { WeightUnit } from '../../shared/weight';
-import { Weight } from '../../shared/weight';
-import type {
-  LoadPlanResponse,
-  CargoUnitResponse,
-  WeightUnit as ContractWeightUnit,
-} from '../../types/data-contracts';
+import type { CargoLoadPlanReadModel } from '../../types/data-contracts';
+import { PalletSpec } from '../pallets/pallet-spec';
+import { TrailerFactory, toTrailerReadModel } from '../trailers';
+import type { CargoLoadPlanDbRow } from './cargo-load-plan.repository';
+import { toReadModel } from './cargo-load-plan.readmodel';
 
-export type CargoLoadPlanReadModel = LoadPlanResponse;
-
-/**
- * What a SQL/in-memory query returns: contract types throughout, weights always in KG.
- * Derived from the API contract – no domain objects.
- */
-export type CargoLoadPlanDbRow =
-  Omit<LoadPlanResponse, 'weightUnit' | 'plannedWeight' | 'units'> & {
-    readonly units: ReadonlyArray<
-      Omit<CargoUnitResponse, 'weight'> & { readonly weightKg: number; readonly description?: string | null }
-    >;
-  };
+export type { CargoLoadPlanDbRow, CargoLoadPlanReadModel };
+export { toReadModel } from './cargo-load-plan.readmodel';
 
 // ── Interface (Application layer) ───────────────────────────────────────────
 
@@ -25,24 +15,55 @@ export interface CargoLoadPlanQueries {
   findPlan(id: string, weightUnit?: WeightUnit): Promise<CargoLoadPlanReadModel | null>;
 }
 
-// ── DB row → read model mapping ──────────────────────────────────────────────
+// ── SQL implementation ───────────────────────────────────────────────────────
 
-export function toReadModel(row: CargoLoadPlanDbRow, weightUnit: WeightUnit): CargoLoadPlanReadModel {
-  return {
-    id: row.id,
-    status: row.status,
-    version: row.version,
-    weightUnit: weightUnit as ContractWeightUnit,
-    trailer: row.trailer,
-    currentLdm: row.currentLdm,
-    plannedWeight: Weight.from(
-      row.units.reduce((sum, u) => sum + u.weightKg, 0),
-      'KG',
-    ).valueInUnit(weightUnit),
-    units: row.units.map(({ weightKg, description, ...unit }) => ({
-      ...unit,
-      description: description ?? undefined,
-      weight: Weight.from(weightKg, 'KG').valueInUnit(weightUnit),
-    })),
-  };
+export class SqlCargoLoadPlanQueries implements CargoLoadPlanQueries {
+  async findPlan(id: string, weightUnit: WeightUnit = 'KG'): Promise<CargoLoadPlanReadModel | null> {
+    const { rows: planRows } = await pool.query(
+      `SELECT id, trailer_type, status, current_ldm, version
+       FROM cargo_plans.cargo_load_plans
+       WHERE id = $1`,
+      [id],
+    );
+
+    if (planRows.length === 0) return null;
+
+    const planRow = planRows[0];
+    const trailer = TrailerFactory.fromType(planRow.trailer_type);
+
+    const { rows: unitRows } = await pool.query(
+      `SELECT id, pallet_type, cargo_type, description, weight_kg, cargo_height_mm,
+              is_temperature_controlled, requires_side_loading, is_bulk, high_security_required
+       FROM cargo_plans.cargo_load_plan_units
+       WHERE load_plan_id = $1`,
+      [id],
+    );
+
+    const row: CargoLoadPlanDbRow = {
+      id: planRow.id,
+      status: planRow.status,
+      trailer: toTrailerReadModel(trailer),
+      currentLdm: parseFloat(planRow.current_ldm),
+      version: planRow.version,
+      units: unitRows.map(u => {
+        const spec = PalletSpec.fromType(u.pallet_type);
+        return {
+          id: u.id,
+          palletLabel: spec.label,
+          cargoType: u.cargo_type,
+          description: u.description ?? null,
+          weightKg: parseFloat(u.weight_kg),
+          totalHeightMm: spec.height + parseInt(u.cargo_height_mm, 10),
+          requirements: {
+            isTemperatureControlled: u.is_temperature_controlled,
+            requiresSideLoading: u.requires_side_loading,
+            isBulk: u.is_bulk,
+            highSecurityRequired: u.high_security_required,
+          },
+        };
+      }),
+    };
+
+    return toReadModel(row, weightUnit);
+  }
 }
