@@ -47,6 +47,7 @@ Zintegruj dockera z MCP:
 - Ustaw wybrany serwer MCP dla dockera
 - Wykorzystaj `wms-api` które rzuca błędem dla `GET /employees`
 - Agent/LLM ma mieć dostęp do błędów z SQL (brakująca kolumna na tabeli `party`)
+- Wybierz `wms-api` z `M6/devcontainers/wms-api` (bo `wms-api` mamy kilka!)
 
 # Zadanie 6
 
