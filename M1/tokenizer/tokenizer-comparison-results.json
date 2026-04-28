@@ -1,0 +1,38 @@
+{
+  "Pan Tadeusz - Księga 1": {
+    "bielik-v1-tokenizer": 20481,
+    "bielik-v2-tokenizer": 20480,
+    "bielik-v3-tokenizer": 13177,
+    "gpt2-polish": 11908,
+    "latarnik_tokenizer": 10045,
+    "mirrormid_tokenizer": 17292,
+    "tokenizer-all-corpora": 10058,
+    "tokenizer-nkjp": 11066,
+    "tokenizer-pan-tadeusz": 9985,
+    "tokenizer-wolnelektury": 10045
+  },
+  "The Pickwick Papers": {
+    "bielik-v1-tokenizer": 503669,
+    "bielik-v2-tokenizer": 503668,
+    "bielik-v3-tokenizer": 729254,
+    "gpt2-polish": 713919,
+    "latarnik_tokenizer": 824016,
+    "mirrormid_tokenizer": 445303,
+    "tokenizer-all-corpora": 750535,
+    "tokenizer-nkjp": 725407,
+    "tokenizer-pan-tadeusz": 926941,
+    "tokenizer-wolnelektury": 824016
+  },
+  "Fryderyk Chopin": {
+    "bielik-v1-tokenizer": 25611,
+    "bielik-v2-tokenizer": 25610,
+    "bielik-v3-tokenizer": 16338,
+    "gpt2-polish": 14018,
+    "latarnik_tokenizer": 16917,
+    "mirrormid_tokenizer": 22438,
+    "tokenizer-all-corpora": 14732,
+    "tokenizer-nkjp": 14100,
+    "tokenizer-pan-tadeusz": 20337,
+    "tokenizer-wolnelektury": 16917
+  }
+}
