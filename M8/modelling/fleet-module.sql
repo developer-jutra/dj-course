@@ -352,7 +352,7 @@ CREATE TABLE alerts (
 -- ============================================================
 
 -- Trailers
-CREATE INDEX idx_trailers_vehicle_id           ON trailers (vehicle_id);
+-- (vehicle_id is UNIQUE → backed by an implicit unique btree, no extra index needed)
 CREATE INDEX idx_trailers_body_type            ON trailers (body_type);
 
 -- Vehicle documents
@@ -387,7 +387,7 @@ CREATE INDEX idx_tyre_swap_history_service_order   ON tyre_swap_history (service
 CREATE INDEX idx_tyre_swap_history_swap_date       ON tyre_swap_history (swap_date);
 
 -- Spare parts
-CREATE INDEX idx_spare_parts_oem_number            ON spare_parts (oem_number);
+-- (spare_parts.oem_number is UNIQUE → backed by an implicit unique btree)
 CREATE INDEX idx_spare_part_aliases_part_id        ON spare_part_aliases (part_id);
 
 -- Alerts

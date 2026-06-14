@@ -119,6 +119,12 @@ Table trailers {
   has_tail_lift         boolean       [not null, default: false]
   has_refrigeration     boolean       [not null, default: false]
   has_temp_sensors      boolean       [not null, default: false]
+
+  // vehicle_id is UNIQUE → implicit unique btree, no extra FK index needed.
+  // vin / registration_number / fleet_number are UNIQUE → same.
+  indexes {
+    body_type [name: 'idx_trailers_body_type']
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +305,9 @@ Table spare_parts {
   stock_quantity      decimal(10,3) [not null, default: 0]
   min_stock_threshold decimal(10,3) [not null, default: 0]  // alert below this level
   unit                varchar(20)   [not null]           // pcs, L, kg …
+
+  // No additional indexes — oem_number is UNIQUE (implicit unique btree).
+  // Do NOT regenerate idx_spare_parts_oem_number; it would duplicate the constraint.
 }
 
 Table spare_part_aliases {
