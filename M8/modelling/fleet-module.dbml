@@ -11,23 +11,6 @@
 // ENUMS
 // ---------------------------------------------------------------------------
 
-Enum fuel_type {
-  diesel
-  petrol
-  lpg
-  cng
-  electric
-  hybrid
-}
-
-Enum euro_norm {
-  euro_3
-  euro_4
-  euro_5
-  euro_6
-  euro_6d
-}
-
 Enum trailer_body_type {
   reefer        // chłodnia
   tarp          // plandeka / curtain-side
@@ -91,9 +74,14 @@ Enum maintenance_interval_unit {
 // ---------------------------------------------------------------------------
 
 Table vehicles {
-  // Placeholder for FLEET_VEHICLE in tms-er-diagram.mmd.
-  // Do NOT add columns here — this table is owned by the core TMS module.
-  id int [pk, increment]
+  Note: 'FLEET_VEHICLE from tms-er-diagram.mmd, extended here with fleet-specific specs.'
+
+  id    int   [pk, increment]
+  specs jsonb [not null]
+        // Identification (vin, registration_number, fleet_number),
+        // engine/drivetrain (power_kw, displacement_cc, fuel_type, euro_norm),
+        // dimensions/limits (kerb_weight_kg, gvm_kg, max_payload_kg),
+        // live operations (odometer_km, avg_fuel_consumption, current_location).
 }
 
 Table employees {
@@ -103,41 +91,7 @@ Table employees {
 }
 
 // ---------------------------------------------------------------------------
-// 1. TRANSPORT ASSET CATALOG
-// Extends the thin FLEET_VEHICLE stub; one row per vehicle (truck / rigid).
-// ---------------------------------------------------------------------------
-
-Table vehicle_specs {
-  Note: 'Full technical profile of a tractor / rigid — extends the core vehicles table.'
-
-  id                    int           [pk, increment]
-  vehicle_id            int           [not null, unique, ref: - vehicles.id]
-                        // 1-to-1 with vehicles; unique enforces the extension pattern
-
-  // Identification
-  vin                   varchar(17)   [not null, unique]
-  registration_number   varchar(20)   [not null, unique]
-  fleet_number          varchar(30)   [unique]
-
-  // Engine / drivetrain
-  power_kw              smallint      [not null]          // kilowatts
-  displacement_cc       int                               // engine displacement cm³
-  fuel_type             fuel_type     [not null]
-  euro_norm             euro_norm     [not null]
-
-  // Dimensions / limits (all in kg unless noted)
-  kerb_weight_kg        int
-  gvm_kg                int           [not null]          // gross vehicle mass (DMC)
-  max_payload_kg        int
-
-  // Live operational data
-  odometer_km           int           [not null, default: 0]
-  avg_fuel_consumption  decimal(5,2)                      // L/100 km
-  current_location      varchar(255)                      // free-text base/location name
-}
-
-// ---------------------------------------------------------------------------
-// 2. TRAILERS / SEMI-TRAILERS
+// 1. TRAILERS / SEMI-TRAILERS
 // Separate entity — trailers have distinct body type, cargo space and equipment.
 // ---------------------------------------------------------------------------
 
