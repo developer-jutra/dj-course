@@ -4,14 +4,25 @@
       <h2 class="text-lg font-medium text-gray-900 dark:text-white">
         Tracking Details
       </h2>
-      <span
-        :class="[
-          'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
-          getStatusColor(trackingData.status)
-        ]"
-      >
-        {{ formatStatus(trackingData.status) }}
-      </span>
+      <div class="flex items-center gap-3">
+        <a
+          :href="`/api/tracking/${encodeURIComponent(trackingData.trackingNumber)}/geojson`"
+          download
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          title="Download route, events and current position as GeoJSON (RFC 7946) — opens in QGIS, deck.gl, etc."
+        >
+          <ArrowDownTrayIcon class="h-4 w-4" />
+          GeoJSON
+        </a>
+        <span
+          :class="[
+            'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+            getStatusColor(trackingData.status)
+          ]"
+        >
+          {{ formatStatus(trackingData.status) }}
+        </span>
+      </div>
     </div>
     
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -50,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import type { TrackingData } from './tracking.model'
 
 interface Props {
