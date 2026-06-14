@@ -317,6 +317,11 @@ Table spare_part_aliases {
   part_id     int           [not null]
   alias_number varchar(100) [not null]
   source      varchar(100)                               // e.g. manufacturer name
+
+  indexes {
+    part_id      [name: 'idx_spare_part_aliases_part_id']
+    alias_number [name: 'idx_spare_part_aliases_alias_number']  // reverse-lookup: third-party number → our OEM
+  }
 }
 
 Ref: spare_part_aliases.part_id > spare_parts.id

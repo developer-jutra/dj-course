@@ -389,6 +389,7 @@ CREATE INDEX idx_tyre_swap_history_swap_date       ON tyre_swap_history (swap_da
 -- Spare parts
 -- (spare_parts.oem_number is UNIQUE → backed by an implicit unique btree)
 CREATE INDEX idx_spare_part_aliases_part_id        ON spare_part_aliases (part_id);
+CREATE INDEX idx_spare_part_aliases_alias_number   ON spare_part_aliases (alias_number);
 
 -- Alerts
 CREATE INDEX idx_alert_recipient_rules_rule_id     ON alert_recipient_rules (alert_rule_id);
