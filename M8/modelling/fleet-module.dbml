@@ -143,6 +143,11 @@ Table vehicle_documents {
   expiry_date     date
   file_url        varchar(500)  [not null]                // path/URL to the scan
   notes           text
+
+  indexes {
+    (vehicle_id, document_type)             [name: 'idx_vehicle_documents_vehicle_type']
+    expiry_date                             [name: 'idx_vehicle_documents_expiry']  // partial WHERE expiry_date IS NOT NULL (added in SQL)
+  }
 }
 
 Ref: vehicle_documents.vehicle_id > vehicles.id
@@ -173,6 +178,11 @@ Table policy_instalments {
   due_date        date          [not null]
   amount          decimal(10,2) [not null]
   paid_date       date                                    // null = not yet paid
+
+  indexes {
+    (policy_id, due_date) [name: 'idx_policy_instalments_policy_due']
+    // No standalone (due_date) — re-add if fleet-wide "due this week" queries appear.
+  }
 }
 
 Ref: policy_instalments.policy_id > insurance_policies.id
@@ -193,6 +203,11 @@ Table vehicle_inspections {
   result              varchar(100)                        // pass / fail / remarks
   next_due_date       date            [not null]
   performed_by        varchar(200)                        // station / lab name
+
+  indexes {
+    (vehicle_id, inspection_type, next_due_date) [name: 'idx_vehicle_inspections_vehicle_type_due']
+    next_due_date                                [name: 'idx_vehicle_inspections_next_due']  // fleet-wide "what's due next"
+  }
 }
 
 Ref: vehicle_inspections.vehicle_id > vehicles.id
@@ -284,6 +299,11 @@ Table tyre_swap_history {
   brand               varchar(100)
   model               varchar(100)
   size                varchar(30)
+
+  indexes {
+    (vehicle_id, `swap_date desc`) [name: 'idx_tyre_swap_history_vehicle_date']  // DESC matches "most recent swap" pattern
+    service_order_id               [name: 'idx_tyre_swap_history_service_order'] // partial WHERE service_order_id IS NOT NULL (in SQL)
+  }
 }
 
 Ref: tyre_swap_history.vehicle_id > vehicles.id
@@ -360,6 +380,13 @@ Table alerts {
   status          alert_status  [not null, default: `pending`]
   assigned_to     int                         // FK → employees (optional assignee)
   resolved_at     timestamp
+
+  indexes {
+    (vehicle_id, `raised_at desc`) [name: 'idx_alerts_vehicle_raised']  // "latest alerts for vehicle X"
+    alert_rule_id                  [name: 'idx_alerts_rule_id']
+    status                         [name: 'idx_alerts_status']           // step 4 will turn this partial
+    assigned_to                    [name: 'idx_alerts_assigned_to']      // partial WHERE assigned_to IS NOT NULL (in SQL)
+  }
 }
 
 Ref: alerts.vehicle_id > vehicles.id

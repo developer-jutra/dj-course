@@ -356,20 +356,23 @@ CREATE TABLE alerts (
 CREATE INDEX idx_trailers_body_type            ON trailers (body_type);
 
 -- Vehicle documents
-CREATE INDEX idx_vehicle_documents_vehicle_id  ON vehicle_documents (vehicle_id);
-CREATE INDEX idx_vehicle_documents_type        ON vehicle_documents (document_type);
-CREATE INDEX idx_vehicle_documents_expiry      ON vehicle_documents (expiry_date) WHERE expiry_date IS NOT NULL;
+-- Composite covers "all documents for vehicle X" and "vehicle X's documents of type Y".
+CREATE INDEX idx_vehicle_documents_vehicle_type ON vehicle_documents (vehicle_id, document_type);
+CREATE INDEX idx_vehicle_documents_expiry       ON vehicle_documents (expiry_date) WHERE expiry_date IS NOT NULL;
 
 -- Insurance
 CREATE INDEX idx_insurance_policies_vehicle_id ON insurance_policies (vehicle_id);
 CREATE INDEX idx_insurance_policies_valid_to   ON insurance_policies (valid_to);
-CREATE INDEX idx_policy_instalments_policy_id  ON policy_instalments (policy_id);
-CREATE INDEX idx_policy_instalments_due_date   ON policy_instalments (due_date);
+-- Composite covers "instalments for policy X" + the same ordered by due_date.
+-- NOTE: fleet-wide "what's due this week across all policies" no longer has a
+-- supporting index; re-add a standalone (due_date) index if that query is needed.
+CREATE INDEX idx_policy_instalments_policy_due ON policy_instalments (policy_id, due_date);
 
 -- Inspections
-CREATE INDEX idx_vehicle_inspections_vehicle_id   ON vehicle_inspections (vehicle_id);
-CREATE INDEX idx_vehicle_inspections_type         ON vehicle_inspections (inspection_type);
-CREATE INDEX idx_vehicle_inspections_next_due     ON vehicle_inspections (next_due_date);
+-- Composite covers "next-due inspection for vehicle X of type Y".
+CREATE INDEX idx_vehicle_inspections_vehicle_type_due ON vehicle_inspections (vehicle_id, inspection_type, next_due_date);
+-- Standalone (next_due_date) kept for fleet-wide "what's due next" dashboards.
+CREATE INDEX idx_vehicle_inspections_next_due         ON vehicle_inspections (next_due_date);
 
 -- Service orders
 CREATE INDEX idx_service_orders_vehicle_id         ON service_orders (vehicle_id);
@@ -382,9 +385,9 @@ CREATE INDEX idx_service_order_parts_part_id       ON service_order_parts (part_
 
 -- Tyres
 CREATE INDEX idx_vehicle_tyres_vehicle_id          ON vehicle_tyres (vehicle_id);
-CREATE INDEX idx_tyre_swap_history_vehicle_id      ON tyre_swap_history (vehicle_id);
+-- DESC on swap_date matches "show me the most recent swap for vehicle X" pattern.
+CREATE INDEX idx_tyre_swap_history_vehicle_date    ON tyre_swap_history (vehicle_id, swap_date DESC);
 CREATE INDEX idx_tyre_swap_history_service_order   ON tyre_swap_history (service_order_id) WHERE service_order_id IS NOT NULL;
-CREATE INDEX idx_tyre_swap_history_swap_date       ON tyre_swap_history (swap_date);
 
 -- Spare parts
 -- (spare_parts.oem_number is UNIQUE → backed by an implicit unique btree)
@@ -393,10 +396,10 @@ CREATE INDEX idx_spare_part_aliases_alias_number   ON spare_part_aliases (alias_
 
 -- Alerts
 CREATE INDEX idx_alert_recipient_rules_rule_id     ON alert_recipient_rules (alert_rule_id);
-CREATE INDEX idx_alerts_vehicle_id                 ON alerts (vehicle_id);
+-- DESC on raised_at matches "show me latest alerts for vehicle X" pattern.
+CREATE INDEX idx_alerts_vehicle_raised             ON alerts (vehicle_id, raised_at DESC);
 CREATE INDEX idx_alerts_rule_id                    ON alerts (alert_rule_id);
 CREATE INDEX idx_alerts_status                     ON alerts (status);
-CREATE INDEX idx_alerts_raised_at                  ON alerts (raised_at);
 CREATE INDEX idx_alerts_assigned_to                ON alerts (assigned_to) WHERE assigned_to IS NOT NULL;
 
 -- vehicles.specs — partial unique indexes to enforce uniqueness of key identifiers
