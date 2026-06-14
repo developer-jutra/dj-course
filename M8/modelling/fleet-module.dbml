@@ -1,0 +1,399 @@
+// =============================================================================
+// Fleet Management Module — TMS
+// Scope: vehicle catalog, trailers, documents, insurance, inspections,
+//        maintenance, service history, spare-parts inventory, alert system.
+// Out of scope (already in tms-er-diagram.mmd):
+//   FLEET_VEHICLE, VEHICLE_CATEGORY, RESOURCE, HR_DRIVER, TRANSPORT, ORDER …
+// Cross-module references use placeholder tables with a comment.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------------
+
+Enum fuel_type {
+  diesel
+  petrol
+  lpg
+  cng
+  electric
+  hybrid
+}
+
+Enum euro_norm {
+  euro_3
+  euro_4
+  euro_5
+  euro_6
+  euro_6d
+}
+
+Enum trailer_body_type {
+  reefer        // chłodnia
+  tarp          // plandeka / curtain-side
+  isotherm      // izoterma
+  curtainsider  // firanka
+}
+
+Enum document_type {
+  registration_certificate   // dowód rejestracyjny
+  vehicle_card               // karta pojazdu
+  atp_certificate            // świadectwo ATP (reefer)
+  waste_transport_auth       // zezwolenie na przewóz odpadów
+  consent_other
+}
+
+Enum coverage_type {
+  oc          // OC — third-party liability
+  ac          // AC — comprehensive (autocasco)
+  assistance
+  ocp         // OCP — carrier liability
+}
+
+Enum repair_classification {
+  warranty
+  post_warranty
+  post_accident
+}
+
+Enum inspection_type {
+  tachograph          // legalizacja tachografu
+  technical           // badanie techniczne (SKP)
+  udt_tail_lift       // UDT — winda załadunkowa / platforma
+}
+
+Enum tyre_season {
+  summer
+  winter
+  all_season
+}
+
+Enum alert_status {
+  pending
+  in_progress
+  archived
+}
+
+Enum alert_recipient_role {
+  dispatcher
+  fleet_manager
+  mechanic
+}
+
+Enum maintenance_interval_unit {
+  km
+  engine_hours
+  months
+}
+
+// ---------------------------------------------------------------------------
+// PLACEHOLDER — cross-module FK targets (already modelled in tms-er-diagram.mmd)
+// ---------------------------------------------------------------------------
+
+Table vehicles {
+  // Placeholder for FLEET_VEHICLE in tms-er-diagram.mmd.
+  // Do NOT add columns here — this table is owned by the core TMS module.
+  id int [pk, increment]
+}
+
+Table employees {
+  // Placeholder for HR_DRIVER / any employee record used as alert recipient.
+  // Do NOT add columns here — this table is owned by the HR module.
+  id int [pk, increment]
+}
+
+// ---------------------------------------------------------------------------
+// 1. TRANSPORT ASSET CATALOG
+// Extends the thin FLEET_VEHICLE stub; one row per vehicle (truck / rigid).
+// ---------------------------------------------------------------------------
+
+Table vehicle_specs {
+  Note: 'Full technical profile of a tractor / rigid — extends the core vehicles table.'
+
+  id                    int           [pk, increment]
+  vehicle_id            int           [not null, unique, ref: - vehicles.id]
+                        // 1-to-1 with vehicles; unique enforces the extension pattern
+
+  // Identification
+  vin                   varchar(17)   [not null, unique]
+  registration_number   varchar(20)   [not null, unique]
+  fleet_number          varchar(30)   [unique]
+
+  // Engine / drivetrain
+  power_kw              smallint      [not null]          // kilowatts
+  displacement_cc       int                               // engine displacement cm³
+  fuel_type             fuel_type     [not null]
+  euro_norm             euro_norm     [not null]
+
+  // Dimensions / limits (all in kg unless noted)
+  kerb_weight_kg        int
+  gvm_kg                int           [not null]          // gross vehicle mass (DMC)
+  max_payload_kg        int
+
+  // Live operational data
+  odometer_km           int           [not null, default: 0]
+  avg_fuel_consumption  decimal(5,2)                      // L/100 km
+  current_location      varchar(255)                      // free-text base/location name
+}
+
+// ---------------------------------------------------------------------------
+// 2. TRAILERS / SEMI-TRAILERS
+// Separate entity — trailers have distinct body type, cargo space and equipment.
+// ---------------------------------------------------------------------------
+
+Table trailers {
+  Note: 'Semi-trailer / trailer catalog with body type, cargo dimensions and equipment.'
+
+  id                    int           [pk, increment]
+  vehicle_id            int           [not null, unique, ref: - vehicles.id]
+                        // trailers are also FLEET_VEHICLE resources in the core module
+
+  // Identification (mirrors vehicle_specs; trailers have their own VIN/plates)
+  vin                   varchar(17)   [not null, unique]
+  registration_number   varchar(20)   [not null, unique]
+  fleet_number          varchar(30)   [unique]
+
+  // Body
+  body_type             trailer_body_type [not null]
+
+  // Cargo space
+  euro_pallets          smallint                          // number of euro-pallet spaces
+  volume_m3             decimal(6,2)                      // internal volume m³
+  interior_height_m     decimal(4,2)                      // internal height m
+
+  // Extra equipment (boolean flags — spec lists these three explicitly)
+  has_tail_lift         boolean       [not null, default: false]
+  has_refrigeration     boolean       [not null, default: false]
+  has_temp_sensors      boolean       [not null, default: false]
+}
+
+// ---------------------------------------------------------------------------
+// 3. DOCUMENT & PERMISSION MANAGEMENT / DIGITAL REPOSITORY
+// One generic table covers all document kinds; type enum distinguishes them.
+// ---------------------------------------------------------------------------
+
+Table vehicle_documents {
+  Note: 'Digital repository of scanned vehicle documents, consents and certificates.'
+
+  id              int           [pk, increment]
+  vehicle_id      int           [not null]
+  document_type   document_type [not null]
+  document_number varchar(100)
+  issued_date     date
+  expiry_date     date
+  file_url        varchar(500)  [not null]                // path/URL to the scan
+  notes           text
+}
+
+Ref: vehicle_documents.vehicle_id > vehicles.id
+
+// ---------------------------------------------------------------------------
+// 4. INSURANCE POLICIES
+// ---------------------------------------------------------------------------
+
+Table insurance_policies {
+  Note: 'Insurance policy header — insurer, policy number, and coverage scope.'
+
+  id              int           [pk, increment]
+  vehicle_id      int           [not null]
+  insurer_name    varchar(200)  [not null]
+  policy_number   varchar(100)  [not null, unique]
+  coverage_type   coverage_type [not null]
+  valid_from      date          [not null]
+  valid_to        date          [not null]
+}
+
+Ref: insurance_policies.vehicle_id > vehicles.id
+
+Table policy_instalments {
+  Note: 'Individual premium instalment records within an insurance policy.'
+
+  id              int           [pk, increment]
+  policy_id       int           [not null]
+  due_date        date          [not null]
+  amount          decimal(10,2) [not null]
+  paid_date       date                                    // null = not yet paid
+}
+
+Ref: policy_instalments.policy_id > insurance_policies.id
+
+// ---------------------------------------------------------------------------
+// 5. LEGALISATIONS & INSPECTIONS
+// Tachographs, periodic technical (SKP), and UDT (tail-lift) share the same
+// shape: subject + date + result + next-due.  One table with an enum type.
+// ---------------------------------------------------------------------------
+
+Table vehicle_inspections {
+  Note: 'Unified record for tachograph calibrations, technical (SKP) and UDT inspections.'
+
+  id                  int             [pk, increment]
+  vehicle_id          int             [not null]
+  inspection_type     inspection_type [not null]
+  inspection_date     date            [not null]
+  result              varchar(100)                        // pass / fail / remarks
+  next_due_date       date            [not null]
+  performed_by        varchar(200)                        // station / lab name
+}
+
+Ref: vehicle_inspections.vehicle_id > vehicles.id
+
+// ---------------------------------------------------------------------------
+// 6. MAINTENANCE INTERVAL DEFINITIONS
+// Reusable templates: by km, by engine-hours/months, or by elapsed time.
+// ---------------------------------------------------------------------------
+
+Table maintenance_intervals {
+  Note: 'Reusable maintenance schedule template (oil change, seasonal tyre swap, etc.).'
+
+  id              int                         [pk, increment]
+  name            varchar(200)                [not null]   // e.g. "Oil change", "Summer tyre swap"
+  description     text
+  interval_unit   maintenance_interval_unit   [not null]
+  interval_value  int                         [not null]   // e.g. 15000 (km), 6 (months)
+}
+
+// ---------------------------------------------------------------------------
+// 7a. SERVICE HISTORY — WORK ORDERS
+// Workshop work orders with defect description, dates and labour cost.
+// ---------------------------------------------------------------------------
+
+Table service_orders {
+  Note: 'Workshop work order — records a single service or repair event per vehicle.'
+
+  id                      int                     [pk, increment]
+  vehicle_id              int                     [not null]
+  repair_classification   repair_classification   [not null]
+  damage_case_number      varchar(100)                        // required for post_accident
+  defect_description      text                    [not null]
+  vehicle_in_date         date                    [not null]
+  vehicle_out_date        date
+  workshop_name           varchar(200)
+  labour_cost             decimal(10,2)
+}
+
+Ref: service_orders.vehicle_id > vehicles.id
+
+// ---------------------------------------------------------------------------
+// 7b. PARTS CONSUMPTION LOG
+// Detailed list of parts used in a work order (filters, oils, brake discs …).
+// ---------------------------------------------------------------------------
+
+Table service_order_parts {
+  Note: 'Parts consumed during a service order, linked to the spare-parts catalog.'
+
+  id              int           [pk, increment]
+  service_order_id int          [not null]
+  part_id         int           [not null]                    // FK → spare_parts
+  quantity        decimal(10,3) [not null]
+  unit_cost       decimal(10,2)
+}
+
+Ref: service_order_parts.service_order_id > service_orders.id
+Ref: service_order_parts.part_id > spare_parts.id
+
+// ---------------------------------------------------------------------------
+// 7c. TYRE MANAGEMENT
+// Current tyre state per axle position, plus a separate swap history table.
+// ---------------------------------------------------------------------------
+
+Table vehicle_tyres {
+  Note: 'Current tyre fitted at a given axle position on a vehicle.'
+
+  id              int           [pk, increment]
+  vehicle_id      int           [not null]
+  axle_position   varchar(50)   [not null]   // e.g. "front-left", "rear-right-outer"
+  season          tyre_season   [not null]
+  tread_depth_mm  decimal(4,1)
+  brand           varchar(100)
+  model           varchar(100)
+  size            varchar(30)                // e.g. "315/70 R22.5"
+}
+
+Ref: vehicle_tyres.vehicle_id > vehicles.id
+
+Table tyre_swap_history {
+  Note: 'Audit trail of every tyre swap event (position, tread at swap, service order).'
+
+  id                  int         [pk, increment]
+  vehicle_id          int         [not null]
+  service_order_id    int                         // null = ad-hoc swap outside a work order
+  axle_position       varchar(50) [not null]
+  swap_date           date        [not null]
+  tread_depth_mm      decimal(4,1)                // tread depth at time of swap
+  season              tyre_season [not null]
+  brand               varchar(100)
+  model               varchar(100)
+  size                varchar(30)
+}
+
+Ref: tyre_swap_history.vehicle_id > vehicles.id
+Ref: tyre_swap_history.service_order_id > service_orders.id
+
+// ---------------------------------------------------------------------------
+// 8. SPARE-PARTS INVENTORY
+// Material indices with OEM numbers/aliases, warehouse location, min threshold.
+// ---------------------------------------------------------------------------
+
+Table spare_parts {
+  Note: 'Spare-parts catalog with OEM numbers, warehouse slot and stock levels.'
+
+  id                  int           [pk, increment]
+  name                varchar(200)  [not null]
+  oem_number          varchar(100)  [not null, unique]   // primary OEM catalog number
+  rack                varchar(50)                        // warehouse rack
+  shelf               varchar(50)                        // warehouse shelf
+  stock_quantity      decimal(10,3) [not null, default: 0]
+  min_stock_threshold decimal(10,3) [not null, default: 0]  // alert below this level
+  unit                varchar(20)   [not null]           // pcs, L, kg …
+}
+
+Table spare_part_aliases {
+  Note: 'Alternative / equivalent part numbers (cross-references, aftermarket codes).'
+
+  id          int           [pk, increment]
+  part_id     int           [not null]
+  alias_number varchar(100) [not null]
+  source      varchar(100)                               // e.g. manufacturer name
+}
+
+Ref: spare_part_aliases.part_id > spare_parts.id
+
+// ---------------------------------------------------------------------------
+// 9. MONITORING & NOTIFICATION SYSTEM
+// ---------------------------------------------------------------------------
+
+Table alert_rules {
+  Note: 'Warning threshold configuration — defines when an alert should fire.'
+
+  id                  int           [pk, increment]
+  name                varchar(200)  [not null]
+  description         text
+  threshold_days      int                         // e.g. 30 days before policy expiry
+  threshold_km        int                         // e.g. 2000 km before next service
+}
+
+Table alert_recipient_rules {
+  Note: 'Maps an alert rule to one or more recipient roles (role-based routing).'
+
+  id              int                     [pk, increment]
+  alert_rule_id   int                     [not null]
+  recipient_role  alert_recipient_role    [not null]
+}
+
+Ref: alert_recipient_rules.alert_rule_id > alert_rules.id
+
+Table alerts {
+  Note: 'Individual alert instance raised for a specific vehicle and rule.'
+
+  id              int           [pk, increment]
+  vehicle_id      int           [not null]
+  alert_rule_id   int           [not null]
+  raised_at       timestamp     [not null]
+  status          alert_status  [not null, default: `pending`]
+  assigned_to     int                         // FK → employees (optional assignee)
+  resolved_at     timestamp
+}
+
+Ref: alerts.vehicle_id > vehicles.id
+Ref: alerts.alert_rule_id > alert_rules.id
+Ref: alerts.assigned_to > employees.id
