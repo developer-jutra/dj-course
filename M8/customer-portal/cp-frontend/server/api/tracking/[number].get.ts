@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
             });
         }
 
+        setResponseHeader(event, 'Content-Type', 'application/geo+json');
         logger.info(`Fetched tracking: ${number}`);
         return tracking;
     } catch (e) {

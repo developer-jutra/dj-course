@@ -1,29 +1,18 @@
 import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
-const RoutePointSchema = new Schema({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
-  name: { type: String, required: true }
-}, { _id: false });
-
-const CurrentPositionSchema = new Schema({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true }
-}, { _id: false });
-
-const TrackingEventSchema = new Schema({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
+const GeoJSONGeometrySchema = new Schema({
   type: {
     type: String,
-    enum: ['pickup', 'delivery', 'refuel', 'rest', 'warehouse', 'customs', 'current'],
+    enum: ['Point', 'LineString', 'Polygon', 'MultiPoint', 'MultiLineString', 'MultiPolygon'],
     required: true
   },
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  estimatedTime: String,
-  actualTime: String,
-  isCompleted: { type: Boolean, required: true }
+  coordinates: { type: Schema.Types.Mixed, required: true }
+}, { _id: false });
+
+const FeatureSchema = new Schema({
+  type: { type: String, default: 'Feature' },
+  geometry: { type: GeoJSONGeometrySchema, required: true },
+  properties: { type: Schema.Types.Mixed, required: true }
 }, { _id: false });
 
 const TrackingUpdateSchema = new Schema({
@@ -37,22 +26,22 @@ const TrackingUpdateSchema = new Schema({
 }, { _id: false });
 
 const schema = new Schema({
+  type: { type: String, default: 'FeatureCollection' },
   trackingNumber: { type: String, required: true, unique: true },
   status: { type: String, required: true },
   serviceType: { type: String, required: true },
   origin: { type: String, required: true },
   destination: { type: String, required: true },
-  route: { type: [RoutePointSchema], required: true },
-  currentPosition: { type: CurrentPositionSchema, required: true },
-  trackingEvents: { type: [TrackingEventSchema], required: true },
-  updates: { type: [TrackingUpdateSchema], required: true },
   estimatedDelivery: String,
-  actualDelivery: String
+  actualDelivery: String,
+  updates: { type: [TrackingUpdateSchema], required: true },
+  features: { type: [FeatureSchema], required: true }
 });
 
-export type RoutePoint = InferSchemaType<typeof RoutePointSchema>;
-export type CurrentPosition = InferSchemaType<typeof CurrentPositionSchema>;
-export type TrackingEvent = InferSchemaType<typeof TrackingEventSchema>;
+schema.index({ 'features.geometry': '2dsphere' });
+
+export type GeoJSONGeometry = InferSchemaType<typeof GeoJSONGeometrySchema>;
+export type GeoJSONFeature = InferSchemaType<typeof FeatureSchema>;
 export type TrackingUpdate = InferSchemaType<typeof TrackingUpdateSchema>;
 export type ITrackingData = InferSchemaType<typeof schema>;
 
