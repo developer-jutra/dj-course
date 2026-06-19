@@ -13,6 +13,10 @@ db.createCollection('route_performance');
 db.createCollection('transportation_requests');
 db.createCollection('warehousing_requests');
 db.createCollection('tracking_data');
+db.createCollection('companies');
+db.createCollection('users');
+db.createCollection('notifications');
+db.createCollection('invoices');
 
 // Wstawianie danych dla dashboard_stats
 db.dashboard_stats.insertMany([
@@ -719,6 +723,188 @@ db.tracking_data.insertMany([
   }
 ]);
 
+// Wstawianie danych dla companies (firmy korzystające z portalu)
+db.companies.insertMany([
+  {
+    id: '1',
+    name: 'Deliveroo Logistics Sp. z o.o.',
+    taxId: 'PL1234567890',
+    industry: 'AUTOMOTIVE',
+    accountTier: 'ENTERPRISE',
+    address: { city: 'Warsaw', country: 'Poland', street: 'ul. Logistyczna 123', postalCode: '00-001' },
+    contactEmail: 'office@deliveroo-logistics.example',
+    contactPhone: '+48123456789',
+    isActive: true,
+    createdAt: new Date('2023-06-01')
+  },
+  {
+    id: '2',
+    name: 'NordFresh Foods AB',
+    taxId: 'SE556677889901',
+    industry: 'FOOD_AND_BEVERAGE',
+    accountTier: 'STANDARD',
+    address: { city: 'Stockholm', country: 'Sweden', street: 'Hamngatan 12', postalCode: '111 47' },
+    contactEmail: 'logistics@nordfresh.example',
+    contactPhone: '+46812345678',
+    isActive: true,
+    createdAt: new Date('2023-09-15')
+  },
+  {
+    id: '3',
+    name: 'MediPharm GmbH',
+    taxId: 'DE811569876',
+    industry: 'PHARMACEUTICAL',
+    accountTier: 'PREMIUM',
+    address: { city: 'Berlin', country: 'Germany', street: 'Hauptstraße 456', postalCode: '10115' },
+    contactEmail: 'supply@medipharm.example',
+    contactPhone: '+49123456789',
+    isActive: false,
+    createdAt: new Date('2024-01-05')
+  }
+]);
+
+// Wstawianie danych dla users (użytkownicy portalu powiązani z firmami)
+db.users.insertMany([
+  {
+    id: '1',
+    companyId: '1',
+    email: 'john.doe@deliveroo-logistics.example',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'ADMIN',
+    isActive: true,
+    lastLoginAt: new Date('2024-01-18T07:45:00'),
+    createdAt: new Date('2023-06-01')
+  },
+  {
+    id: '2',
+    companyId: '1',
+    email: 'anna.kowalski@deliveroo-logistics.example',
+    firstName: 'Anna',
+    lastName: 'Kowalski',
+    role: 'OPERATOR',
+    isActive: true,
+    lastLoginAt: new Date('2024-01-17T12:30:00'),
+    createdAt: new Date('2023-07-12')
+  },
+  {
+    id: '3',
+    companyId: '2',
+    email: 'erik.lindberg@nordfresh.example',
+    firstName: 'Erik',
+    lastName: 'Lindberg',
+    role: 'VIEWER',
+    isActive: true,
+    lastLoginAt: new Date('2024-01-16T09:10:00'),
+    createdAt: new Date('2023-09-15')
+  }
+]);
+
+// Wstawianie danych dla notifications (powiadomienia o zmianach statusu zleceń)
+db.notifications.insertMany([
+  {
+    userId: '1',
+    type: 'STATUS_UPDATE',
+    title: 'Shipment in transit',
+    message: 'TR-2024-001 (Warsaw → Berlin) is now in transit.',
+    relatedRequest: 'TR-2024-001',
+    severity: 'INFO',
+    isRead: false,
+    createdAt: new Date('2024-01-15T14:00:00')
+  },
+  {
+    userId: '1',
+    type: 'STATUS_UPDATE',
+    title: 'Shipment delivered',
+    message: 'TR-2024-002 (Krakow → Vienna) was delivered ahead of schedule.',
+    relatedRequest: 'TR-2024-002',
+    severity: 'SUCCESS',
+    isRead: true,
+    createdAt: new Date('2024-01-13T09:05:00')
+  },
+  {
+    userId: '2',
+    type: 'WAREHOUSING',
+    title: 'Cargo received',
+    message: 'WH-2024-002 cargo received at Cold Storage B-5.',
+    relatedRequest: 'WH-2024-002',
+    severity: 'INFO',
+    isRead: false,
+    createdAt: new Date('2024-01-18T15:05:00')
+  },
+  {
+    userId: '3',
+    type: 'BILLING',
+    title: 'New invoice issued',
+    message: 'Invoice INV-2024-002 for WH-2024-002 has been issued.',
+    relatedRequest: 'WH-2024-002',
+    severity: 'WARNING',
+    isRead: false,
+    createdAt: new Date('2024-01-19T08:00:00')
+  }
+]);
+
+// Wstawianie danych dla invoices (faktury za zlecenia transportowe i magazynowe)
+db.invoices.insertMany([
+  {
+    invoiceNumber: 'INV-2024-001',
+    companyId: '1',
+    relatedRequest: 'TR-2024-002',
+    type: 'TRANSPORTATION',
+    status: 'PAID',
+    currency: 'EUR',
+    lineItems: [
+      { description: 'Express delivery Krakow → Vienna', quantity: 1, unitPrice: 720, amount: 720 },
+      { description: 'Cargo insurance', quantity: 1, unitPrice: 95, amount: 95 }
+    ],
+    subtotal: 815,
+    taxRate: 0.23,
+    taxAmount: 187.45,
+    total: 1002.45,
+    issueDate: new Date('2024-01-13'),
+    dueDate: new Date('2024-01-27'),
+    paidAt: new Date('2024-01-20')
+  },
+  {
+    invoiceNumber: 'INV-2024-002',
+    companyId: '1',
+    relatedRequest: 'WH-2024-002',
+    type: 'WAREHOUSING',
+    status: 'ISSUED',
+    currency: 'EUR',
+    lineItems: [
+      { description: 'Refrigerated storage (14 days)', quantity: 14, unitPrice: 35, amount: 490 },
+      { description: 'Quality control service', quantity: 1, unitPrice: 120, amount: 120 }
+    ],
+    subtotal: 610,
+    taxRate: 0.23,
+    taxAmount: 140.3,
+    total: 750.3,
+    issueDate: new Date('2024-01-19'),
+    dueDate: new Date('2024-02-02'),
+    paidAt: null
+  },
+  {
+    invoiceNumber: 'INV-2024-003',
+    companyId: '3',
+    relatedRequest: 'WH-2024-003',
+    type: 'WAREHOUSING',
+    status: 'OVERDUE',
+    currency: 'EUR',
+    lineItems: [
+      { description: 'Climate-controlled storage (1 month)', quantity: 1, unitPrice: 1850, amount: 1850 },
+      { description: 'Maximum security surcharge', quantity: 1, unitPrice: 400, amount: 400 }
+    ],
+    subtotal: 2250,
+    taxRate: 0.19,
+    taxAmount: 427.5,
+    total: 2677.5,
+    issueDate: new Date('2024-01-22'),
+    dueDate: new Date('2024-02-05'),
+    paidAt: null
+  }
+]);
+
 // Tworzenie indeksów
 db.recent_requests.createIndex({ "date": -1 });
 db.recent_requests.createIndex({ "id": 1 }, { unique: true });
@@ -742,5 +928,26 @@ db.warehousing_requests.createIndex({ "storageType": 1 });
 // Indeksy dla tracking_data (GeoJSON)
 db.tracking_data.createIndex({ "trackingNumber": 1 }, { unique: true });
 db.tracking_data.createIndex({ "features.geometry": "2dsphere" });
+
+// Indeksy dla companies
+db.companies.createIndex({ "id": 1 }, { unique: true });
+db.companies.createIndex({ "taxId": 1 }, { unique: true });
+db.companies.createIndex({ "accountTier": 1 });
+
+// Indeksy dla users
+db.users.createIndex({ "id": 1 }, { unique: true });
+db.users.createIndex({ "email": 1 }, { unique: true });
+db.users.createIndex({ "companyId": 1 });
+
+// Indeksy dla notifications
+db.notifications.createIndex({ "userId": 1, "createdAt": -1 });
+db.notifications.createIndex({ "isRead": 1 });
+db.notifications.createIndex({ "relatedRequest": 1 });
+
+// Indeksy dla invoices
+db.invoices.createIndex({ "invoiceNumber": 1 }, { unique: true });
+db.invoices.createIndex({ "companyId": 1 });
+db.invoices.createIndex({ "status": 1 });
+db.invoices.createIndex({ "dueDate": 1 });
 
 print('MONGO INITIALIZATION FINISHED - All data seeded successfully');
