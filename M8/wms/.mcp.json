@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "wms-postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@henkey/postgres-mcp-server",
+        "--connection-string",
+        "${WMS_POSTGRES_MCP_URL}"
+      ]
+    },
+    "cp-mongodb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mongodb-mcp-server",
+        "--connectionString",
+        "${CP_MONGODB_MCP_URL}"
+      ]
+    }
+  }
+}
