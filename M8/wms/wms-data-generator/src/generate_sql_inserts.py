@@ -61,4 +61,12 @@ def generate_sql_inserts():
     payments_result = generate_payments_data(result.data['customers'], result.data['storage_records'])
     result.merge_with(payments_result)
 
+    # --- Sync SERIAL sequence so API inserts (e.g. POST /storage/cargo) don't collide
+    #     with the explicit ids used by the bulk INSERTs above. ---
+    result.add_line("\n-- Sync sequences after bulk load")
+    result.add_line(
+        "SELECT setval(pg_get_serial_sequence('storage_record','storage_record_id'), "
+        "(SELECT COALESCE(MAX(storage_record_id), 1) FROM storage_record));"
+    )
+
     return result
