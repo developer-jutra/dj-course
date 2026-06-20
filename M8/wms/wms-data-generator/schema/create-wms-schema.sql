@@ -267,3 +267,29 @@ CREATE TABLE storage_metadata_history (
     new_metadata JSONB,
     employee_id INTEGER REFERENCES employee(employee_id)
 );
+
+-- AUDIT TRIGGER: snapshot metadata before/after on every change to storage_record.metadata.
+-- "Who" is read from session setting wms.employee_id (set by the API via SET LOCAL); NULL if unset.
+CREATE OR REPLACE FUNCTION log_storage_metadata_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.metadata IS DISTINCT FROM OLD.metadata THEN
+        INSERT INTO storage_metadata_history (
+            storage_record_id, changed_at, old_metadata, new_metadata, employee_id
+        ) VALUES (
+            OLD.storage_record_id,
+            now(),
+            OLD.metadata,
+            NEW.metadata,
+            NULLIF(current_setting('wms.employee_id', true), '')::INTEGER
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_storage_record_metadata_audit ON storage_record;
+CREATE TRIGGER trg_storage_record_metadata_audit
+    AFTER UPDATE OF metadata ON storage_record
+    FOR EACH ROW
+    EXECUTE FUNCTION log_storage_metadata_change();
