@@ -21,6 +21,7 @@ class ResultComposite:
             'employee_contacts': 'party_contact',
             'party_roles': 'party_role',
             'employee_warehouses': 'employee_warehouse',
+            'categories': 'category',
             'cargo_event_types': 'cargo_event_type',
             'zones': 'zone',
             'aisles': 'aisle',

@@ -1,4 +1,5 @@
-from .storage_records_events import CARGO_SAMPLE_DESCRIPTIONS
+from .storage_records_events import CARGO_SAMPLE_DESCRIPTIONS, build_cargo_metadata
+from src.generators.enums import CATEGORIES
 from .storage_requests_reservations import (
     generate_storage_requests, 
     storage_requests_insert_sql,
@@ -67,6 +68,8 @@ def generate_storage_data(customers, employees):
             cargo_description = fake.sentence(nb_words=4)
         cargo_weight = round(random.uniform(100, 1000), 2)
         cargo_volume = round(random.uniform(1, 10), 2)
+        category_id = random.choice(CATEGORIES)['id']
+        metadata = build_cargo_metadata(category_id, cargo_volume)
         storage_records.append({
             'id': id_,
             'request_id': request_id,
@@ -76,7 +79,9 @@ def generate_storage_data(customers, employees):
             'actual_exit_date': actual_exit_date,
             'cargo_description': cargo_description,
             'cargo_weight': cargo_weight,
-            'cargo_volume': cargo_volume
+            'cargo_volume': cargo_volume,
+            'category_id': category_id,
+            'metadata': metadata
         })
     result.add_line("\n-- Storage Records")
     result.add_line(storage_records_insert_sql(storage_records))

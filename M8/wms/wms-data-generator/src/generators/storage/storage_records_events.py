@@ -1,11 +1,47 @@
 from faker import Faker
 from src.config import DATA_QUANTITIES
-from src.generators.enums import STORAGE_EVENT_TYPES
+from src.generators.enums import STORAGE_EVENT_TYPES, CATEGORIES
 import json
 from datetime import timedelta
 import random
 
 fake = Faker()
+
+FIRMWARE_VERSIONS = ['1.2.0', '1.2.1', '2.0.0', '3.1.4']
+ADR_CLASSES = ['3', '6', '8']
+UN_NUMBERS = ['UN1760', 'UN1789', 'UN1830', 'UN2031']
+
+
+def build_cargo_metadata(category_id, cargo_volume):
+    """Build a category-appropriate JSONB 'technical passport' for a cargo item.
+
+    Attributes differ per category and may be sparse. `volume` is a dynamic
+    attribute present on ~70% of items (README: not every cargo has it),
+    emitted as a JSON number so the volume expression index stays usable.
+    """
+    meta = {}
+    if random.random() < 0.7:
+        meta['volume'] = cargo_volume
+    if category_id == 1:  # Electronics
+        meta['serial_number'] = f"SN-{random.randint(10000, 99999)}"
+        meta['firmware_version'] = random.choice(FIRMWARE_VERSIONS)
+        meta['fragile'] = random.choice([True, False])
+        meta['warranty_months'] = random.choice([12, 24, 36])
+    elif category_id == 2:  # Chemicals
+        meta['adr_class'] = random.choice(ADR_CLASSES)
+        meta['un_number'] = random.choice(UN_NUMBERS)
+        meta['storage_temperature_max'] = random.choice([15, 20, 25, 30])
+        meta['expiry_date'] = fake.date_between(start_date='+30d', end_date='+3y').isoformat()
+        meta['requires_ventilation'] = random.choice([True, False])
+    elif category_id == 3:  # Food
+        meta['expiry_date'] = fake.date_between(start_date='+7d', end_date='+1y').isoformat()
+        meta['storage_temperature_max'] = random.choice([2, 4, 8])
+        meta['fragile'] = random.choice([True, False])
+    else:  # Machinery
+        meta['serial_number'] = f"MCH-{random.randint(10000, 99999)}"
+        meta['weight_class'] = random.choice(['light', 'medium', 'heavy'])
+        meta['fragile'] = False
+    return meta
 
 def generate_storage_event_history(storage_records, employees):
     """Generate storage event history records with employee_id"""
@@ -73,7 +109,9 @@ def generate_storage_records(customers, storage_requests, shelves):
             cargo_description = fake.sentence(nb_words=4)
         cargo_weight = round(random.uniform(100, 1000), 2)
         cargo_volume = round(random.uniform(1, 10), 2)
-        
+        category_id = random.choice(CATEGORIES)['id']
+        metadata = build_cargo_metadata(category_id, cargo_volume)
+
         storage_records.append({
             'id': id_,
             'request_id': request_id,
@@ -83,7 +121,9 @@ def generate_storage_records(customers, storage_requests, shelves):
             'actual_exit_date': actual_exit_date,
             'cargo_description': cargo_description,
             'cargo_weight': cargo_weight,
-            'cargo_volume': cargo_volume
+            'cargo_volume': cargo_volume,
+            'category_id': category_id,
+            'metadata': metadata
         })
     return storage_records
 
@@ -93,9 +133,9 @@ def storage_records_insert_sql(storage_records):
     def sql_timestamp(dt):
         return f"'" + dt.strftime('%Y-%m-%d %H:%M:%S') + "'" if dt else "NULL"
     
-    lines = ["INSERT INTO storage_record (storage_record_id, request_id, customer_id, shelf_id, actual_entry_date, actual_exit_date, cargo_description, cargo_weight, cargo_volume) VALUES"]
+    lines = ["INSERT INTO storage_record (storage_record_id, request_id, customer_id, shelf_id, actual_entry_date, actual_exit_date, cargo_description, cargo_weight, cargo_volume, category_id, metadata) VALUES"]
     lines.append(",\n".join(
-        f"({sr['id']}, {sr['request_id']}, {sr['customer_id']}, {sr['shelf_id']}, {sql_timestamp(sr['actual_entry_date'])}, {sql_timestamp(sr['actual_exit_date']) if sr['actual_exit_date'] else 'NULL'}, {sql_str(sr['cargo_description'])}, {sr['cargo_weight']}, {sr['cargo_volume']})"
+        f"({sr['id']}, {sr['request_id']}, {sr['customer_id']}, {sr['shelf_id']}, {sql_timestamp(sr['actual_entry_date'])}, {sql_timestamp(sr['actual_exit_date']) if sr['actual_exit_date'] else 'NULL'}, {sql_str(sr['cargo_description'])}, {sr['cargo_weight']}, {sr['cargo_volume']}, {sr['category_id']}, {sql_str(json.dumps(sr['metadata']))}::jsonb)"
         for sr in storage_records
     ) + ";")
     return "\n".join(lines)

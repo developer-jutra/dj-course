@@ -17,8 +17,22 @@ STORAGE_EVENT_TYPES = [
     {'id': 8, 'name': 'SAFETY_INCIDENT', 'description': 'Safety or accident incident reported'}
 ]
 
+CATEGORIES = [
+    {'id': 1, 'name': 'Electronics', 'description': 'Consumer and industrial electronics, devices and components.'},
+    {'id': 2, 'name': 'Chemicals', 'description': 'Industrial chemicals, hazardous and non-hazardous substances.'},
+    {'id': 3, 'name': 'Food', 'description': 'Food and beverage goods, including perishables.'},
+    {'id': 4, 'name': 'Machinery', 'description': 'Industrial machinery parts and heavy equipment.'}
+]
+
 def sql_str(s):
     return "'" + str(s).replace("'", "''") + "'"
+
+def categories_insert_sql():
+    lines = ["INSERT INTO category (category_id, name, description) VALUES"]
+    lines.append(",\n".join(
+        f"({c['id']}, {sql_str(c['name'])}, {sql_str(c['description'])})" for c in CATEGORIES
+    ) + ";")
+    return "\n".join(lines)
 
 def roles_insert_sql():
     lines = ["INSERT INTO role (role_id, name, description) VALUES"]
