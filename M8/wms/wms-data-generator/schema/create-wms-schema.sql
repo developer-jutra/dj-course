@@ -19,6 +19,8 @@ DROP TABLE IF EXISTS payment CASCADE;
 DROP TABLE IF EXISTS storage_event_type CASCADE;
 DROP TABLE IF EXISTS storage_event_history CASCADE;
 DROP TABLE IF EXISTS employee_warehouse CASCADE;
+DROP TABLE IF EXISTS category CASCADE;
+DROP TABLE IF EXISTS storage_metadata_history CASCADE;
 
 -- LOCATIONS
 CREATE TABLE location (
@@ -198,6 +200,15 @@ CREATE TABLE storage_reservation (
 
 CREATE INDEX idx_reservation_status_filter ON storage_reservation(status);
 
+-- CARGO CATEGORIES (assortment dictionary, e.g. Electronics, Chemicals)
+CREATE TABLE category (
+    category_id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT
+);
+
+CREATE UNIQUE INDEX idx_category_name ON category(name);
+
 -- STORAGE RECORDS
 CREATE TABLE storage_record (
     storage_record_id SERIAL PRIMARY KEY,
@@ -210,6 +221,11 @@ CREATE TABLE storage_record (
     cargo_weight NUMERIC NOT NULL,
     cargo_volume NUMERIC NOT NULL
 );
+
+-- Flexible cargo "technical passport": assortment category + dynamic attributes (JSONB).
+-- category_id is nullable so legacy/bulk records without a category remain valid.
+ALTER TABLE storage_record ADD COLUMN category_id INTEGER REFERENCES category(category_id);
+ALTER TABLE storage_record ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';
 
 -- PAYMENTS
 CREATE TABLE payment (
@@ -240,4 +256,14 @@ CREATE TABLE storage_event_history (
     event_time TIMESTAMP NOT NULL,
     employee_id INTEGER REFERENCES employee(employee_id),
     details JSONB
+);
+
+-- STORAGE METADATA HISTORY (audit log: snapshot of cargo metadata before/after each change)
+CREATE TABLE storage_metadata_history (
+    history_id SERIAL PRIMARY KEY,
+    storage_record_id INTEGER NOT NULL REFERENCES storage_record(storage_record_id),
+    changed_at TIMESTAMP NOT NULL DEFAULT now(),
+    old_metadata JSONB,
+    new_metadata JSONB,
+    employee_id INTEGER REFERENCES employee(employee_id)
 );
