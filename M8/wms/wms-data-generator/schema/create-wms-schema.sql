@@ -227,6 +227,14 @@ CREATE TABLE storage_record (
 ALTER TABLE storage_record ADD COLUMN category_id INTEGER REFERENCES category(category_id);
 ALTER TABLE storage_record ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';
 
+-- JSONB indexes for cargo metadata access patterns.
+-- GIN (jsonb_path_ops): containment search, e.g. metadata @> '{"fragile": true}'.
+CREATE INDEX idx_storage_record_metadata_gin ON storage_record USING GIN (metadata jsonb_path_ops);
+-- Expression index: exact-match stats by a scalar attribute, e.g. metadata->>'firmware_version' = '1.2.1'.
+CREATE INDEX idx_storage_record_firmware ON storage_record ((metadata->>'firmware_version'));
+-- Expression index: numeric reports over a dynamic attribute, e.g. (metadata->>'volume')::numeric.
+CREATE INDEX idx_storage_record_volume ON storage_record (((metadata->>'volume')::numeric));
+
 -- PAYMENTS
 CREATE TABLE payment (
     payment_id SERIAL PRIMARY KEY,
@@ -267,6 +275,9 @@ CREATE TABLE storage_metadata_history (
     new_metadata JSONB,
     employee_id INTEGER REFERENCES employee(employee_id)
 );
+
+-- History lookup per cargo, newest first (endpoint: GET /storage/cargo/{id}/history).
+CREATE INDEX idx_storage_metadata_history_record ON storage_metadata_history (storage_record_id, changed_at DESC);
 
 -- AUDIT TRIGGER: snapshot metadata before/after on every change to storage_record.metadata.
 -- "Who" is read from session setting wms.employee_id (set by the API via SET LOCAL); NULL if unset.
