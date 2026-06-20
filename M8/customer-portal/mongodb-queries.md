@@ -562,6 +562,116 @@ db.warehousing_requests.find(
 
 ---
 
+## Zaawansowane zapytania - analityka (pipeline'y agregacji)
+
+> Trzy zapytania analityczne wykorzystujące zaawansowane operatory: `$setWindowFields`,
+> `$unionWith`, `$facet`/`$lookup` z pod-pipeline oraz parsowanie dat (`$dateFromString` + `$dateDiff`).
+> Wszystkie przetestowane na danych z `customer_portal`.
+
+### 1. Ranking przychodów firm (funkcje okna: udział + suma narastająca)
+
+Grupuje faktury per firma (przychód = `PAID`, należności = `ISSUED`/`OVERDUE`),
+dołącza nazwę firmy, a następnie przez `$setWindowFields` liczy ranking,
+sumę narastającą i udział procentowy w całości (analiza Pareto / „top customers").
+
+```javascript
+db.invoices.aggregate([
+  { $group: {
+      _id: "$companyId",
+      invoiceCount: { $sum: 1 },
+      revenue:      { $sum: { $cond: [{ $eq: ["$status", "PAID"] }, "$total", 0] } },
+      outstanding:  { $sum: { $cond: [{ $in: ["$status", ["ISSUED", "OVERDUE"]] }, "$total", 0] } }
+  }},
+  { $lookup: { from: "companies", localField: "_id", foreignField: "id", as: "company" } },
+  { $set: { companyName: { $first: "$company.name" }, accountTier: { $first: "$company.accountTier" } } },
+  { $setWindowFields: {
+      sortBy: { revenue: -1 },
+      output: {
+        revenueRank:       { $rank: {} },
+        cumulativeRevenue: { $sum: "$revenue", window: { documents: ["unbounded", "current"] } },
+        totalRevenue:      { $sum: "$revenue", window: { documents: ["unbounded", "unbounded"] } }
+      }
+  }},
+  { $project: {
+      _id: 0, companyName: 1, accountTier: 1, invoiceCount: 1, revenue: 1, outstanding: 1, revenueRank: 1,
+      revenueSharePct:    { $round: [{ $multiply: [100, { $divide: ["$revenue", "$totalRevenue"] }] }, 1] },
+      cumulativeSharePct: { $round: [{ $multiply: [100, { $divide: ["$cumulativeRevenue", "$totalRevenue"] }] }, 1] }
+  }},
+  { $sort: { revenueRank: 1 } }
+])
+```
+
+### 2. Dokładność ETA przesyłek (rozwinięcie tablicy + parsowanie dat)
+
+Rozwija tablicę `features` GeoJSON, filtruje punkty zdarzeń (`kind: "event"`),
+parsuje stringi `estimatedTime`/`actualTime` i liczy opóźnienie w minutach
+(`$dateDiff`), a następnie agreguje statystyki punktualności per przesyłka.
+
+```javascript
+db.tracking_data.aggregate([
+  { $unwind: "$features" },
+  { $match: { "features.properties.kind": "event", "features.properties.actualTime": { $ne: null } } },
+  { $set: {
+      delayMinutes: { $dateDiff: {
+        startDate: { $dateFromString: { dateString: "$features.properties.estimatedTime" } },
+        endDate:   { $dateFromString: { dateString: "$features.properties.actualTime" } },
+        unit: "minute"
+      }}
+  }},
+  { $group: {
+      _id: { trackingNumber: "$trackingNumber", route: "$origin" },
+      destination:    { $first: "$destination" },
+      status:         { $first: "$status" },
+      eventsMeasured: { $sum: 1 },
+      avgDelayMin:    { $avg: "$delayMinutes" },
+      maxDelayMin:    { $max: "$delayMinutes" },
+      lateEvents:     { $sum: { $cond: [{ $gt: ["$delayMinutes", 0] }, 1, 0] } }
+  }},
+  { $set: { onTimeRatePct: { $round: [{ $multiply: [100, { $divide: [{ $subtract: ["$eventsMeasured", "$lateEvents"] }, "$eventsMeasured"] }] }, 0] } } },
+  { $sort: { avgDelayMin: -1 } }
+])
+```
+
+### 3. Dashboard operacyjny per firma (`$unionWith` + `$lookup` z pod-pipeline)
+
+Łączy zlecenia transportowe i magazynowe w jeden strumień (`$unionWith`),
+grupuje per firma, a następnie korelacyjnym `$lookup` dolicza zafakturowaną
+kwotę i zaległości oraz dołącza dane firmy.
+
+```javascript
+db.transportation_requests.aggregate([
+  { $project: { companyId: 1, status: 1, kind: { $literal: "TRANSPORT" }, value: "$cargo.value" } },
+  { $unionWith: { coll: "warehousing_requests",
+      pipeline: [ { $project: { companyId: 1, status: 1, kind: { $literal: "WAREHOUSING" }, value: "$cargo.value" } } ] } },
+  { $group: {
+      _id: "$companyId",
+      totalRequests:    { $sum: 1 },
+      transportCount:   { $sum: { $cond: [{ $eq: ["$kind", "TRANSPORT"] }, 1, 0] } },
+      warehousingCount: { $sum: { $cond: [{ $eq: ["$kind", "WAREHOUSING"] }, 1, 0] } },
+      cargoValue:       { $sum: "$value" },
+      byStatus:         { $push: "$status" }
+  }},
+  { $lookup: {
+      from: "invoices", let: { cid: "$_id" },
+      pipeline: [
+        { $match: { $expr: { $eq: ["$companyId", "$$cid"] } } },
+        { $group: { _id: null, billed: { $sum: "$total" }, overdue: { $sum: { $cond: [{ $eq: ["$status", "OVERDUE"] }, "$total", 0] } } } }
+      ], as: "inv" } },
+  { $lookup: { from: "companies", localField: "_id", foreignField: "id", as: "company" } },
+  { $project: {
+      _id: 0,
+      companyName:  { $first: "$company.name" },
+      tier:         { $first: "$company.accountTier" },
+      totalRequests: 1, transportCount: 1, warehousingCount: 1, cargoValue: 1,
+      billedAmount:  { $ifNull: [{ $first: "$inv.billed" }, 0] },
+      overdueAmount: { $ifNull: [{ $first: "$inv.overdue" }, 0] }
+  }},
+  { $sort: { cargoValue: -1 } }
+])
+```
+
+---
+
 ## Dostępne wartości enum
 
 ### RequestStatus
