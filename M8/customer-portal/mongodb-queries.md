@@ -672,6 +672,141 @@ db.transportation_requests.aggregate([
 
 ---
 
+## Wersje indexed-friendly (zoptymalizowane pod indeksy)
+
+> Oryginalne pipeline'y z sekcji powyżej wchodzą przez `COLLSCAN` (zaczynają się od
+> `$group`/`$unwind`/`$project`, więc planer nie ma jak użyć indeksu na starcie).
+> Poniższe warianty wykorzystują **istniejące** indeksy — potwierdzone przez `explain`.
+> Żaden nowy indeks nie jest potrzebny.
+>
+> Uwaga: pełna agregacja (`$group`/`$unwind`/`$lookup`) nigdy nie będzie *covered query*
+> w sensie index-only — chodzi o to, by **wejście** pipeline'u i złączenia szły po indeksie,
+> a nie skanowały całej kolekcji.
+
+### 1. Ranking przychodów — wejście przez `dueDate_1`
+
+Zmiana: `$match` na zakresie `dueDate` JAKO PIERWSZY etap → `IXSCAN dueDate_1`.
+`$lookup` do `companies` już wcześniej używał `id_1` (`EQ_LOOKUP` / `IndexedLoopJoin`).
+Raport staje się „per okres" (np. faktury z terminem płatności w danym roku/kwartale).
+
+```javascript
+db.invoices.aggregate([
+  // <-- prefiks po indeksie: zakres dat zamiast pełnego skanu
+  { $match: { dueDate: { $gte: ISODate("2024-01-01"), $lt: ISODate("2025-01-01") } } },
+  { $group: {
+      _id: "$companyId",
+      invoiceCount: { $sum: 1 },
+      revenue:      { $sum: { $cond: [{ $eq: ["$status", "PAID"] }, "$total", 0] } },
+      outstanding:  { $sum: { $cond: [{ $in: ["$status", ["ISSUED", "OVERDUE"]] }, "$total", 0] } }
+  }},
+  { $lookup: { from: "companies", localField: "_id", foreignField: "id", as: "company" } },
+  { $set: { companyName: { $first: "$company.name" }, accountTier: { $first: "$company.accountTier" } } },
+  { $setWindowFields: {
+      sortBy: { revenue: -1 },
+      output: {
+        revenueRank:       { $rank: {} },
+        cumulativeRevenue: { $sum: "$revenue", window: { documents: ["unbounded", "current"] } },
+        totalRevenue:      { $sum: "$revenue", window: { documents: ["unbounded", "unbounded"] } }
+      }
+  }},
+  { $project: {
+      _id: 0, companyName: 1, accountTier: 1, invoiceCount: 1, revenue: 1, outstanding: 1, revenueRank: 1,
+      revenueSharePct:    { $round: [{ $multiply: [100, { $divide: ["$revenue", "$totalRevenue"] }] }, 1] },
+      cumulativeSharePct: { $round: [{ $multiply: [100, { $divide: ["$cumulativeRevenue", "$totalRevenue"] }] }, 1] }
+  }},
+  { $sort: { revenueRank: 1 } }
+])
+```
+
+### 2. Dokładność ETA — wejście przez `trackingNumber_1`
+
+Zmiana: `$match` na `trackingNumber` JAKO PIERWSZY etap → `IXSCAN trackingNumber_1`.
+To naturalny wzorzec „dokładność ETA dla jednej przesyłki" (zamiast skanu całej floty).
+
+> Wariant „cała flota" nie da się zaindeksować bez nowego indeksu — `tracking_data` nie ma
+> indeksu na `status`. Gdyby był potrzebny: `db.tracking_data.createIndex({ status: 1 })`
+> i prefiks `{ $match: { status: "IN_TRANSIT" } }`.
+
+```javascript
+db.tracking_data.aggregate([
+  // <-- prefiks po indeksie: jedna przesyłka
+  { $match: { trackingNumber: "TRK123456789" } },
+  { $unwind: "$features" },
+  { $match: { "features.properties.kind": "event", "features.properties.actualTime": { $ne: null } } },
+  { $set: {
+      delayMinutes: { $dateDiff: {
+        startDate: { $dateFromString: { dateString: "$features.properties.estimatedTime" } },
+        endDate:   { $dateFromString: { dateString: "$features.properties.actualTime" } },
+        unit: "minute"
+      }}
+  }},
+  { $group: {
+      _id: { trackingNumber: "$trackingNumber", route: "$origin" },
+      destination:    { $first: "$destination" },
+      status:         { $first: "$status" },
+      eventsMeasured: { $sum: 1 },
+      avgDelayMin:    { $avg: "$delayMinutes" },
+      maxDelayMin:    { $max: "$delayMinutes" },
+      lateEvents:     { $sum: { $cond: [{ $gt: ["$delayMinutes", 0] }, 1, 0] } }
+  }},
+  { $set: { onTimeRatePct: { $round: [{ $multiply: [100, { $divide: [{ $subtract: ["$eventsMeasured", "$lateEvents"] }, "$eventsMeasured"] }] }, 0] } } }
+])
+```
+
+### 3. Dashboard operacyjny — wejście przez `createdAt_-1` + indeksowane `$lookup`
+
+Dwie zmiany:
+1. `$match` na zakresie `createdAt` JAKO PIERWSZY etap w OBU kolekcjach (główna + `$unionWith`)
+   → `IXSCAN createdAt_-1`.
+2. Skorelowany `$lookup` do `invoices` przepisany z formy `let`+`pipeline`+`$expr`
+   (która robiła `COLLSCAN` per dokument) na formę `localField`/`foreignField`
+   → `EQ_LOOKUP` / `IndexedLoopJoin` po `companyId_1`. Agregację `billed`/`overdue`
+   liczymy po złączeniu przez `$filter`/`$sum` na dociągniętej tablicy.
+
+```javascript
+db.transportation_requests.aggregate([
+  // <-- prefiks po indeksie: zakres dat utworzenia
+  { $match: { createdAt: { $gte: ISODate("2024-01-01"), $lt: ISODate("2025-01-01") } } },
+  { $project: { companyId: 1, status: 1, kind: { $literal: "TRANSPORT" }, value: "$cargo.value" } },
+  { $unionWith: { coll: "warehousing_requests", pipeline: [
+      { $match: { createdAt: { $gte: ISODate("2024-01-01"), $lt: ISODate("2025-01-01") } } },
+      { $project: { companyId: 1, status: 1, kind: { $literal: "WAREHOUSING" }, value: "$cargo.value" } }
+  ] } },
+  { $group: {
+      _id: "$companyId",
+      totalRequests:    { $sum: 1 },
+      transportCount:   { $sum: { $cond: [{ $eq: ["$kind", "TRANSPORT"] }, 1, 0] } },
+      warehousingCount: { $sum: { $cond: [{ $eq: ["$kind", "WAREHOUSING"] }, 1, 0] } },
+      cargoValue:       { $sum: "$value" }
+  }},
+  // forma localField/foreignField -> IndexedLoopJoin po companyId_1 (zamiast $expr + collscan)
+  { $lookup: { from: "invoices", localField: "_id", foreignField: "companyId", as: "invAll" } },
+  { $lookup: { from: "companies", localField: "_id", foreignField: "id", as: "company" } },
+  { $project: {
+      _id: 0,
+      companyName: { $first: "$company.name" },
+      tier:        { $first: "$company.accountTier" },
+      totalRequests: 1, transportCount: 1, warehousingCount: 1, cargoValue: 1,
+      billedAmount:  { $round: [{ $sum: "$invAll.total" }, 2] },
+      overdueAmount: { $round: [{ $sum: { $map: {
+          input: { $filter: { input: "$invAll", cond: { $eq: ["$$this.status", "OVERDUE"] } } },
+          in: "$$this.total"
+      } } }, 2] }
+  }},
+  { $sort: { cargoValue: -1 } }
+])
+```
+
+### Podsumowanie pokrycia indeksami
+
+| # | Wariant oryginalny | Wariant indexed-friendly |
+|---|--------------------|--------------------------|
+| 1 | `COLLSCAN` na `invoices` | `IXSCAN dueDate_1` + `EQ_LOOKUP id_1` |
+| 2 | `COLLSCAN` na `tracking_data` | `IXSCAN trackingNumber_1` |
+| 3 | `COLLSCAN` ×2 + `$lookup` `invoices` bez indeksu | `IXSCAN createdAt_-1` ×2 + `EQ_LOOKUP companyId_1` + `EQ_LOOKUP id_1` |
+
+---
+
 ## Dostępne wartości enum
 
 ### RequestStatus
