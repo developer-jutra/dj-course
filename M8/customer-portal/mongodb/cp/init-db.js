@@ -917,6 +917,7 @@ db.transportation_requests.createIndex({ "status": 1 });
 db.transportation_requests.createIndex({ "priority": 1 });
 db.transportation_requests.createIndex({ "createdAt": -1 });
 db.transportation_requests.createIndex({ "serviceType": 1 });
+db.transportation_requests.createIndex({ "companyId": 1, "status": 1, "createdAt": -1 });
 
 // Indeksy dla warehousing_requests
 db.warehousing_requests.createIndex({ "requestNumber": 1 }, { unique: true });
@@ -924,6 +925,7 @@ db.warehousing_requests.createIndex({ "status": 1 });
 db.warehousing_requests.createIndex({ "priority": 1 });
 db.warehousing_requests.createIndex({ "createdAt": -1 });
 db.warehousing_requests.createIndex({ "storageType": 1 });
+db.warehousing_requests.createIndex({ "companyId": 1, "status": 1, "createdAt": -1 });
 
 // Indeksy dla tracking_data (GeoJSON)
 db.tracking_data.createIndex({ "trackingNumber": 1 }, { unique: true });

@@ -797,6 +797,52 @@ db.transportation_requests.aggregate([
 ])
 ```
 
+### 3a. Dashboard per-firma — wejście przez `{ companyId, status, createdAt }`
+
+Wariant dla zalogowanego klienta (widzi TYLKO swoją firmę). `$match` na `companyId`
+jako pierwszy etap wchodzi po prefiksie indeksu złożonego
+`companyId_1_status_1_createdAt_-1` (dodanego migracją `002-add-tenant-indexes.js`).
+Dla samego `companyId` + `$group` planer daje nawet `PROJECTION_COVERED` (covered).
+Dodanie `status` w `$match` zawęża po dwóch równościach (ESR: E+E).
+
+```javascript
+db.transportation_requests.aggregate([
+  // <-- prefiks indeksu zlozonego: companyId (opcjonalnie + status)
+  { $match: { companyId: "1" } },
+  { $project: { companyId: 1, status: 1, kind: { $literal: "TRANSPORT" }, value: "$cargo.value" } },
+  { $unionWith: { coll: "warehousing_requests", pipeline: [
+      { $match: { companyId: "1" } },
+      { $project: { companyId: 1, status: 1, kind: { $literal: "WAREHOUSING" }, value: "$cargo.value" } }
+  ] } },
+  { $group: {
+      _id: "$companyId",
+      totalRequests:    { $sum: 1 },
+      transportCount:   { $sum: { $cond: [{ $eq: ["$kind", "TRANSPORT"] }, 1, 0] } },
+      warehousingCount: { $sum: { $cond: [{ $eq: ["$kind", "WAREHOUSING"] }, 1, 0] } },
+      cargoValue:       { $sum: "$value" }
+  }},
+  { $lookup: { from: "invoices", localField: "_id", foreignField: "companyId", as: "invAll" } },
+  { $lookup: { from: "companies", localField: "_id", foreignField: "id", as: "company" } },
+  { $project: {
+      _id: 0,
+      companyName: { $first: "$company.name" },
+      tier:        { $first: "$company.accountTier" },
+      totalRequests: 1, transportCount: 1, warehousingCount: 1, cargoValue: 1,
+      billedAmount:  { $round: [{ $sum: "$invAll.total" }, 2] },
+      overdueAmount: { $round: [{ $sum: { $map: {
+          input: { $filter: { input: "$invAll", cond: { $eq: ["$$this.status", "OVERDUE"] } } },
+          in: "$$this.total"
+      } } }, 2] }
+  }}
+])
+```
+
+> Indeks `{ companyId: 1, status: 1, createdAt: -1 }` (migracja 002) obsługuje też
+> listy zleceń w UI: `find({ companyId, status }).sort({ createdAt: -1 })` idzie
+> w całości po indeksie (E+E+S, bez sortowania w pamięci). Uwaga: zapytanie
+> `find({ companyId }).sort({ createdAt: -1 })` BEZ statusu nie wykorzysta części
+> `createdAt` do sortowania (status w środku klucza) — planer użyje wtedy `createdAt_-1`.
+
 ### Podsumowanie pokrycia indeksami
 
 | # | Wariant oryginalny | Wariant indexed-friendly |
@@ -804,6 +850,7 @@ db.transportation_requests.aggregate([
 | 1 | `COLLSCAN` na `invoices` | `IXSCAN dueDate_1` + `EQ_LOOKUP id_1` |
 | 2 | `COLLSCAN` na `tracking_data` | `IXSCAN trackingNumber_1` |
 | 3 | `COLLSCAN` ×2 + `$lookup` `invoices` bez indeksu | `IXSCAN createdAt_-1` ×2 + `EQ_LOOKUP companyId_1` + `EQ_LOOKUP id_1` |
+| 3a | `COLLSCAN` per-firma (multi-tenant) | `IXSCAN companyId_1_status_1_createdAt_-1` (covered dla companyId) |
 
 ---
 
