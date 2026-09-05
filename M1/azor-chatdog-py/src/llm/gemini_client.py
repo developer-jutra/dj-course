@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from cli import console
 from .gemini_validation import GeminiConfig
 
+
+
 class GeminiChatSessionWrapper:
     """
     Wrapper for Gemini chat session that provides universal dictionary-based history format.
@@ -171,11 +173,19 @@ class GeminiLLMClient:
                         )
                         gemini_history.append(content)
         
+        # Read generation params from environment (with defaults)
+        temperature = float(os.getenv("TEMPERATURE", "1.0"))
+        top_p = float(os.getenv("TOP_P", "0.95"))
+        top_k = int(os.getenv("TOP_K", "40"))
+        
         gemini_session = self._client.chats.create(
             model=self.model_name,
             history=gemini_history,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
+                temperature=temperature,
+                top_p=top_p,
+                top_k=top_k,
                 thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget)
             )
         )

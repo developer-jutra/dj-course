@@ -47,10 +47,18 @@ class LlamaChatSession:
         prompt = self._build_prompt_from_history()
         
         try:
+            # Read generation params from environment (with defaults)
+            temperature = float(os.getenv("TEMPERATURE", "0.8"))
+            top_p = float(os.getenv("TOP_P", "0.95"))
+            top_k = int(os.getenv("TOP_K", "40"))
+            
             # Generate response using LLaMA
             output = self.llama_model(
                 prompt,
                 max_tokens=512,
+                temperature=temperature,
+                top_p=top_p,
+                top_k=top_k,
                 stop=["User:", "Assistant:", "\n\nUser:", "\n\nAssistant:"],
                 echo=False,
             )

@@ -1,0 +1,7 @@
+# PyTorch requirements for Zadanie 5
+
+# PyTorch (główna biblioteka)
+torch>=2.0.0
+
+# Opcjonalnie - dodatkowe narzędzia
+numpy>=1.24.0  # do porównania z NumPy
